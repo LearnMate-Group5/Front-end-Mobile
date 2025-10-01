@@ -30,11 +30,11 @@ public class SignUpActivity extends AppCompatActivity {
 
         // Ánh xạ các view
         nameInput = findViewById(R.id.inputName);
-        emailInput = findViewById(R.id.inputEmail);
-        passInput = findViewById(R.id.inputPassword);
+        emailInput = findViewById(R.id.inputEmailSignUp);
+        passInput = findViewById(R.id.inputPasswordSignUp);
         confirmPassInput = findViewById(R.id.inputConfirmPassword);
         signUpBtn = findViewById(R.id.btnSignUp);
-        googleBtn = findViewById(R.id.btnGoogle);
+        googleBtn = findViewById(R.id.btnGoogleSignUp);
         goToSignIn = findViewById(R.id.goToSignIn);
 
         // Sự kiện đăng ký
