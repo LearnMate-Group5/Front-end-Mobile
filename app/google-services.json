@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "557955143281",
-    "project_id": "learnmate-714a3",
-    "storage_bucket": "learnmate-714a3.firebasestorage.app"
+    "project_number": "422771762965",
+    "project_id": "khoanmse183880",
+    "storage_bucket": "khoanmse183880.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:557955143281:android:82f86f91c4c39bab06add0",
+        "mobilesdk_app_id": "1:422771762965:android:9c4e01cb4cae8ad4052b1c",
         "android_client_info": {
-          "package_name": "com.example.learnmate_frontend"
+          "package_name": "com.example.lab6"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyD5f8pk90ZZnOuat5ObunxmaFrd_QUrLZY"
+          "current_key": "AIzaSyDnqP1b81Vc9MRvpsWNZrduxbxhNMIXCwE"
         }
       ],
       "services": {

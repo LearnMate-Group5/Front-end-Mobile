@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LearnMate_Frontend"
+rootProject.name = "Lab 6"
 include ':app'
