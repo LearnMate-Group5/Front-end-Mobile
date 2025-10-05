@@ -75,45 +75,35 @@
             android:layout_marginBottom="24dp"/>
 
         <!-- Login Button -->
-        <Button
+        <!-- Login Button -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSignIn"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/purple"
             android:text="LOG IN"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:backgroundTint="@color/purple"
             app:cornerRadius="8dp"/>
 
-        <!-- Facebook Button -->
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnFacebook"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginBottom="16dp"
-            android:drawableLeft="@drawable/ic_facebook"
-            android:drawablePadding="8dp"
-            android:text="CONTINUE WITH FACEBOOK"
-            android:textColor="@android:color/white"
-            android:backgroundTint="@color/facebook_blue"
-            android:textStyle="bold"
-            app:cornerRadius="8dp"/>
+
 
         <!-- Google Button -->
-        <androidx.appcompat.widget.AppCompatButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGoogle"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginBottom="24dp"
-            android:drawableLeft="@drawable/ic_google_origin"
-            android:drawablePadding="8dp"
             android:text="CONTINUE WITH GOOGLE"
             android:textColor="@color/black"
-            android:background="@drawable/edittext_background"
+            android:backgroundTint="@android:color/white"
             android:textStyle="bold"
+            android:drawableLeft="@drawable/ic_google_origin"
+            android:drawablePadding="8dp"
             app:cornerRadius="8dp"/>
+
 
         <!-- Forgot Password -->
         <TextView

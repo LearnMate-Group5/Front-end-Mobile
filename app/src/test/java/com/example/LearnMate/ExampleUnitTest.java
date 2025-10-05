@@ -1,4 +1,4 @@
-package com.example.learnmate_frontend;
+package com.example.LearnMate;
 
 import org.junit.Test;
 
