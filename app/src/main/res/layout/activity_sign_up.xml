@@ -128,7 +128,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="i have read the "
+                android:text="I have read the "
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 />
@@ -151,7 +151,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:buttonTint="@color/purple"/>
+                android:checked="false"
+                />
         </LinearLayout>
 
         <!-- Get Started Button -->

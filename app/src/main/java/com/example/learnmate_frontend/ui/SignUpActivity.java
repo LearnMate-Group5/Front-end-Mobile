@@ -2,6 +2,7 @@ package com.example.learnmate_frontend.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
@@ -63,7 +64,19 @@ public class SignUpActivity extends AppCompatActivity {
         passInput.setOnTouchListener((v, event) -> {
             if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
                 if (event.getRawX() >= (passInput.getRight() - passInput.getCompoundDrawables()[2].getBounds().width())) {
-                    togglePasswordVisibility();
+                    int inputType = passInput.getInputType();
+                    if ((inputType & InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) {
+                        // 👉 Đang hiển thị mật khẩu → chuyển sang ẩn
+                        passInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                        passInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+                    } else {
+                        // 👉 Đang ẩn mật khẩu → chuyển sang hiển thị
+                        passInput.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                        passInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye, 0);
+                    }
+
+                    // Giữ nguyên con trỏ ở cuối text
+                    passInput.setSelection(passInput.getText().length());
                     return true;
                 }
             }
