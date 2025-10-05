@@ -51,7 +51,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.learnmate_icon) // Đảm bảo icon tồn tại
+                .setSmallIcon(R.drawable.logo_learnmate) // Đảm bảo icon tồn tại
                 .setContentTitle(title)
                 .setContentText(messageBody)
                 .setAutoCancel(true)

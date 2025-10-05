@@ -2,7 +2,10 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="blue">#36b5fa</color>
-    <color name="dark_gray">#dbdbdb</color>
+    <color name="purple">#8E97FD</color>
+    <color name="dark_gray">#ADAFBC</color>
     <color name="red">#FF3B30</color>
+    <color name="blue">#007AFF</color>
+    <color name="facebook_blue">#1877F2</color>
+    <color name="green">#34C759</color>
 </resources>

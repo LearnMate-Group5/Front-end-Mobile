@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,8 +42,9 @@ public class SignInActivity extends AppCompatActivity {
     private static final String TAG = "SignInActivity";
 
     private EditText emailInput, passwordInput;
-    private Button signInBtn, googleBtn;
+    private Button signInBtn, googleBtn, facebookBtn;
     private TextView goToSignUp, forgotPassword;
+    private ImageButton btnBack;
 
     private GoogleSignInClient googleSignInClient;
     private FirebaseAuth firebaseAuth;
@@ -82,8 +84,10 @@ public class SignInActivity extends AppCompatActivity {
         passwordInput = findViewById(R.id.inputPassword);
         signInBtn = findViewById(R.id.btnSignIn);
         googleBtn = findViewById(R.id.btnGoogle);
+        facebookBtn = findViewById(R.id.btnFacebook);
         goToSignUp = findViewById(R.id.goToSignUp);
         forgotPassword = findViewById(R.id.forgotPassword);
+        btnBack = findViewById(R.id.btnBack);
 
         // Cấu hình Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -108,10 +112,20 @@ public class SignInActivity extends AppCompatActivity {
         });
 
         googleBtn.setOnClickListener(view -> startGoogleSignIn());
+        
+        facebookBtn.setOnClickListener(view ->
+                Toast.makeText(this, "Facebook login chưa được triển khai", Toast.LENGTH_SHORT).show()
+        );
 
         goToSignUp.setOnClickListener(view ->
                 startActivity(new Intent(SignInActivity.this, SignUpActivity.class))
         );
+
+        btnBack.setOnClickListener(view -> {
+            Intent intent = new Intent(SignInActivity.this, WelcomeActivity.class);
+            startActivity(intent);
+            finish();
+        });
 
         if (forgotPassword != null) {
             forgotPassword.setOnClickListener(view ->
