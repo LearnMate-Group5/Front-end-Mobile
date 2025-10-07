@@ -1,48 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center_horizontal"
-    android:background="@android:color/white">
+    android:background="#F7F8FC">
 
-    <!-- Logo -->
-    <ImageView
-        android:id="@+id/appLogo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="30dp"
-        android:src="@drawable/logo_learnmate"
-        android:contentDescription="@string/app_name"
-        android:adjustViewBounds="true"
-        android:scaleType="fitCenter"/>
-
-    <!-- Welcome Text -->
-    <TextView
-        android:id="@+id/welcomeText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Chào mừng đến với LearnMate!"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:gravity="center"
-        android:layout_marginBottom="40dp"/>
-
-    <!-- Logout Button -->
-    <Button
-        android:id="@+id/btnLogout"
+    <!-- Nội dung cuộn -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:layout_marginTop="40dp"
-        android:backgroundTint="@color/red"
-        android:text="ĐĂNG XUẤT"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:cornerRadius="8dp"/>
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Logo + tên app (tuỳ icon của bạn) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
+
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/logo_learnmate"
+                    app:tint="#6B6BE6" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="6dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Learn"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#6B6BE6"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mate"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#6B6BE6"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Chào -->
+            <TextView
+                android:id="@+id/tvGreeting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Good Morning, Meo"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#22252A"
+                android:paddingTop="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Make today a little smarter."
+                android:textColor="#9AA0A6"
+                android:paddingTop="4dp"
+                android:paddingBottom="8dp"/>
+
+            <!-- Featured grid -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFeatured"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"/>
+
+            <!-- Banner Import -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardImport"
+                android:layout_width="match_parent"
+                android:layout_height="88dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="#5D5FEF">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvImportTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Import Your Book Now"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tvImportTitle"
+                        android:layout_marginTop="4dp"
+                        android:text="Translation ready in 30s"
+                        android:textColor="@android:color/white"/>
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        app:backgroundTint="@android:color/white"
+                        app:tint="#5D5FEF"
+                        app:srcCompat="@android:drawable/ic_media_play"/>
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Recommended -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Recommended for you"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="#22252A"
+                android:paddingTop="4dp"
+                android:paddingBottom="8dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvRecommended"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:nestedScrollingEnabled="false"/>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Loading -->
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progress"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        app:indicatorSize="48dp"/>
+
+    <!-- Bottom nav: KHÔNG để trong ScrollView -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:layout_gravity="bottom"
+        android:background="@android:color/white"
+        android:fitsSystemWindows="true"
+        app:menu="@menu/menu_bottom_home"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/selector_bottom_nav"
+        app:itemTextColor="@color/selector_bottom_nav" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
