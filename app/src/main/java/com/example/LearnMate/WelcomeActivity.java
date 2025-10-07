@@ -29,10 +29,10 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeView {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_welcome);
 
-        welcomeText = findViewById(R.id.welcomeText);
-        btnLogout = findViewById(R.id.btnLogout);
+        welcomeText = findViewById(R.id.welcomeTitle);
+        btnLogout = findViewById(R.id.btnSignUp);
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference("users");
@@ -83,4 +83,5 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeView {
             welcomeText.setText("Chào mừng!");
         }
     }
+    
 }

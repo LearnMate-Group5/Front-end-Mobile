@@ -4,25 +4,24 @@ package com.example.LearnMate;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
 
 import com.example.LearnMate.presenter.LoginPresenter;
 import com.example.LearnMate.view.LoginView;
+import com.google.android.material.button.MaterialButton;
 
 public class LoginActivity extends AppCompatActivity implements LoginView {
 
     private EditText inputEmail, inputPassword;
-    private Button btnSignIn;
+    private MaterialButton btnSignIn;
     private TextView goToSignUp, forgotPassword;
     private ImageButton btnBack;
-    private AppCompatButton  btnGoogle;
+    private MaterialButton  btnGoogle;
 
     private LoginPresenter presenter;
 
@@ -85,8 +84,8 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
 
     @Override
     public void navigateToHome() {
-        startActivity(new Intent(this, WelcomeActivity.class));
-        finish();
+        startActivity(new Intent(this, HomeActivity.class)); // <— chuyển qua HomeActivity
+        finish(); // đóng màn login để không quay lại bằng back
     }
 
     @Override

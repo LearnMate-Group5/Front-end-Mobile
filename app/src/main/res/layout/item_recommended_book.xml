@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="140dp"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:cardCornerRadius="12dp">
+        <ImageView
+            android:id="@+id/imgSmall"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/bg_placeholder"/>
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/tvSmallTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Trace"
+        android:textStyle="bold"
+        android:paddingTop="6dp"
+        android:maxLines="1"/>
+
+    <TextView
+        android:id="@+id/tvSmallCat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Science, Horror"
+        android:textColor="#9AA0A6"
+        android:maxLines="1"/>
+</LinearLayout>
