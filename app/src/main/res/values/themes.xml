@@ -1,9 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.Lab6" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.LearnMate" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/purple_primary</item>
+        <item name="colorOnPrimary">@color/purple_on_primary</item>
+        <item name="colorPrimaryContainer">@color/purple_100</item>
+        <item name="colorOnPrimaryContainer">@color/purple_900</item>
+        
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/purple_secondary</item>
+        <item name="colorOnSecondary">@color/purple_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/purple_200</item>
+        <item name="colorOnSecondaryContainer">@color/purple_800</item>
+        
+        <!-- Tertiary brand color -->
+        <item name="colorTertiary">@color/purple_300</item>
+        <item name="colorOnTertiary">@color/purple_on_primary</item>
+        <item name="colorTertiaryContainer">@color/purple_50</item>
+        <item name="colorOnTertiaryContainer">@color/purple_700</item>
+        
+        <!-- Error colors -->
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/on_error</item>
+        <item name="colorErrorContainer">@color/error_container</item>
+        <item name="colorOnErrorContainer">@color/on_error_container</item>
+        
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/purple_background</item>
+        <item name="colorOnBackground">@color/purple_on_background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/purple_on_surface</item>
+        <item name="colorSurfaceVariant">@color/surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        
+        <!-- Surface container colors -->
+        <item name="colorSurfaceContainer">@color/surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/surface_container_highest</item>
+        
+        <!-- Outline colors -->
+        <item name="colorOutline">@color/text_hint</item>
+        <item name="colorOutlineVariant">@color/text_disabled</item>
+        
+        <!-- Text colors -->
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorHint">@color/text_hint</item>
+        
+        <!-- Material Components -->
+        <item name="materialButtonStyle">@style/Widget.LearnMate.Button</item>
+        <item name="materialCardViewStyle">@style/Widget.LearnMate.CardView</item>
+        <item name="textInputStyle">@style/Widget.LearnMate.TextInputLayout</item>
+        <item name="chipStyle">@style/Widget.LearnMate.Chip</item>
+        
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/purple_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        
+        <!-- Navigation bar -->
+        <item name="android:navigationBarColor">@color/purple_background</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 
-    <style name="Theme.Lab6" parent="Base.Theme.Lab6" />
+    <style name="Theme.LearnMate" parent="Base.Theme.LearnMate" />
+    
+    <!-- Custom Button Style -->
+    <style name="Widget.LearnMate.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/purple_primary</item>
+        <item name="android:textColor">@color/purple_on_primary</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:paddingHorizontal">24dp</item>
+        <item name="android:paddingVertical">12dp</item>
+    </style>
+    
+    <!-- Custom CardView Style -->
+    <style name="Widget.LearnMate.CardView" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="cardBackgroundColor">@color/surface</item>
+        <item name="strokeColor">@color/purple_100</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+    
+    <!-- Custom TextInputLayout Style -->
+    <style name="Widget.LearnMate.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/purple_primary</item>
+        <item name="hintTextColor">@color/purple_primary</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+    </style>
+    
+    <!-- Custom Chip Style -->
+    <style name="Widget.LearnMate.Chip" parent="Widget.MaterialComponents.Chip.Filter">
+        <item name="chipBackgroundColor">@color/purple_100</item>
+        <item name="android:textColor">@color/purple_primary</item>
+        <item name="chipCornerRadius">20dp</item>
+        <item name="chipStrokeColor">@color/purple_primary</item>
+        <item name="chipStrokeWidth">1dp</item>
+    </style>
+    
+    <!-- Custom BottomNavigationView Style -->
+    <style name="Widget.LearnMate.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemBackground">@drawable/selector_bottom_nav_background</item>
+        <item name="itemRippleColor">@android:color/transparent</item>
+        <item name="itemIconTint">@color/selector_bottom_nav</item>
+        <item name="itemTextColor">@color/selector_bottom_nav</item>
+    </style>
 </resources>

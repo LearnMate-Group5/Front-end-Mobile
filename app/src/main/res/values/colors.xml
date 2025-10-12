@@ -1,11 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Basic Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="purple">#8E97FD</color>
     <color name="dark_gray">#ADAFBC</color>
     <color name="red">#FF3B30</color>
     <color name="blue">#007AFF</color>
     <color name="facebook_blue">#1877F2</color>
     <color name="green">#34C759</color>
+    
+    <!-- Material Design Purple Theme -->
+    <color name="purple">#8E97FD</color>
+    <color name="purple_primary">#8E97FD</color>
+    <color name="purple_primary_variant">#6B6BE6</color>
+    <color name="purple_secondary">#A5A6F6</color>
+    <color name="purple_secondary_variant">#C4C5F8</color>
+    <color name="purple_surface">#F8F9FF</color>
+    <color name="purple_background">#FFFFFF</color>
+    <color name="purple_on_primary">#FFFFFF</color>
+    <color name="purple_on_secondary">#FFFFFF</color>
+    <color name="purple_on_surface">#1C1B1F</color>
+    <color name="purple_on_background">#1C1B1F</color>
+    
+    <!-- Additional Material Colors -->
+    <color name="purple_50">#F3F2FF</color>
+    <color name="purple_100">#E8E4FF</color>
+    <color name="purple_200">#C4C5F8</color>
+    <color name="purple_300">#A5A6F6</color>
+    <color name="purple_400">#8E97FD</color>
+    <color name="purple_500">#6B6BE6</color>
+    <color name="purple_600">#5A5BC7</color>
+    <color name="purple_700">#4A4BA8</color>
+    <color name="purple_800">#3A3B89</color>
+    <color name="purple_900">#2A2B6A</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_secondary">#49454F</color>
+    <color name="text_hint">#79747E</color>
+    <color name="text_disabled">#CAC4D0</color>
+    
+    <!-- Surface Colors -->
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F7F2FA</color>
+    <color name="surface_container">#F3F2FF</color>
+    <color name="surface_container_high">#EDE9FF</color>
+    <color name="surface_container_highest">#E8E4FF</color>
+    
+    <!-- Error Colors -->
+    <color name="error">#BA1A1A</color>
+    <color name="error_container">#FFDAD6</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="on_error_container">#410002</color>
 </resources>

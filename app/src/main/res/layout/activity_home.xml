@@ -5,166 +5,179 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F7F8FC">
+    android:background="@color/purple_surface">
 
     <!-- Nội dung cuộn -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:paddingBottom="80dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp">
 
-            <!-- Logo + tên app (tuỳ icon của bạn) -->
+            <!-- Header với logo và greeting -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp">
+                android:paddingTop="16dp"
+                android:paddingBottom="24dp">
 
                 <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:src="@drawable/logo_learnmate"
-                    app:tint="#6B6BE6" />
+                    app:tint="@color/purple_primary" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingStart="6dp">
+                    android:paddingStart="8dp">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Learn"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#6B6BE6"/>
+                        android:textColor="@color/purple_primary"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Mate"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#6B6BE6"/>
+                        android:textColor="@color/purple_primary"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Chào -->
+            <!-- Greeting Section -->
             <TextView
                 android:id="@+id/tvGreeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Good Morning, Meo"
-                android:textSize="24sp"
+                android:textSize="28sp"
                 android:textStyle="bold"
-                android:textColor="#22252A"
-                android:paddingTop="8dp"/>
+                android:textColor="@color/text_primary"
+                android:paddingBottom="8dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Make today a little smarter."
-                android:textColor="#9AA0A6"
-                android:paddingTop="4dp"
-                android:paddingBottom="8dp"/>
+                android:textColor="@color/text_secondary"
+                android:textSize="16sp"
+                android:paddingBottom="24dp"/>
 
-            <!-- Featured grid -->
+            <!-- Featured Books Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Featured Books"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:paddingBottom="16dp"/>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvFeatured"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"/>
+                android:paddingBottom="24dp"/>
 
-            <!-- Banner Import -->
+            <!-- Import Banner -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardImport"
                 android:layout_width="match_parent"
-                android:layout_height="88dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="16dp"
-                app:cardBackgroundColor="#5D5FEF">
+                android:layout_height="100dp"
+                android:layout_marginBottom="24dp"
+                style="@style/Widget.LearnMate.CardView"
+                app:cardBackgroundColor="@color/purple_primary"
+                app:cardElevation="8dp"
+                app:cardCornerRadius="20dp">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
-                    <TextView
-                        android:id="@+id/tvImportTitle"
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Import Your Book Now"
-                        android:textStyle="bold"
-                        android:textColor="@android:color/white"
-                        android:textSize="16sp"/>
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/tvImportTitle"
-                        android:layout_marginTop="4dp"
-                        android:text="Translation ready in 30s"
-                        android:textColor="@android:color/white"/>
+                        <TextView
+                            android:id="@+id/tvImportTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Import Your Book Now"
+                            android:textStyle="bold"
+                            android:textColor="@color/purple_on_primary"
+                            android:textSize="18sp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Translation ready in 30s"
+                            android:textColor="@color/purple_on_primary"
+                            android:textSize="14sp"
+                            android:alpha="0.9"/>
+                    </LinearLayout>
 
                     <com.google.android.material.floatingactionbutton.FloatingActionButton
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        app:backgroundTint="@android:color/white"
-                        app:tint="#5D5FEF"
-                        app:srcCompat="@android:drawable/ic_media_play"/>
+                        app:backgroundTint="@color/surface"
+                        app:tint="@color/purple_primary"
+                        app:srcCompat="@android:drawable/ic_media_play"
+                        app:elevation="6dp"
+                        app:borderWidth="0dp"/>
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Recommended -->
+            <!-- Recommended Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Recommended for you"
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:textColor="#22252A"
-                android:paddingTop="4dp"
-                android:paddingBottom="8dp"/>
+                android:textSize="20sp"
+                android:textColor="@color/text_primary"
+                android:paddingBottom="16dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvRecommended"
                 android:layout_width="match_parent"
-                android:layout_height="140dp"
+                android:layout_height="160dp"
                 android:nestedScrollingEnabled="false"/>
         </LinearLayout>
     </ScrollView>
 
-    <!-- Loading -->
+    <!-- Loading Indicator -->
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progress"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"
         android:visibility="gone"
-        app:indicatorSize="48dp"/>
+        app:indicatorSize="48dp"
+        app:indicatorColor="@color/purple_primary"/>
 
-    <!-- Bottom nav: KHÔNG để trong ScrollView -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
+    <!-- Bottom Navigation -->
+    <com.example.LearnMate.components.BottomNavigationComponent
+        android:id="@+id/bottomNavComponent"
         android:layout_width="match_parent"
-        android:layout_height="68dp"
-        android:layout_gravity="bottom"
-        android:background="@android:color/white"
-        android:fitsSystemWindows="true"
-        app:menu="@menu/menu_bottom_home"
-        app:labelVisibilityMode="labeled"
-        app:itemIconTint="@color/selector_bottom_nav"
-        app:itemTextColor="@color/selector_bottom_nav" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

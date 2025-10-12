@@ -68,8 +68,7 @@
                 android:padding="12dp"
                 android:background="@drawable/edittext_background"
                 android:textColor="@color/black"
-                android:textSize="14sp"
-                android:drawableEnd="@drawable/ic_check_green"/>
+                android:textSize="14sp" />
         </LinearLayout>
 
         <!-- Email -->
@@ -91,7 +90,6 @@
                 android:background="@drawable/edittext_background"
                 android:textColor="@color/black"
                 android:textSize="14sp"
-                android:drawableEnd="@drawable/ic_check_green"
                 />
         </LinearLayout>
 

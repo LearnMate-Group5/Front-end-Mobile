@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- trạng thái được chọn -->
-    <item android:state_checked="true" android:color="#6B6BE6"/>
+    <!-- trạng thái được chọn - màu purple chính -->
+    <item android:state_checked="true" android:color="@color/purple_primary"/>
     <!-- trạng thái không tương tác (tùy chọn) -->
-    <item android:state_enabled="false" android:color="#66B0B3BA"/>
+    <item android:state_enabled="false" android:color="@color/text_disabled"/>
     <!-- mặc định: chưa chọn -->
-    <item android:color="#B0B3BA"/>
+    <item android:color="@color/text_secondary"/>
 </selector>

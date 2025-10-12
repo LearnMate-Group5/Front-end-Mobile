@@ -1,5 +1,6 @@
 package com.example.LearnMate;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,8 +20,8 @@ import com.example.LearnMate.model.Book;
 import com.example.LearnMate.model.HomeRepositoryImpl;
 import com.example.LearnMate.presenter.HomeContract;
 import com.example.LearnMate.presenter.HomePresenter;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.example.LearnMate.components.BottomNavigationComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
     private TextView tvGreeting;
     private RecyclerView rvFeatured, rvRecommended;
     private CircularProgressIndicator progress;
-    private BottomNavigationView bottomNav;
+    private BottomNavigationComponent bottomNavComponent;
 
     private FeaturedAdapter featuredAdapter;
     private RecommendedAdapter recommendedAdapter;
@@ -49,7 +50,7 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
         tvGreeting     = findViewById(R.id.tvGreeting);
         rvFeatured     = findViewById(R.id.rvFeatured);
         rvRecommended  = findViewById(R.id.rvRecommended);
-        bottomNav      = findViewById(R.id.bottomNav);
+        bottomNavComponent = findViewById(R.id.bottomNavComponent);
         progress       = findViewById(R.id.progress);
 
         // ---- adapters & recyclers ----
@@ -64,23 +65,8 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
         findViewById(R.id.cardImport).setOnClickListener(v -> presenter.onImportClick());
 
         // ---- Bottom nav ----
-        bottomNav.setSelectedItemId(R.id.nav_home);
-        bottomNav.setOnItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.nav_import) {
-                presenter.onImportClick();
-                return true;
-            }
-            // các tab khác demo chưa làm
-            return true;
-        });
-
-        // Né gesture bar / cutout: cộng padding đáy theo system insets
-        ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, insets) -> {
-            Insets sb = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
-            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), sb.bottom);
-            return insets;
-        });
+        bottomNavComponent.setSelectedItem(R.id.nav_home);
+        // Navigation is now handled automatically by BottomNavigationComponent
 
         // ---- presenter ----
         presenter = new HomePresenter(new HomeRepositoryImpl());
