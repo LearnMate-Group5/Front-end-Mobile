@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,17 +30,11 @@ import java.util.List;
 public class HomeActivity extends AppCompatActivity implements HomeContract.View {
 
     private TextView tvGreeting;
-    private RecyclerView rvFeatured, rvRecommended;
+    private RecyclerView rvRecommended;
     private CircularProgressIndicator progress;
     private BottomNavigationComponent bottomNavComponent;
 
-    private FeaturedAdapter featuredAdapter;
-    private RecommendedAdapter recommendedAdapter;
-
     private HomeContract.Presenter presenter;
-
-    /** Interface click chung cho 2 adapter (đặt ngoài adapter để tránh lỗi static). */
-    private interface OnBookClick { void onClick(Book b); }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,19 +43,14 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
 
         // ---- bind views ----
         tvGreeting     = findViewById(R.id.tvGreeting);
-        rvFeatured     = findViewById(R.id.rvFeatured);
         rvRecommended  = findViewById(R.id.rvRecommended);
         bottomNavComponent = findViewById(R.id.bottomNavComponent);
         progress       = findViewById(R.id.progress);
 
         // ---- adapters & recyclers ----
-        featuredAdapter = new FeaturedAdapter(book -> presenter.onFeaturedClick(book));
-        rvFeatured.setLayoutManager(new GridLayoutManager(this, 2));
-        rvFeatured.setAdapter(featuredAdapter);
-
-        recommendedAdapter = new RecommendedAdapter(book -> presenter.onRecommendedClick(book));
         rvRecommended.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        rvRecommended.setAdapter(recommendedAdapter);
+        rvRecommended.setAdapter(new MockRecommendedAdapter());
+
 
         findViewById(R.id.cardImport).setOnClickListener(v -> presenter.onImportClick());
 
@@ -93,11 +83,11 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
     }
 
     @Override public void renderFeatured(List<Book> items) {
-        featuredAdapter.submit(items);
+        // This view is now static, no longer need to render
     }
 
     @Override public void renderRecommended(List<Book> items) {
-        recommendedAdapter.submit(items);
+        // This view is now static, no longer need to render from presenter
     }
 
     @Override public void openBookDetail(Book book) {
@@ -114,85 +104,59 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    // ================== Adapters (inner classes, không static) ==================
+    // ================== Adapters for Mock Data ==================
 
-    /** Featured: lưới 2 cột */
-    private class FeaturedAdapter extends RecyclerView.Adapter<FeaturedVH> {
-        private final List<Book> data = new ArrayList<>();
-        private final OnBookClick onClick;
+    /** Adapter for static recommended books with mock data */
+    private class MockRecommendedAdapter extends RecyclerView.Adapter<MockRecommendedVH> {
+        private class MockBook {
+            final int imageRes;
+            final String title;
+            final String category;
+            MockBook(int imageRes, String title, String category) {
+                this.imageRes = imageRes;
+                this.title = title;
+                this.category = category;
+            }
+        }
 
-        FeaturedAdapter(OnBookClick c) { this.onClick = c; }
+        private final List<MockBook> data = new ArrayList<>();
 
-        void submit(List<Book> items) {
-            data.clear();
-            if (items != null) data.addAll(items);
-            notifyDataSetChanged();
+        MockRecommendedAdapter() {
+            // Create static data inside the adapter
+            data.add(new MockBook(R.drawable.mock1, "The Silent Patient", "Thriller"));
+            data.add(new MockBook(R.drawable.mock2, "Educated: A Memoir", "Memoir"));
+            data.add(new MockBook(R.drawable.mock3, "Where the Crawdads Sing", "Fiction"));
+            data.add(new MockBook(R.drawable.mock4, "Atomic Habits", "Self-help"));
         }
 
         @Override
-        public FeaturedVH onCreateViewHolder(ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_featured_book, parent, false);
-            return new FeaturedVH(v);
-        }
-
-        @Override
-        public void onBindViewHolder(FeaturedVH h, int position) {
-            Book b = data.get(position);
-            h.title.setText(b.getTitle());
-            h.rating.setText(String.valueOf(b.getRating()));
-            h.itemView.setOnClickListener(v -> onClick.onClick(b));
-        }
-
-        @Override
-        public int getItemCount() { return data.size(); }
-    }
-
-    private class FeaturedVH extends RecyclerView.ViewHolder {
-        TextView title, rating;
-        FeaturedVH(View v) {
-            super(v);
-            title  = v.findViewById(R.id.tvTitle);
-            rating = v.findViewById(R.id.tvRating);
-        }
-    }
-
-    /** Recommended: danh sách ngang */
-    private class RecommendedAdapter extends RecyclerView.Adapter<RecommendedVH> {
-        private final List<Book> data = new ArrayList<>();
-        private final OnBookClick onClick;
-
-        RecommendedAdapter(OnBookClick c) { this.onClick = c; }
-
-        void submit(List<Book> items) {
-            data.clear();
-            if (items != null) data.addAll(items);
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public RecommendedVH onCreateViewHolder(ViewGroup parent, int viewType) {
+        public MockRecommendedVH onCreateViewHolder(ViewGroup parent, int viewType) {
             View v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_recommended_book, parent, false);
-            return new RecommendedVH(v);
+            return new MockRecommendedVH(v);
         }
 
         @Override
-        public void onBindViewHolder(RecommendedVH h, int position) {
-            Book b = data.get(position);
-            h.title.setText(b.getTitle());
-            h.cat.setText(b.getCategory());
-            h.itemView.setOnClickListener(v -> onClick.onClick(b));
+        public void onBindViewHolder(MockRecommendedVH h, int position) {
+            MockBook b = data.get(position);
+            h.cover.setImageResource(b.imageRes);
+            h.title.setText(b.title);
+            h.cat.setText(b.category);
+            h.itemView.setOnClickListener(v -> {
+                Toast.makeText(h.itemView.getContext(), "Open: " + b.title, Toast.LENGTH_SHORT).show();
+            });
         }
 
         @Override
         public int getItemCount() { return data.size(); }
     }
 
-    private class RecommendedVH extends RecyclerView.ViewHolder {
+    private class MockRecommendedVH extends RecyclerView.ViewHolder {
+        ImageView cover;
         TextView title, cat;
-        RecommendedVH(View v) {
+        MockRecommendedVH(View v) {
             super(v);
+            cover = v.findViewById(R.id.ivSmallCover);
             title = v.findViewById(R.id.tvSmallTitle);
             cat   = v.findViewById(R.id.tvSmallCat);
         }
