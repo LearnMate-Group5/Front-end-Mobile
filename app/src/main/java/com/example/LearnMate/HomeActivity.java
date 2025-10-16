@@ -65,8 +65,10 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
 
     @Override protected void onStart() {
         super.onStart();
-        presenter.onStart();
+        String name = getSharedPreferences("user_prefs", MODE_PRIVATE).getString("user_name", "User");
+        tvGreeting.setText("Good Morning, " + name);
     }
+
 
     @Override protected void onDestroy() {
         presenter.detach();

@@ -1,75 +1,62 @@
 package com.example.LearnMate.model;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.example.LearnMate.network.RetrofitClient;
+import com.example.LearnMate.network.api.AuthService;
+import com.example.LearnMate.network.dto.*;
 
-// >>> Thêm 2 import dưới đây để hết lỗi DatabaseReference / FirebaseDatabase
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AuthModel {
 
-    private final FirebaseAuth mAuth;
-    private final DatabaseReference mDatabase;
+    private final AuthService auth;
 
-    public AuthModel() {
-        mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference(); // child(...) sẽ có trên kiểu này
+    public AuthModel(Context appContext) {
+        this.auth = RetrofitClient.getAuthService(appContext);
     }
 
     public void login(@NonNull String email,
                       @NonNull String password,
-                      @NonNull AuthCallback callback) {
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        callback.onSuccess("Login successful");
-                    } else {
-                        String msg = (task.getException() != null)
-                                ? task.getException().getMessage() // getMessage() ở Exception
-                                : "Login failed";
-                        callback.onFailure(msg);
-                    }
-                });
+                      @NonNull AuthCallback cb) {
+        auth.login(new LoginUserCommand(email, password)).enqueue(new Callback<ApiResult<AuthPayload>>() {
+            @Override public void onResponse(Call<ApiResult<AuthPayload>> call, Response<ApiResult<AuthPayload>> res) {
+                if (!res.isSuccessful() || res.body() == null || !res.body().isSuccess || res.body().value == null) {
+                    cb.onFailure("Login failed");
+                    return;
+                }
+                cb.onSuccess(res.body().value);
+            }
+            @Override public void onFailure(Call<ApiResult<AuthPayload>> call, Throwable t) {
+                cb.onFailure(t.getMessage() == null ? "Network error" : t.getMessage());
+            }
+        });
     }
 
-    public void signup(@NonNull String email,
-                       @NonNull String password,
-                       @NonNull String username,
-                       @NonNull AuthCallback callback) {
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        String msg = (task.getException() != null)
-                                ? task.getException().getMessage()
-                                : "Signup failed";
-                        callback.onFailure(msg);
-                        return;
-                    }
-
-                    FirebaseUser current = mAuth.getCurrentUser();
-                    if (current == null) {
-                        callback.onFailure("User is null after signup");
-                        return;
-                    }
-
-                    String userId = current.getUid();
-                    // Pass email and userId to the User constructor
-                    User user = new User(username, email, userId); 
-
-                    // child(String) có sẵn trên DatabaseReference
-                    mDatabase.child("users").child(userId).setValue(user)
-                            .addOnSuccessListener(aVoid -> callback.onSuccess("Signup successful"))
-                            .addOnFailureListener(e ->
-                                    // Simplified error message
-                                    callback.onFailure(e.getMessage()));
-                });
+    public void register(@NonNull String name,
+                         @NonNull String email,
+                         @NonNull String password,
+                         @NonNull AuthCallback cb) {
+        auth.register(new RegisterUserCommand(name, email, password)).enqueue(new Callback<ApiResult<AuthPayload>>() {
+            @Override public void onResponse(Call<ApiResult<AuthPayload>> call, Response<ApiResult<AuthPayload>> res) {
+                if (!res.isSuccessful() || res.body() == null || !res.body().isSuccess || res.body().value == null) {
+                    cb.onFailure("Signup failed");
+                    return;
+                }
+                cb.onSuccess(res.body().value);
+            }
+            @Override public void onFailure(Call<ApiResult<AuthPayload>> call, Throwable t) {
+                cb.onFailure(t.getMessage() == null ? "Network error" : t.getMessage());
+            }
+        });
     }
 
     public interface AuthCallback {
-        void onSuccess(String message);
+        void onSuccess(AuthPayload payload);
         void onFailure(String message);
     }
 }

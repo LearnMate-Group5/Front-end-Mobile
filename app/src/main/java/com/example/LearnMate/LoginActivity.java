@@ -1,4 +1,3 @@
-// com.example.lab6.LoginActivity
 package com.example.LearnMate;
 
 import android.content.Intent;
@@ -28,9 +27,9 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_in); // khớp với XML bạn gửi
+        setContentView(R.layout.activity_sign_in);
 
-        // ---- match đúng ID trong activity_login.xml ----
+        // Initialize Views
         btnBack = findViewById(R.id.btnBack);
         inputEmail = findViewById(R.id.inputEmail);
         inputPassword = findViewById(R.id.inputPassword);
@@ -39,23 +38,23 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
         forgotPassword = findViewById(R.id.forgotPassword);
         goToSignUp = findViewById(R.id.goToSignUp);
 
-        presenter = new LoginPresenter(this);
+        // Initialize Presenter with Context
+        presenter = new LoginPresenter(this, this);
 
-        // ---- Events ----
+        // Set Click Listeners
         btnBack.setOnClickListener(v -> finish());
 
         btnSignIn.setOnClickListener(v -> {
             String email = inputEmail.getText().toString().trim();
             String password = inputPassword.getText().toString().trim();
-
-            if (TextUtils.isEmpty(email)) { showErrorMessage("Vui lòng nhập email"); return; }
-            if (TextUtils.isEmpty(password)) { showErrorMessage("Vui lòng nhập mật khẩu"); return; }
-
             presenter.performLogin(email, password);
         });
 
-        goToSignUp.setOnClickListener(v -> presenter.onSignupClicked());
+        goToSignUp.setOnClickListener(v -> {
+            navigateToSignup();
+        });
 
+        // TODO: Implement these features later
         forgotPassword.setOnClickListener(v ->
                 Toast.makeText(this, "TODO: Forgot password flow", Toast.LENGTH_SHORT).show()
         );
@@ -65,31 +64,30 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
         );
     }
 
-    // ---- LoginView implementation ----
+    // ---- LoginView Implementation ----
+
     @Override
     public void showSuccessMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        // Call the new navigation method
+        navigateToHome();
     }
 
     @Override
-    public void showLoginError(String error) {
-        Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+    public void showErrorMessage(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void navigateToHome() {
+        // Navigate to the main screen of the app
+        startActivity(new Intent(this, HomeActivity.class));
+        finishAffinity(); // Finish this activity and all parent activities
     }
 
     @Override
     public void navigateToSignup() {
         startActivity(new Intent(this, SignupActivity.class));
         finish();
-    }
-
-    @Override
-    public void navigateToHome() {
-        startActivity(new Intent(this, HomeActivity.class)); // <— chuyển qua HomeActivity
-        finish(); // đóng màn login để không quay lại bằng back
-    }
-
-    @Override
-    public void showErrorMessage(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

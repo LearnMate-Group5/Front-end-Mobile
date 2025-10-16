@@ -1,30 +1,20 @@
 package com.example.LearnMate;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.LearnMate.model.User;
 import com.example.LearnMate.view.WelcomeView;
 import com.example.LearnMate.R;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 public class WelcomeActivity extends AppCompatActivity implements WelcomeView {
     private TextView welcomeText;
     private Button btnLogout;
-    private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,45 +24,36 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeView {
         welcomeText = findViewById(R.id.welcomeTitle);
         btnLogout = findViewById(R.id.btnSignUp);
 
-        mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference("users");
+        SharedPreferences sharedPreferences = getSharedPreferences("LearnMatePrefs", MODE_PRIVATE);
+        String username = sharedPreferences.getString("USER_NAME", null);
+
+        if (username != null) {
+            displayUserInfo(username);
+        } else {
+            // No user is logged in, redirect to the Login screen.
+            goToLogin();
+            return; // Stop further execution.
+        }
 
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mAuth.signOut();
-                Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
+                // Clear user session
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.clear();
+                editor.apply();
+
+                // Redirect to LoginActivity
+                goToLogin();
             }
         });
+    }
 
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            String uid = currentUser.getUid();
-            mDatabase.child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    User user = snapshot.getValue(User.class);
-                    if (user != null) {
-                        displayUserInfo(user.getUsername());
-                    } else {
-                        displayUserInfo(currentUser.getEmail());
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    displayUserInfo(currentUser.getEmail());
-                }
-            });
-        } else {
-            Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        }
+    private void goToLogin() {
+        Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -83,5 +64,4 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeView {
             welcomeText.setText("Chào mừng!");
         }
     }
-    
 }

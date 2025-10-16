@@ -35,11 +35,18 @@ dependencies {
     implementation libs.material
     implementation libs.activity
     implementation libs.constraintlayout
-    implementation libs.firebase.auth
-    implementation libs.credentials
-    implementation libs.credentials.play.services.auth
-    implementation libs.googleid
-    implementation libs.firebase.database
+    // Annotation library for @NonNull
+    implementation 'androidx.annotation:annotation:1.7.1'
+    // Retrofit for backend API
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0' // For logging API requests
+    // Remove Firebase if no longer needed for auth/db
+    // implementation libs.firebase.auth
+    // implementation libs.credentials
+    // implementation libs.credentials.play.services.auth
+    // implementation libs.googleid
+    // implementation libs.firebase.database
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
