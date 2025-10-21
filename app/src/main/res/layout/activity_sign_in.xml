@@ -91,17 +91,17 @@
 
 
         <!-- Google Button -->
-        <com.google.android.material.button.MaterialButton
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnGoogle"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginBottom="24dp"
-            android:text="CONTINUE WITH GOOGLE"
-            android:textColor="@color/black"
-            android:backgroundTint="@android:color/white"
-            android:textStyle="bold"
             android:drawableLeft="@drawable/ic_google_origin"
             android:drawablePadding="8dp"
+            android:text="CONTINUE WITH GOOGLE"
+            android:textColor="@color/black"
+            android:background="@drawable/edittext_background"
+            android:textStyle="bold"
             app:cornerRadius="8dp"/>
 
 
