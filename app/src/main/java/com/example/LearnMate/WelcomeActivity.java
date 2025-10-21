@@ -14,46 +14,70 @@ import com.example.LearnMate.R;
 
 public class WelcomeActivity extends AppCompatActivity implements WelcomeView {
     private TextView welcomeText;
-    private Button btnLogout;
+    private Button btnSignUp;
+    private TextView goToSignIn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Kiểm tra token trước khi hiển thị layout
+        checkAuthenticationStatus();
+    }
+
+    private void checkAuthenticationStatus() {
+        SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String token = sharedPreferences.getString("token", null);
+        boolean isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false);
+
+        if (token != null && !token.isEmpty() && isLoggedIn) {
+            // Có token và đã đăng nhập -> chuyển đến HomeActivity
+            goToHome();
+            return;
+        } else {
+            // Không có token -> hiển thị WelcomeActivity
+            showWelcomeScreen();
+        }
+    }
+
+    private void showWelcomeScreen() {
         setContentView(R.layout.activity_welcome);
 
         welcomeText = findViewById(R.id.welcomeTitle);
-        btnLogout = findViewById(R.id.btnSignUp);
+        btnSignUp = findViewById(R.id.btnSignUp);
+        goToSignIn = findViewById(R.id.goToSignIn);
 
-        SharedPreferences sharedPreferences = getSharedPreferences("LearnMatePrefs", MODE_PRIVATE);
-        String username = sharedPreferences.getString("USER_NAME", null);
-
-        if (username != null) {
-            displayUserInfo(username);
-        } else {
-            // No user is logged in, redirect to the Login screen.
-            goToLogin();
-            return; // Stop further execution.
-        }
-
-        btnLogout.setOnClickListener(new View.OnClickListener() {
+        // Set click listeners
+        btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Clear user session
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.clear();
-                editor.apply();
+                goToSignup();
+            }
+        });
 
-                // Redirect to LoginActivity
+        goToSignIn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 goToLogin();
             }
         });
     }
 
-    private void goToLogin() {
-        Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
+    private void goToHome() {
+        Intent intent = new Intent(WelcomeActivity.this, HomeActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void goToLogin() {
+        Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
+        startActivity(intent);
+    }
+
+    private void goToSignup() {
+        Intent intent = new Intent(WelcomeActivity.this, SignupActivity.class);
+        startActivity(intent);
     }
 
     @Override
