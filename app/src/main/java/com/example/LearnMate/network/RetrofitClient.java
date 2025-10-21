@@ -20,7 +20,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public final class RetrofitClient {
 
     // Theo "servers" trong OpenAPI
-    private static final String BASE_URL = "http://chooy-alb-44412735.us-east-1.elb.amazonaws.com/";
+    private static final String BASE_URL = "https://chooy-alb-585589353.us-east-1.elb.amazonaws.com/";
 
     private static Retrofit retrofit;
     private static AuthService cachedService;
@@ -73,3 +73,4 @@ public final class RetrofitClient {
                 .build();
     }
 }
+
