@@ -1,78 +1,83 @@
 package com.example.LearnMate;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.LearnMate.model.User;
 import com.example.LearnMate.view.WelcomeView;
 import com.example.LearnMate.R;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 public class WelcomeActivity extends AppCompatActivity implements WelcomeView {
     private TextView welcomeText;
-    private Button btnLogout;
-    private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
+    private Button btnSignUp;
+    private TextView goToSignIn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Kiểm tra token trước khi hiển thị layout
+        checkAuthenticationStatus();
+    }
+
+    private void checkAuthenticationStatus() {
+        SharedPreferences sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String token = sharedPreferences.getString("token", null);
+        boolean isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false);
+
+        if (token != null && !token.isEmpty() && isLoggedIn) {
+            // Có token và đã đăng nhập -> chuyển đến HomeActivity
+            goToHome();
+            return;
+        } else {
+            // Không có token -> hiển thị WelcomeActivity
+            showWelcomeScreen();
+        }
+    }
+
+    private void showWelcomeScreen() {
         setContentView(R.layout.activity_welcome);
 
         welcomeText = findViewById(R.id.welcomeTitle);
-        btnLogout = findViewById(R.id.btnSignUp);
+        btnSignUp = findViewById(R.id.btnSignUp);
+        goToSignIn = findViewById(R.id.goToSignIn);
 
-        mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference("users");
-
-        btnLogout.setOnClickListener(new View.OnClickListener() {
+        // Set click listeners
+        btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mAuth.signOut();
-                Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
+                goToSignup();
             }
         });
 
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            String uid = currentUser.getUid();
-            mDatabase.child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    User user = snapshot.getValue(User.class);
-                    if (user != null) {
-                        displayUserInfo(user.getUsername());
-                    } else {
-                        displayUserInfo(currentUser.getEmail());
-                    }
-                }
+        goToSignIn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goToLogin();
+            }
+        });
+    }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    displayUserInfo(currentUser.getEmail());
-                }
-            });
-        } else {
-            Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        }
+    private void goToHome() {
+        Intent intent = new Intent(WelcomeActivity.this, HomeActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    private void goToLogin() {
+        Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
+        startActivity(intent);
+    }
+
+    private void goToSignup() {
+        Intent intent = new Intent(WelcomeActivity.this, SignupActivity.class);
+        startActivity(intent);
     }
 
     @Override
@@ -83,5 +88,4 @@ public class WelcomeActivity extends AppCompatActivity implements WelcomeView {
             welcomeText.setText("Chào mừng!");
         }
     }
-    
 }
