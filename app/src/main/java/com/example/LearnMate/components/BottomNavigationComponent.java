@@ -17,6 +17,7 @@ import com.example.LearnMate.SettingsActivity;
 import com.example.LearnMate.SearchActivity;
 import com.example.LearnMate.ImportActivity;
 import com.example.LearnMate.ProfileActivity;
+import com.example.LearnMate.AiChatBotActivity;
 import com.example.LearnMate.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -90,6 +91,10 @@ public class BottomNavigationComponent extends FrameLayout {
         } else if (itemId == R.id.nav_import) {
             if (!(context instanceof ImportActivity)) {
                 intent = new Intent(context, ImportActivity.class);
+            }
+        } else if (itemId == R.id.nav_ai_bot) {
+            if (!(context instanceof AiChatBotActivity)) {
+                intent = new Intent(context, AiChatBotActivity.class);
             }
         } else if (itemId == R.id.nav_profile) {
             // nav_profile is actually "Settings" in the menu

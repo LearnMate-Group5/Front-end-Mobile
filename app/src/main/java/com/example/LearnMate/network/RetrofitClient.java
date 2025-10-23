@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.example.LearnMate.network.api.AuthService;
+import com.example.LearnMate.network.api.AiChatService;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -20,10 +21,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public final class RetrofitClient {
 
     // Theo "servers" trong OpenAPI
-    private static final String BASE_URL = "http://chooy-alb-585589353.us-east-1.elb.amazonaws.com";
+    private static final String BASE_URL = "http://localhost:2406/";
+    private static final String AI_CHAT_BASE_URL = "http://10.0.2.2:5678/";
 
     private static Retrofit retrofit;
+    private static Retrofit aiChatRetrofit;
     private static AuthService cachedService;
+    private static AiChatService cachedAiChatService;
 
     private RetrofitClient() {}
 
@@ -33,6 +37,14 @@ public final class RetrofitClient {
             cachedService = retrofit.create(AuthService.class);
         }
         return cachedService;
+    }
+
+    public static AiChatService getAiChatService(Context appContext) {
+        if (cachedAiChatService == null) {
+            aiChatRetrofit = buildAiChatRetrofit(appContext.getApplicationContext());
+            cachedAiChatService = aiChatRetrofit.create(AiChatService.class);
+        }
+        return cachedAiChatService;
     }
 
     private static Retrofit buildRetrofit(Context appContext) {
@@ -63,11 +75,30 @@ public final class RetrofitClient {
                 .addInterceptor(authInterceptor)
                 .addInterceptor(log)
                 .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS) // 1 minute for auth
+                .writeTimeout(60, TimeUnit.SECONDS) // 1 minute for auth
                 .build();
 
         return new Retrofit.Builder()
                 .baseUrl(BASE_URL) // nhớ dấu '/'
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+    }
+
+    private static Retrofit buildAiChatRetrofit(Context appContext) {
+        HttpLoggingInterceptor log = new HttpLoggingInterceptor();
+        log.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(log)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(300, TimeUnit.SECONDS) // 5 minutes
+                .writeTimeout(300, TimeUnit.SECONDS) // 5 minutes
+                .build();
+
+        return new Retrofit.Builder()
+                .baseUrl(AI_CHAT_BASE_URL)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
