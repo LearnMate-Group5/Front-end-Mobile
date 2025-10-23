@@ -13,6 +13,7 @@ import com.google.android.material.button.MaterialButton;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.LearnMate.components.BottomNavigationComponent;
+import com.example.LearnMate.managers.SessionManager;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -24,14 +25,19 @@ public class ProfileActivity extends AppCompatActivity {
     private EditText etPhoneNumber;
     private EditText etBirth;
     private MaterialButton btnEditProfile;
+    private MaterialButton btnLogout; // Button for logging out
     private BottomNavigationComponent bottomNavComponent;
-    
+    private SessionManager sessionManager;
+
     private boolean isEditMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        // Initialize SessionManager
+        sessionManager = new SessionManager(getApplicationContext());
 
         // Initialize views
         btnBack = findViewById(R.id.btnBack);
@@ -41,8 +47,9 @@ public class ProfileActivity extends AppCompatActivity {
         etPhoneNumber = findViewById(R.id.etPhoneNumber);
         etBirth = findViewById(R.id.etBirth);
         btnEditProfile = findViewById(R.id.btnEditProfile);
+        btnLogout = findViewById(R.id.btnLogout); // Make sure you have a button with this ID in your XML layout
         bottomNavComponent = findViewById(R.id.bottomNavComponent);
-        
+
         // Set initial state (view mode)
         setEditMode(false);
 
@@ -72,22 +79,32 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
 
+        // Set logout button click listener
+        if (btnLogout != null) {
+            btnLogout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    sessionManager.logoutUser();
+                }
+            });
+        }
+
         // Setup bottom navigation
         // ProfileActivity is not a main navigation item, so don't set selected item
         // Navigation is now handled automatically by BottomNavigationComponent
         // No need for manual navigation handling here
     }
-    
+
     private void setEditMode(boolean editMode) {
         isEditMode = editMode;
-        
+
         // Enable/disable EditText fields
         etUsername.setEnabled(editMode);
         etPassword.setEnabled(editMode);
         etEmail.setEnabled(editMode);
         etPhoneNumber.setEnabled(editMode);
         etBirth.setEnabled(editMode);
-        
+
         // Change button text and icon
         if (editMode) {
             btnEditProfile.setText("Save");
@@ -97,7 +114,7 @@ public class ProfileActivity extends AppCompatActivity {
             btnEditProfile.setCompoundDrawablesWithIntrinsicBounds(0, 0, android.R.drawable.ic_menu_edit, 0);
         }
     }
-    
+
     private void saveProfileData() {
         // Get data from EditText fields
         String username = etUsername.getText().toString();
@@ -105,16 +122,16 @@ public class ProfileActivity extends AppCompatActivity {
         String email = etEmail.getText().toString();
         String phoneNumber = etPhoneNumber.getText().toString();
         String birth = etBirth.getText().toString();
-        
+
         // TODO: Save data to database or SharedPreferences
         // For now, just show a toast or handle the save logic
-        
+
         // You can add validation here
         if (username.isEmpty() || email.isEmpty()) {
             // Show error message
             return;
         }
-        
+
         // Save successful - you can add your save logic here
     }
 }
