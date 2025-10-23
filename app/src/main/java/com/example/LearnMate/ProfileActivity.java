@@ -84,7 +84,7 @@ public class ProfileActivity extends AppCompatActivity {
             btnLogout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    sessionManager.logoutUser();
+                    btnLogout.setOnClickListener(y -> sessionManager.logout(ProfileActivity.this));
                 }
             });
         }

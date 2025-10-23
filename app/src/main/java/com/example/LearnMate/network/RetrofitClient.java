@@ -21,7 +21,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public final class RetrofitClient {
 
     // Theo "servers" trong OpenAPI
-    private static final String BASE_URL = "http://localhost:2406/";
+    // Use 10.0.2.2 to connect to host machine's localhost from Android Emulator
+    private static final String BASE_URL = "http://10.0.2.2:2406/";
     private static final String AI_CHAT_BASE_URL = "http://10.0.2.2:5678/";
 
     private static Retrofit retrofit;
@@ -104,4 +105,3 @@ public final class RetrofitClient {
                 .build();
     }
 }
-
