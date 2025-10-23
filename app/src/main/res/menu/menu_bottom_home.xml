@@ -2,5 +2,6 @@
     <item android:id="@+id/nav_home" android:title="Home" android:icon="@drawable/ic_home"/>
     <item android:id="@+id/nav_search" android:title="Search" android:icon="@android:drawable/ic_menu_search"/>
     <item android:id="@+id/nav_import" android:title="Import" android:icon="@android:drawable/ic_input_add"/>
+    <item android:id="@+id/nav_ai_bot" android:title="AI Bot" android:icon="@drawable/chatbot"/>
     <item android:id="@+id/nav_profile" android:title="Setting" android:icon="@drawable/ic_settings_black_24dp"/>
 </menu>
