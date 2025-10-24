@@ -3,17 +3,16 @@ package com.example.LearnMate.network;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.example.LearnMate.network.api.AuthService;
 import com.example.LearnMate.network.api.AiChatService;
+import com.example.LearnMate.network.api.AiTranslateService;
+import com.example.LearnMate.network.api.AuthService;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.HttpUrl;
-import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -25,10 +24,14 @@ public final class RetrofitClient {
     private static final String BASE_URL = "http://10.0.2.2:2406/";
     private static final String AI_CHAT_BASE_URL = "http://10.0.2.2:5678/";
 
+    private static final String AI_TRANSLATE_BASE_URL = "http://10.0.2.2:5678/";
+
     private static Retrofit retrofit;
     private static Retrofit aiChatRetrofit;
+    private static Retrofit aiTranslateRetrofit;
     private static AuthService cachedService;
     private static AiChatService cachedAiChatService;
+    private static AiTranslateService cachedAiTranslateService;
 
     private RetrofitClient() {}
 
@@ -46,6 +49,14 @@ public final class RetrofitClient {
             cachedAiChatService = aiChatRetrofit.create(AiChatService.class);
         }
         return cachedAiChatService;
+    }
+
+    public static AiTranslateService getAiTranslateService(Context appContext) {
+        if (cachedAiTranslateService == null) {
+            aiTranslateRetrofit = buildAiTranslateRetrofit(appContext.getApplicationContext());
+            cachedAiTranslateService = aiTranslateRetrofit.create(AiTranslateService.class);
+        }
+        return cachedAiTranslateService;
     }
 
     private static Retrofit buildRetrofit(Context appContext) {
@@ -100,6 +111,24 @@ public final class RetrofitClient {
 
         return new Retrofit.Builder()
                 .baseUrl(AI_CHAT_BASE_URL)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+    }
+
+    private static Retrofit buildAiTranslateRetrofit(Context appContext) {
+        HttpLoggingInterceptor log = new HttpLoggingInterceptor();
+        log.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(log)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(300, TimeUnit.SECONDS) // 5 minutes
+                .writeTimeout(300, TimeUnit.SECONDS) // 5 minutes
+                .build();
+
+        return new Retrofit.Builder()
+                .baseUrl(AI_TRANSLATE_BASE_URL)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
