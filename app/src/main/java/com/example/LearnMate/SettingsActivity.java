@@ -1,9 +1,10 @@
 package com.example.LearnMate;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.material.button.MaterialButton;
@@ -12,68 +13,53 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.LearnMate.components.BottomNavigationComponent;
 
+import com.example.LearnMate.managers.SessionManager;
+
 public class SettingsActivity extends AppCompatActivity {
 
     private TextView tvUserName;
     private TextView tvUserEmail;
     private MaterialButton btnShowProfile;
     private ImageView btnSettings;
+    private LinearLayout btnLogout;
 
+    private SessionManager sessionManager;
     private BottomNavigationComponent bottomNavComponent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        // sau khi findViewById các view khác:
-        findViewById(R.id.rowLogout).setOnClickListener(v -> {
-            new com.example.LearnMate.managers.SessionManager(getApplicationContext())
-                    .logout(SettingsActivity.this);
-        });
 
+        sessionManager = new SessionManager(this);
 
-
-
-        // Initialize views
         tvUserName = findViewById(R.id.tvUserName);
         tvUserEmail = findViewById(R.id.tvUserEmail);
         btnShowProfile = findViewById(R.id.btnShowProfile);
-        btnSettings = findViewById(R.id.btnSettings);
+        // btnSettings = findViewById(R.id.btnSettings); // This ID does not exist in the layout
         bottomNavComponent = findViewById(R.id.bottomNavComponent);
+        btnLogout = findViewById(R.id.btnLogout);
 
-        // Set click listeners
-        btnShowProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to Profile screen
-                Intent intent = new Intent(SettingsActivity.this, ProfileActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish(); // Close current activity
-            }
-        });
-
-        tvUserName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to Profile screen when clicking on username area
-                Intent intent = new Intent(SettingsActivity.this, ProfileActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish(); // Close current activity
-            }
-        });
-
-        btnSettings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle settings icon click
-                // You can add settings functionality here
-            }
-        });
-
-        // Setup bottom navigation
+        btnLogout.setOnClickListener(v -> sessionManager.logout(SettingsActivity.this));
         bottomNavComponent.setSelectedItem(R.id.nav_profile);
-        // Navigation is now handled automatically by BottomNavigationComponent
+
+        btnShowProfile.setOnClickListener(v -> {
+            startActivity(new Intent(this, ProfileActivity.class));
+        });
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bindUserFromSession();
+    }
+
+    private void bindUserFromSession() {
+        SharedPreferences sp = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String name  = sp.getString("user_name", "");
+        String email = sp.getString("user_email", "");
+        tvUserName.setText(name);
+        tvUserEmail.setText(email);
     }
 }

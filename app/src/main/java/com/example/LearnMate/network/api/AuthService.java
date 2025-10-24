@@ -7,6 +7,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface AuthService {
@@ -29,4 +30,13 @@ public interface AuthService {
 
     @GET("/api/User/health")
     Call<Object> health();
+
+    // Lấy thông tin profile người dùng
+    @PUT("/api/User/{userId}/activation")
+    Call<ApiResult<Object>> setActivation(@Path("userId") String userId,
+                                          @Query("isActive") boolean isActive);
+
+    @PUT("/api/User/{userId}/profile")
+    Call<ApiResult<Object>> updateUserProfile(@Path("userId") String userId,
+                                              @Body UpdateUserProfileRequest body);
 }
