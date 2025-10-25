@@ -1,0 +1,190 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "AI Webhook API",
+    "description": "Proxy microservice for AI upload and translate workflow with chapter extraction.",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/Ai/upload": {
+      "post": {
+        "tags": [
+          "Ai"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "File",
+                  "UserId"
+                ],
+                "type": "object",
+                "properties": {
+                  "File": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "UserId": {
+                    "type": "string"
+                  }
+                }
+              },
+              "encoding": {
+                "File": {
+                  "style": "form"
+                },
+                "UserId": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/Ai/chapters/{jobId}": {
+      "get": {
+        "tags": [
+          "Ai"
+        ],
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChaptersResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UploadResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "jobId": {
+            "type": "string",
+            "description": "Unique job identifier for tracking processing status"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "totalChapters": {
+            "type": "integer",
+            "description": "Total number of chapters detected"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["processing", "completed", "failed"],
+            "description": "Current processing status"
+          }
+        },
+        "required": ["success", "jobId", "status"]
+      },
+      "Chapter": {
+        "type": "object",
+        "properties": {
+          "chapterNumber": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "rawContent": {
+            "type": "string",
+            "description": "Original text content in English"
+          },
+          "translatedContent": {
+            "type": "string",
+            "description": "Translated content in Vietnamese"
+          },
+          "pageRange": {
+            "type": "string",
+            "description": "Page range where this chapter appears (e.g., '1-5')"
+          }
+        },
+        "required": ["chapterNumber", "title", "rawContent", "translatedContent"]
+      },
+      "ChaptersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["processing", "completed", "failed"]
+          },
+          "chapters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Chapter"
+            }
+          },
+          "totalChapters": {
+            "type": "integer"
+          },
+          "processingProgress": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Processing progress percentage"
+          }
+        },
+        "required": ["success", "jobId", "status", "chapters"]
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:2406"
+    }
+  ]
+}
+

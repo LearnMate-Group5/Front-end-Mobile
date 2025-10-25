@@ -4,13 +4,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.widget.ImageButton;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.LearnMate.R;
 
+import java.util.List;
+
 public class ReaderActivity extends AppCompatActivity {
+
+    // Biến instance để lưu trạng thái
+    private List<ChapterUtils.Chapter> chapters;
+    private int currentChapterIndex = 0;
+    private String currentMode = "raw";
+    private float currentFontSize = 16f; // Font size mặc định
 
     /** Helper mở Reader nhanh */
     public static void open(Context ctx, Uri pdfUri, int chapterIndex, String mode) {
@@ -21,13 +32,177 @@ public class ReaderActivity extends AppCompatActivity {
         ctx.startActivity(i);
     }
 
-    @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reader);
 
-        // TODO: đọc extras và render nội dung chương
-        // String uri = getIntent().getStringExtra("pdf_uri");
-        // int chapter = getIntent().getIntExtra("chapter_index", 0);
-        // String mode = getIntent().getStringExtra("mode");
+        // Đọc extras từ intent
+        String uri = getIntent().getStringExtra("pdf_uri");
+        int chapter = getIntent().getIntExtra("chapter_index", 0);
+        String mode = getIntent().getStringExtra("mode");
+
+        // Setup UI
+        setupUI(uri, chapter, mode);
+    }
+
+    private void setupUI(String pdfUri, int chapterIndex, String mode) {
+        // Lưu trạng thái
+        this.currentMode = mode;
+        this.currentChapterIndex = chapterIndex;
+
+        // Lấy dữ liệu từ ContentCache - chỉ dùng dữ liệu thật từ API
+        if (!ContentCache.hasRealData()) {
+            if (ContentCache.isWaitingForData()) {
+                showWaitingMessage();
+            } else {
+                showNoDataMessage();
+            }
+            return;
+        }
+
+        this.chapters = "translate".equalsIgnoreCase(mode) && ContentCache.TRANS != null
+                ? ContentCache.TRANS
+                : ContentCache.RAW;
+
+        // Nếu không có dữ liệu, hiển thị thông báo
+        if (chapters == null || chapters.isEmpty()) {
+            showNoDataMessage();
+            return;
+        }
+
+        // Đảm bảo chapter index hợp lệ
+        if (chapterIndex < 0 || chapterIndex >= chapters.size()) {
+            chapterIndex = 0;
+            this.currentChapterIndex = 0;
+        }
+
+        // Cập nhật UI
+        updateChapterDisplay();
+
+        // Setup navigation buttons
+        setupNavigationButtons();
+
+        // Setup font size control
+        setupFontSizeControl();
+
+        // Setup back button
+        setupBackButton();
+    }
+
+    private void showNoDataMessage() {
+        TextView tvContent = findViewById(R.id.tvContent);
+        if (tvContent != null) {
+            tvContent.setText("Chưa có dữ liệu. Vui lòng upload PDF và chờ xử lý hoàn tất.");
+        }
+    }
+
+    private void showWaitingMessage() {
+        TextView tvContent = findViewById(R.id.tvContent);
+        if (tvContent != null) {
+            tvContent.setText("Đang xử lý PDF... Vui lòng chờ trong giây lát. Dữ liệu sẽ được cập nhật tự động.");
+        }
+    }
+
+    private void updateChapterDisplay() {
+        if (chapters == null || chapters.isEmpty())
+            return;
+
+        ChapterUtils.Chapter currentChapter = chapters.get(currentChapterIndex);
+
+        // Cập nhật UI
+        TextView tvBookTitle = findViewById(R.id.tvBookTitle);
+        TextView tvChapterTitle = findViewById(R.id.tvChapterTitle);
+        TextView tvContent = findViewById(R.id.tvContent);
+
+        if (tvBookTitle != null) {
+            tvBookTitle.setText("PDF Document");
+        }
+
+        if (tvChapterTitle != null) {
+            tvChapterTitle.setText(currentChapter.title);
+        }
+
+        if (tvContent != null) {
+            tvContent.setText(currentChapter.content);
+            tvContent.setTextSize(currentFontSize);
+        }
+    }
+
+    private void setupNavigationButtons() {
+        TextView btnPrev = findViewById(R.id.btnPrev);
+        TextView btnNext = findViewById(R.id.btnNext);
+
+        if (btnPrev != null) {
+            btnPrev.setEnabled(currentChapterIndex > 0);
+            btnPrev.setOnClickListener(v -> {
+                if (currentChapterIndex > 0) {
+                    currentChapterIndex--;
+                    updateChapterDisplay();
+                    updateNavigationButtons();
+                }
+            });
+        }
+
+        if (btnNext != null) {
+            btnNext.setEnabled(currentChapterIndex < chapters.size() - 1);
+            btnNext.setOnClickListener(v -> {
+                if (currentChapterIndex < chapters.size() - 1) {
+                    currentChapterIndex++;
+                    updateChapterDisplay();
+                    updateNavigationButtons();
+                }
+            });
+        }
+    }
+
+    private void updateNavigationButtons() {
+        TextView btnPrev = findViewById(R.id.btnPrev);
+        TextView btnNext = findViewById(R.id.btnNext);
+
+        if (btnPrev != null) {
+            btnPrev.setEnabled(currentChapterIndex > 0);
+        }
+
+        if (btnNext != null) {
+            btnNext.setEnabled(currentChapterIndex < chapters.size() - 1);
+        }
+    }
+
+    private void setupFontSizeControl() {
+        SeekBar seekBar = findViewById(R.id.sbFont);
+        if (seekBar != null) {
+            // Set range từ 12sp đến 24sp
+            seekBar.setMax(12); // 24 - 12 = 12
+            seekBar.setProgress((int) (currentFontSize - 12));
+
+            seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        currentFontSize = 12 + progress; // 12sp to 24sp
+                        TextView tvContent = findViewById(R.id.tvContent);
+                        if (tvContent != null) {
+                            tvContent.setTextSize(currentFontSize);
+                        }
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+        }
+    }
+
+    private void setupBackButton() {
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
     }
 }

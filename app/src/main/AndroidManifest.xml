@@ -54,7 +54,7 @@
         <activity
             android:name=".reader.ChapterListActivity"
             android:exported="false" />
-        <activity android:name=".reader.ReaderActivity" android:exported="false"/>
+        <activity android:name=".reader.ReaderActivity"/>
 
     </application>
 

@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/LearnMate/network/RetrofitClient.java
 package com.example.LearnMate.network;
 
 import android.content.Context;
@@ -6,10 +7,11 @@ import android.content.SharedPreferences;
 import com.example.LearnMate.network.api.AiChatService;
 import com.example.LearnMate.network.api.AiTranslateService;
 import com.example.LearnMate.network.api.AuthService;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.concurrent.TimeUnit;
 
-import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -19,51 +21,53 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public final class RetrofitClient {
 
-    // Theo "servers" trong OpenAPI
-    // Use 10.0.2.2 to connect to host machine's localhost from Android Emulator
-    private static final String BASE_URL = "http://10.0.2.2:2406/";
-    private static final String AI_CHAT_BASE_URL = "http://10.0.2.2:5678/";
+    private static final String BASE_URL = "http://10.0.2.2:2406/"; // API chính (Swagger)
+    private static final String AI_CHAT_BASE_URL = "http://10.0.2.2:5678/"; // Dịch vụ cũ (nếu còn dùng)
+    private static final String AI_TRANSLATE_BASE_URL = "http://10.0.2.2:2406/"; // Upload/Translate mới
 
-    private static final String AI_TRANSLATE_BASE_URL = "http://10.0.2.2:5678/";
+    // Retrofit “thuần” (không header Authorization)
+    private static Retrofit plainRetrofit;
 
-    private static Retrofit retrofit;
+    // Retrofit có kèm interceptor Authorization
+    private static Retrofit retrofitWithAuth;
+
+    // Retrofit riêng cho AI chat (không auth)
     private static Retrofit aiChatRetrofit;
+
+    // Retrofit riêng cho AI translate (có auth)
     private static Retrofit aiTranslateRetrofit;
-    private static AuthService cachedService;
+
+    // Cached services
+    private static AuthService cachedAuthService;
     private static AiChatService cachedAiChatService;
     private static AiTranslateService cachedAiTranslateService;
 
-    private RetrofitClient() {}
-
-    public static AuthService getAuthService(Context appContext) {
-        if (cachedService == null) {
-            retrofit = buildRetrofit(appContext.getApplicationContext());
-            cachedService = retrofit.create(AuthService.class);
-        }
-        return cachedService;
+    private RetrofitClient() {
     }
 
-    public static AiChatService getAiChatService(Context appContext) {
-        if (cachedAiChatService == null) {
-            aiChatRetrofit = buildAiChatRetrofit(appContext.getApplicationContext());
-            cachedAiChatService = aiChatRetrofit.create(AiChatService.class);
-        }
-        return cachedAiChatService;
-    }
+    // ------------------------
+    // Clients
+    // ------------------------
 
-    public static AiTranslateService getAiTranslateService(Context appContext) {
-        if (cachedAiTranslateService == null) {
-            aiTranslateRetrofit = buildAiTranslateRetrofit(appContext.getApplicationContext());
-            cachedAiTranslateService = aiTranslateRetrofit.create(AiTranslateService.class);
-        }
-        return cachedAiTranslateService;
-    }
-
-    private static Retrofit buildRetrofit(Context appContext) {
+    /** OkHttp client có logging, không đính kèm token */
+    private static OkHttpClient buildPlainClient() {
         HttpLoggingInterceptor log = new HttpLoggingInterceptor();
         log.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-        // Interceptor gắn Authorization nếu có token trong SharedPreferences
+        return new OkHttpClient.Builder()
+                .addInterceptor(log)
+                .connectTimeout(60, TimeUnit.SECONDS) // Tăng timeout cho Google Drive
+                .readTimeout(300, TimeUnit.SECONDS) // Tăng timeout cho file lớn
+                .writeTimeout(300, TimeUnit.SECONDS) // Tăng timeout cho upload
+                .retryOnConnectionFailure(true)
+                .build();
+    }
+
+    /** OkHttp client có logging + tự thêm Authorization: Bearer <token> nếu có */
+    private static OkHttpClient getAuthenticatedClient(Context appContext) {
+        HttpLoggingInterceptor log = new HttpLoggingInterceptor();
+        log.setLevel(HttpLoggingInterceptor.Level.BODY);
+
         Interceptor authInterceptor = chain -> {
             Request original = chain.request();
             Request.Builder builder = original.newBuilder();
@@ -73,64 +77,100 @@ public final class RetrofitClient {
             if (token != null && !token.isEmpty()) {
                 builder.header("Authorization", "Bearer " + token);
             }
-            // Đảm bảo accept json
             builder.header("Accept", "application/json");
-
-            // Optional: giữ nguyên query/path
-            HttpUrl url = original.url();
-            builder.url(url);
 
             return chain.proceed(builder.build());
         };
 
-        OkHttpClient client = new OkHttpClient.Builder()
+        return new OkHttpClient.Builder()
                 .addInterceptor(authInterceptor)
                 .addInterceptor(log)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS) // 1 minute for auth
-                .writeTimeout(60, TimeUnit.SECONDS) // 1 minute for auth
-                .build();
-
-        return new Retrofit.Builder()
-                .baseUrl(BASE_URL) // nhớ dấu '/'
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(300, TimeUnit.SECONDS) // upload có thể lâu
+                .writeTimeout(300, TimeUnit.SECONDS)
                 .build();
     }
 
-    private static Retrofit buildAiChatRetrofit(Context appContext) {
-        HttpLoggingInterceptor log = new HttpLoggingInterceptor();
-        log.setLevel(HttpLoggingInterceptor.Level.BODY);
+    // ------------------------
+    // Retrofit factories
+    // ------------------------
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(log)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(300, TimeUnit.SECONDS) // 5 minutes
-                .writeTimeout(300, TimeUnit.SECONDS) // 5 minutes
-                .build();
-
-        return new Retrofit.Builder()
-                .baseUrl(AI_CHAT_BASE_URL)
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+    /**
+     * Lấy Retrofit “thuần” theo BASE_URL — dùng ở nơi bạn gọi RetrofitClient.get().
+     */
+    public static Retrofit get() {
+        if (plainRetrofit == null) {
+            Gson gson = new GsonBuilder().setLenient().create();
+            plainRetrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create(gson))
+                    .client(buildPlainClient())
+                    .build();
+        }
+        return plainRetrofit;
     }
 
-    private static Retrofit buildAiTranslateRetrofit(Context appContext) {
-        HttpLoggingInterceptor log = new HttpLoggingInterceptor();
-        log.setLevel(HttpLoggingInterceptor.Level.BODY);
+    /** (Tuỳ chọn) Nếu cần Retrofit có auth để tự tạo service riêng. */
+    public static Retrofit getRetrofitWithAuth(Context appContext) {
+        if (retrofitWithAuth == null) {
+            Gson gson = new GsonBuilder().setLenient().create();
+            retrofitWithAuth = new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create(gson))
+                    .client(getAuthenticatedClient(appContext))
+                    .build();
+        }
+        return retrofitWithAuth;
+    }
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(log)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(300, TimeUnit.SECONDS) // 5 minutes
-                .writeTimeout(300, TimeUnit.SECONDS) // 5 minutes
-                .build();
+    // ------------------------
+    // Typed services (giữ nguyên APIs bạn đang dùng)
+    // ------------------------
 
-        return new Retrofit.Builder()
-                .baseUrl(AI_TRANSLATE_BASE_URL)
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+    public static AuthService getAuthService(Context appContext) {
+        if (cachedAuthService == null) {
+            if (retrofitWithAuth == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                retrofitWithAuth = new Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .client(getAuthenticatedClient(appContext))
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedAuthService = retrofitWithAuth.create(AuthService.class);
+        }
+        return cachedAuthService;
+    }
+
+    // Giữ lại nếu app còn dùng AI chat (không auth)
+    public static AiChatService getAiChatService(Context appContext) {
+        if (cachedAiChatService == null) {
+            if (aiChatRetrofit == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                aiChatRetrofit = new Retrofit.Builder()
+                        .baseUrl(AI_CHAT_BASE_URL)
+                        .client(buildPlainClient())
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedAiChatService = aiChatRetrofit.create(AiChatService.class);
+        }
+        return cachedAiChatService;
+    }
+
+    // Dịch vụ upload/translate — dùng client có auth
+    public static AiTranslateService getAiTranslateService(Context appContext) {
+        if (cachedAiTranslateService == null) {
+            if (aiTranslateRetrofit == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                aiTranslateRetrofit = new Retrofit.Builder()
+                        .baseUrl(AI_TRANSLATE_BASE_URL)
+                        .client(getAuthenticatedClient(appContext))
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedAiTranslateService = aiTranslateRetrofit.create(AiTranslateService.class);
+        }
+        return cachedAiTranslateService;
     }
 }
