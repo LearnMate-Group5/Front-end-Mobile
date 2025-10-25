@@ -144,3 +144,6 @@ private static final int MAX_ATTEMPTS = 20; // Tối đa 20 lần thử
 4. **User Experience**: Dữ liệu mẫu đảm bảo app hoạt động ngay cả khi API chưa sẵn sàng
 
 
+
+
+

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_translate"
+        android:title="Translate"
+        android:icon="@drawable/ic_translate"
+        android:showAsAction="never" />
+    
+    <item
+        android:id="@+id/menu_highlight"
+        android:title="Highlight"
+        android:icon="@drawable/ic_highlight"
+        android:showAsAction="never" />
+    
+    <item
+        android:id="@+id/menu_note"
+        android:title="Note"
+        android:icon="@drawable/ic_note"
+        android:showAsAction="never" />
+</menu>
+

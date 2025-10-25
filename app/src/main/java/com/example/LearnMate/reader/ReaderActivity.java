@@ -4,9 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -88,6 +92,9 @@ public class ReaderActivity extends AppCompatActivity {
 
         // Setup back button
         setupBackButton();
+
+        // Setup menu button
+        setupMenuButton();
     }
 
     private void showNoDataMessage() {
@@ -204,5 +211,66 @@ public class ReaderActivity extends AppCompatActivity {
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
         }
+    }
+
+    private void setupMenuButton() {
+        ImageButton btnMenu = findViewById(R.id.btnMenu);
+        if (btnMenu != null) {
+            btnMenu.setOnClickListener(v -> showPopupMenu(v));
+        }
+    }
+
+    private void showPopupMenu(View anchor) {
+        PopupMenu popup = new PopupMenu(this, anchor);
+        popup.getMenuInflater().inflate(R.menu.reader_menu, popup.getMenu());
+
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.menu_translate) {
+                // Toggle translate mode
+                toggleTranslateMode();
+                return true;
+            } else if (id == R.id.menu_highlight) {
+                // Highlight current text
+                highlightCurrentText();
+                return true;
+            } else if (id == R.id.menu_note) {
+                // Add note
+                addNote();
+                return true;
+            }
+            return false;
+        });
+
+        popup.show();
+    }
+
+    private void toggleTranslateMode() {
+        // Toggle between raw and translated content
+        if ("raw".equals(currentMode)) {
+            currentMode = "translate";
+            Toast.makeText(this, "Switched to Translated mode", Toast.LENGTH_SHORT).show();
+        } else {
+            currentMode = "raw";
+            Toast.makeText(this, "Switched to Raw mode", Toast.LENGTH_SHORT).show();
+        }
+
+        // Update content display
+        if (chapters != null && !chapters.isEmpty()) {
+            this.chapters = "translate".equalsIgnoreCase(currentMode) && ContentCache.TRANS != null
+                    ? ContentCache.TRANS
+                    : ContentCache.RAW;
+            updateChapterDisplay();
+        }
+    }
+
+    private void highlightCurrentText() {
+        // TODO: Implement text highlighting functionality
+        Toast.makeText(this, "Highlight feature coming soon", Toast.LENGTH_SHORT).show();
+    }
+
+    private void addNote() {
+        // TODO: Implement note adding functionality
+        Toast.makeText(this, "Note feature coming soon", Toast.LENGTH_SHORT).show();
     }
 }

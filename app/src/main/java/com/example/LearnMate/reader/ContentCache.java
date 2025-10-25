@@ -86,11 +86,11 @@ public final class ContentCache {
 
         // Tạo chapters từ nội dung đã parse
         if (!rawContent.isEmpty()) {
-            RAW.add(new ChapterUtils.Chapter("Document Content", rawContent));
+            RAW.addAll(splitIntoChapters(rawContent, false));
         }
 
         if (!transContent.isEmpty()) {
-            TRANS.add(new ChapterUtils.Chapter("Nội dung tài liệu", transContent));
+            TRANS.addAll(splitIntoChapters(transContent, true));
         }
 
         // Nếu không có dữ liệu, tạo chapter rỗng
@@ -100,6 +100,98 @@ public final class ContentCache {
         if (TRANS.isEmpty()) {
             TRANS.add(new ChapterUtils.Chapter("Nội dung tài liệu", "Không có nội dung"));
         }
+    }
+
+    /** Chia content thành nhiều chapters dựa trên các dấu hiệu chapter */
+    private static java.util.List<ChapterUtils.Chapter> splitIntoChapters(String content, boolean isTranslated) {
+        java.util.List<ChapterUtils.Chapter> chapters = new java.util.ArrayList<>();
+
+        // Chỉ tìm theo keyword "chapter" (case insensitive)
+        String[] chapterPatterns = {
+                "Chapter \\d+",
+                "CHAPTER \\d+",
+                "Chương \\d+",
+                "CHƯƠNG \\d+",
+                "chapter \\d+",
+                "chương \\d+"
+        };
+
+        // Tìm tất cả các vị trí chapter
+        java.util.List<Integer> chapterPositions = new java.util.ArrayList<>();
+        java.util.List<String> chapterTitles = new java.util.ArrayList<>();
+
+        for (String pattern : chapterPatterns) {
+            java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern,
+                    java.util.regex.Pattern.CASE_INSENSITIVE);
+            java.util.regex.Matcher m = p.matcher(content);
+
+            while (m.find()) {
+                int position = m.start();
+                String title = m.group();
+                android.util.Log.d("ContentCache", "Found chapter at position " + position + ": " + title);
+                chapterPositions.add(position);
+                chapterTitles.add(title);
+            }
+        }
+
+        // Sắp xếp theo vị trí
+        java.util.Collections.sort(chapterPositions);
+
+        android.util.Log.d("ContentCache", "Total chapters found: " + chapterPositions.size());
+
+        if (chapterPositions.isEmpty()) {
+            // Không tìm thấy chapter, chia dựa trên độ dài nội dung
+            if (content.length() > 5000) {
+                // Nội dung dài, chia thành nhiều phần
+                int chunkSize = content.length() / 5; // Chia thành 5 phần
+                for (int i = 0; i < content.length(); i += chunkSize) {
+                    int endPos = Math.min(i + chunkSize, content.length());
+                    String chapterContent = content.substring(i, endPos).trim();
+                    if (!chapterContent.isEmpty()) {
+                        String title = isTranslated ? "Phần " + (chapters.size() + 1) : "Part " + (chapters.size() + 1);
+                        chapters.add(new ChapterUtils.Chapter(title, chapterContent));
+                    }
+                }
+            } else {
+                // Nội dung ngắn, tạo 1 chapter duy nhất
+                String title = isTranslated ? "Nội dung tài liệu" : "Document Content";
+                chapters.add(new ChapterUtils.Chapter(title, content));
+            }
+            return chapters;
+        }
+
+        // Tạo chapters từ các vị trí đã tìm
+        for (int i = 0; i < chapterPositions.size(); i++) {
+            int startPos = chapterPositions.get(i);
+            int endPos = (i + 1 < chapterPositions.size()) ? chapterPositions.get(i + 1) : content.length();
+
+            String chapterContent = content.substring(startPos, endPos).trim();
+            String chapterTitle = extractChapterTitle(chapterContent, isTranslated);
+
+            android.util.Log.d("ContentCache", "Creating chapter " + (i + 1) + ": " + chapterTitle);
+
+            if (!chapterContent.isEmpty()) {
+                chapters.add(new ChapterUtils.Chapter(chapterTitle, chapterContent));
+            }
+        }
+
+        return chapters;
+    }
+
+    /** Trích xuất title của chapter từ nội dung */
+    private static String extractChapterTitle(String chapterContent, boolean isTranslated) {
+        // Lấy dòng đầu tiên làm title
+        String[] lines = chapterContent.split("\n");
+        if (lines.length > 0) {
+            String firstLine = lines[0].trim();
+            // Loại bỏ các ký tự đặc biệt và giới hạn độ dài
+            firstLine = firstLine.replaceAll("[#*_]", "").trim();
+            if (firstLine.length() > 50) {
+                firstLine = firstLine.substring(0, 50) + "...";
+            }
+            return firstLine.isEmpty() ? (isTranslated ? "Chương" : "Chapter") : firstLine;
+        }
+        return isTranslated ? "Chương" : "Chapter";
     }
 
     /** Trích xuất raw content (markdown) từ content string */
