@@ -65,9 +65,8 @@ public class ReaderActivity extends AppCompatActivity {
             return;
         }
 
-        this.chapters = "translate".equalsIgnoreCase(mode) && ContentCache.TRANS != null
-                ? ContentCache.TRANS
-                : ContentCache.RAW;
+        // Sử dụng RAW chapters (có cả raw và translated content)
+        this.chapters = ContentCache.RAW;
 
         // Nếu không có dữ liệu, hiển thị thông báo
         if (chapters == null || chapters.isEmpty()) {
@@ -131,7 +130,14 @@ public class ReaderActivity extends AppCompatActivity {
         }
 
         if (tvContent != null) {
-            tvContent.setText(currentChapter.content);
+            // Hiển thị nội dung dựa trên mode hiện tại
+            if ("translate".equals(currentMode)) {
+                // Hiển thị nội dung đã dịch
+                tvContent.setText(currentChapter.translatedContent);
+            } else {
+                // Hiển thị nội dung gốc
+                tvContent.setText(currentChapter.content);
+            }
             tvContent.setTextSize(currentFontSize);
         }
     }
@@ -214,9 +220,9 @@ public class ReaderActivity extends AppCompatActivity {
     }
 
     private void setupMenuButton() {
-        ImageButton btnMenu = findViewById(R.id.btnMenu);
-        if (btnMenu != null) {
-            btnMenu.setOnClickListener(v -> showPopupMenu(v));
+        ImageButton btnMore = findViewById(R.id.btnMore);
+        if (btnMore != null) {
+            btnMore.setOnClickListener(v -> showPopupMenu(v));
         }
     }
 
@@ -224,18 +230,40 @@ public class ReaderActivity extends AppCompatActivity {
         PopupMenu popup = new PopupMenu(this, anchor);
         popup.getMenuInflater().inflate(R.menu.reader_menu, popup.getMenu());
 
+        // Cập nhật menu items dựa trên mode hiện tại
+        android.view.Menu menu = popup.getMenu();
+        android.view.MenuItem translateItem = menu.findItem(R.id.action_translate);
+
+        if ("raw".equals(currentMode)) {
+            // Trong raw mode: translate khả dụng, highlight và note khả dụng
+            if (translateItem != null) {
+                translateItem.setEnabled(true);
+                translateItem.setVisible(true);
+            }
+        } else {
+            // Trong translate mode: translate không khả dụng, highlight và note khả dụng
+            if (translateItem != null) {
+                translateItem.setEnabled(false);
+                translateItem.setVisible(false);
+            }
+        }
+
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.menu_translate) {
-                // Toggle translate mode
-                toggleTranslateMode();
+            if (id == R.id.action_translate) {
+                // Switch to translated mode - chỉ khả dụng trong raw
+                if ("raw".equals(currentMode)) {
+                    currentMode = "translate";
+                    updateChapterDisplay();
+                    Toast.makeText(this, "Switched to Translated mode", Toast.LENGTH_SHORT).show();
+                }
                 return true;
-            } else if (id == R.id.menu_highlight) {
-                // Highlight current text
+            } else if (id == R.id.action_highlight) {
+                // Highlight feature - khả dụng cả raw và translate
                 highlightCurrentText();
                 return true;
-            } else if (id == R.id.menu_note) {
-                // Add note
+            } else if (id == R.id.action_note) {
+                // Note feature - khả dụng cả raw và translate
                 addNote();
                 return true;
             }
@@ -257,9 +285,8 @@ public class ReaderActivity extends AppCompatActivity {
 
         // Update content display
         if (chapters != null && !chapters.isEmpty()) {
-            this.chapters = "translate".equalsIgnoreCase(currentMode) && ContentCache.TRANS != null
-                    ? ContentCache.TRANS
-                    : ContentCache.RAW;
+            // Sử dụng RAW chapters (có cả raw và translated content)
+            this.chapters = ContentCache.RAW;
             updateChapterDisplay();
         }
     }

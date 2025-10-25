@@ -85,20 +85,41 @@ public final class ContentCache {
         String transContent = extractTranslatedContent(contentString);
 
         // Tạo chapters từ nội dung đã parse
+        java.util.List<ChapterUtils.Chapter> rawChapters = new java.util.ArrayList<>();
+        java.util.List<ChapterUtils.Chapter> transChapters = new java.util.ArrayList<>();
+
         if (!rawContent.isEmpty()) {
-            RAW.addAll(splitIntoChapters(rawContent, false));
+            rawChapters.addAll(splitIntoChapters(rawContent, false));
         }
 
         if (!transContent.isEmpty()) {
-            TRANS.addAll(splitIntoChapters(transContent, true));
+            transChapters.addAll(splitIntoChapters(transContent, true));
         }
 
         // Nếu không có dữ liệu, tạo chapter rỗng
-        if (RAW.isEmpty()) {
-            RAW.add(new ChapterUtils.Chapter("Document Content", "No content available"));
+        if (rawChapters.isEmpty()) {
+            rawChapters.add(new ChapterUtils.Chapter("Document Content", "No content available"));
         }
-        if (TRANS.isEmpty()) {
-            TRANS.add(new ChapterUtils.Chapter("Nội dung tài liệu", "Không có nội dung"));
+        if (transChapters.isEmpty()) {
+            transChapters.add(new ChapterUtils.Chapter("Nội dung tài liệu", "Không có nội dung"));
+        }
+
+        // Tạo chapters với cả raw và translated content
+        RAW = new java.util.ArrayList<>();
+        TRANS = new java.util.ArrayList<>();
+
+        // Đảm bảo số lượng chapters bằng nhau
+        int maxChapters = Math.max(rawChapters.size(), transChapters.size());
+
+        for (int i = 0; i < maxChapters; i++) {
+            String rawTitle = i < rawChapters.size() ? rawChapters.get(i).title : "Chapter " + (i + 1);
+            String rawChapterContent = i < rawChapters.size() ? rawChapters.get(i).content : "";
+            String transTitle = i < transChapters.size() ? transChapters.get(i).title : "Chương " + (i + 1);
+            String transChapterContent = i < transChapters.size() ? transChapters.get(i).content : "";
+
+            // Tạo chapter với cả raw và translated content
+            RAW.add(new ChapterUtils.Chapter(rawTitle, rawChapterContent, transChapterContent));
+            TRANS.add(new ChapterUtils.Chapter(transTitle, transChapterContent, rawChapterContent));
         }
     }
 
