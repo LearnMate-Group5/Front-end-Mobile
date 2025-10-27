@@ -42,15 +42,14 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
         setContentView(R.layout.activity_home);
 
         // ---- bind views ----
-        tvGreeting     = findViewById(R.id.tvGreeting);
-        rvRecommended  = findViewById(R.id.rvRecommended);
+        tvGreeting = findViewById(R.id.tvGreeting);
+        rvRecommended = findViewById(R.id.rvRecommended);
         bottomNavComponent = findViewById(R.id.bottomNavComponent);
-        progress       = findViewById(R.id.progress);
+        progress = findViewById(R.id.progress);
 
         // ---- adapters & recyclers ----
         rvRecommended.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rvRecommended.setAdapter(new MockRecommendedAdapter());
-
 
         findViewById(R.id.cardImport).setOnClickListener(v -> presenter.onImportClick());
 
@@ -63,46 +62,54 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
         presenter.attach(this);
     }
 
-    @Override protected void onStart() {
+    @Override
+    protected void onStart() {
         super.onStart();
         String name = getSharedPreferences("user_prefs", MODE_PRIVATE).getString("user_name", "User");
         tvGreeting.setText("Good Morning, " + name);
     }
 
-
-    @Override protected void onDestroy() {
+    @Override
+    protected void onDestroy() {
         presenter.detach();
         super.onDestroy();
     }
 
     // ================== HomeContract.View ==================
-    @Override public void showGreeting(String name) {
+    @Override
+    public void showGreeting(String name) {
         tvGreeting.setText("Good Morning, " + name);
     }
 
-    @Override public void showLoading(boolean show) {
+    @Override
+    public void showLoading(boolean show) {
         progress.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
-    @Override public void renderFeatured(List<Book> items) {
+    @Override
+    public void renderFeatured(List<Book> items) {
         // This view is now static, no longer need to render
     }
 
-    @Override public void renderRecommended(List<Book> items) {
+    @Override
+    public void renderRecommended(List<Book> items) {
         // This view is now static, no longer need to render from presenter
     }
 
-    @Override public void openBookDetail(Book book) {
+    @Override
+    public void openBookDetail(Book book) {
         Toast.makeText(this, "Open: " + book.getTitle(), Toast.LENGTH_SHORT).show();
         // TODO: startActivity(...) tới màn chi tiết
     }
 
-    @Override public void openImport() {
-        Toast.makeText(this, "Import screen", Toast.LENGTH_SHORT).show();
-        // TODO: startActivity(...) tới màn import
+    @Override
+    public void openImport() {
+        Intent intent = new Intent(this, ImportActivity.class);
+        startActivity(intent);
     }
 
-    @Override public void showMessage(String msg) {
+    @Override
+    public void showMessage(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
@@ -114,6 +121,7 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
             final int imageRes;
             final String title;
             final String category;
+
             MockBook(int imageRes, String title, String category) {
                 this.imageRes = imageRes;
                 this.title = title;
@@ -150,17 +158,20 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
         }
 
         @Override
-        public int getItemCount() { return data.size(); }
+        public int getItemCount() {
+            return data.size();
+        }
     }
 
     private class MockRecommendedVH extends RecyclerView.ViewHolder {
         ImageView cover;
         TextView title, cat;
+
         MockRecommendedVH(View v) {
             super(v);
             cover = v.findViewById(R.id.ivSmallCover);
             title = v.findViewById(R.id.tvSmallTitle);
-            cat   = v.findViewById(R.id.tvSmallCat);
+            cat = v.findViewById(R.id.tvSmallCat);
         }
     }
 }
