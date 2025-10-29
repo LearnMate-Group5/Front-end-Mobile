@@ -32,7 +32,28 @@
                 android:contentDescription="Back"
                 android:scaleType="fitCenter"
                 android:padding="12dp"/>
+            <!-- Avatar URL (optional) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Avatar URL (optional)"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
+            <EditText
+                android:id="@+id/etAvatarUrl"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/edit_text_background_material"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:enabled="false"
+                android:hint="https://..." />
             <!-- Logo -->
             <ImageView
                 android:id="@+id/imgLogo"
@@ -204,6 +225,18 @@
                         android:text="Edit Profile"
                         android:textColor="@color/purple_on_primary"
                         android:textSize="16sp" />
+
+                    <!-- Log Out Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLogout"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginTop="12dp"
+                        app:backgroundTint="@color/design_default_color_error"
+                        android:text="Log Out"
+                        android:textColor="@color/purple_on_primary"
+                        android:textSize="16sp" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>

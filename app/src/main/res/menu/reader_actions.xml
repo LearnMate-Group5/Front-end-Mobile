@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_translate" android:title="Translate" />
+    <item android:id="@+id/action_highlight" android:title="Highlight" />
+    <item android:id="@+id/action_note" android:title="Note" />
+</menu>
