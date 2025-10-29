@@ -306,3 +306,4 @@ Giờ đây app của bạn có thể:
 ✅ **UX TỐT HƠN** - Hiển thị đầy đủ thông tin
 
 **Trải nghiệm người dùng được cải thiện đáng kể!** 🚀
+

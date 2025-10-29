@@ -230,3 +230,4 @@ Giờ đây khi import PDF từ Google Drive:
 - ✅ Thumbnail thực tế của PDF được hiển thị (trang đầu tiên)
 - ✅ Trải nghiệm mượt mà, không lag UI
 - ✅ Error handling tốt
+
