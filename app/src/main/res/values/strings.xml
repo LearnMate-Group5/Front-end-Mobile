@@ -9,5 +9,8 @@
     <string name="google_signin_not_supported">Google Sign-In not supported</string>
     <string name="navigation_drawer_open">Open menu</string>
     <string name="navigation_drawer_close">Close menu</string>
-    <string name="default_web_client_id">310764216947-6bq7kia8mnhhrr9mdckbkt5jaq0f2i2o.apps.googleusercontent.com</string>
+    <string name="default_web_client_id">557955143281-cugna4svepl8knbfgsdu1866q3f3n988.apps.googleusercontent.com</string>
+    <string name="ai_bot_title">AI Assistant</string>
+    <string name="chat_message_hint">Type your message...</string>
+    <string name="send_message">Send message</string>
 </resources>

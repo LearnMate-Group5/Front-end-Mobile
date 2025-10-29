@@ -17,6 +17,9 @@ public interface AuthService {
     @POST("/api/User/register")
     Call<ApiResult<AuthPayload>> register(@Body RegisterUserCommand body);
 
+    @POST("/api/User/login/firebase")
+    Call<ApiResult<AuthPayload>> loginWithFirebase(@Body FirebaseLoginRequest body);
+
     @POST("/api/User/refresh-token")
     Call<ApiResult<AuthPayload>> refresh(@Body RefreshTokenCommand body);
 

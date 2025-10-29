@@ -37,6 +37,25 @@ public class AuthModel {
         });
     }
 
+    public void loginWithFirebase(@NonNull String idToken,
+                                 @NonNull AuthCallback cb) {
+        auth.loginWithFirebase(new FirebaseLoginRequest(idToken)).enqueue(new Callback<ApiResult<AuthPayload>>() {
+            @Override
+            public void onResponse(Call<ApiResult<AuthPayload>> call, Response<ApiResult<AuthPayload>> res) {
+                if (!res.isSuccessful() || res.body() == null || !res.body().isSuccess || res.body().value == null) {
+                    cb.onFailure("Firebase login failed");
+                    return;
+                }
+                cb.onSuccess(res.body().value);
+            }
+
+            @Override
+            public void onFailure(Call<ApiResult<AuthPayload>> call, Throwable t) {
+                cb.onFailure(t.getMessage() == null ? "Network error" : t.getMessage());
+            }
+        });
+    }
+
     public void register(@NonNull String name,
                          @NonNull String email,
                          @NonNull String password,
