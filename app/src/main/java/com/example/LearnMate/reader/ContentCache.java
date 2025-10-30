@@ -127,36 +127,40 @@ public final class ContentCache {
     private static java.util.List<ChapterUtils.Chapter> splitIntoChapters(String content, boolean isTranslated) {
         java.util.List<ChapterUtils.Chapter> chapters = new java.util.ArrayList<>();
 
-        // Chỉ tìm theo keyword "chapter" (case insensitive)
-        String[] chapterPatterns = {
-                "Chapter \\d+",
-                "CHAPTER \\d+",
-                "Chương \\d+",
-                "CHƯƠNG \\d+",
-                "chapter \\d+",
-                "chương \\d+"
-        };
+        // Tìm tất cả các vị trí có từ "chapter" hoặc "chương" (case insensitive)
+        // Pattern đơn giản: chỉ cần có từ "chapter" hoặc "chương" là chia chapter
+        String chapterPattern = "(?i)\\bchapter\\b|\\bchương\\b";
 
-        // Tìm tất cả các vị trí chapter
         java.util.List<Integer> chapterPositions = new java.util.ArrayList<>();
         java.util.List<String> chapterTitles = new java.util.ArrayList<>();
 
-        for (String pattern : chapterPatterns) {
-            java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern,
-                    java.util.regex.Pattern.CASE_INSENSITIVE);
-            java.util.regex.Matcher m = p.matcher(content);
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile(chapterPattern);
+        java.util.regex.Matcher m = p.matcher(content);
 
-            while (m.find()) {
-                int position = m.start();
-                String title = m.group();
-                android.util.Log.d("ContentCache", "Found chapter at position " + position + ": " + title);
-                chapterPositions.add(position);
-                chapterTitles.add(title);
+        while (m.find()) {
+            int position = m.start();
+
+            // Lấy cả dòng chứa từ "chapter" để làm title
+            int lineStart = position;
+            int lineEnd = content.indexOf('\n', position);
+            if (lineEnd == -1) {
+                lineEnd = content.length();
             }
+
+            // Tìm đầu dòng
+            while (lineStart > 0 && content.charAt(lineStart - 1) != '\n') {
+                lineStart--;
+            }
+
+            String title = content.substring(lineStart, lineEnd).trim();
+            android.util.Log.d("ContentCache", "Found chapter at position " + position + ": " + title);
+            chapterPositions.add(lineStart); // Dùng đầu dòng làm vị trí bắt đầu
+            chapterTitles.add(title);
         }
 
-        // Sắp xếp theo vị trí
-        java.util.Collections.sort(chapterPositions);
+        // Sắp xếp theo vị trí và loại bỏ duplicate positions
+        java.util.Set<Integer> uniquePositions = new java.util.TreeSet<>(chapterPositions);
+        chapterPositions = new java.util.ArrayList<>(uniquePositions);
 
         android.util.Log.d("ContentCache", "Total chapters found: " + chapterPositions.size());
 

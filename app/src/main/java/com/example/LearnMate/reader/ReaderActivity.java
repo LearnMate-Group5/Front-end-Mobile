@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.LearnMate.R;
+import com.example.LearnMate.managers.BookmarkManager;
 
 import java.util.List;
 
@@ -26,6 +27,9 @@ public class ReaderActivity extends AppCompatActivity {
     private int currentChapterIndex = 0;
     private String currentMode = "raw";
     private float currentFontSize = 16f; // Font size mặc định
+    private BookmarkManager bookmarkManager;
+    private String pdfUri;
+    private ImageButton btnBookmark;
 
     /** Helper mở Reader nhanh */
     public static void open(Context ctx, Uri pdfUri, int chapterIndex, String mode) {
@@ -54,6 +58,11 @@ public class ReaderActivity extends AppCompatActivity {
         // Lưu trạng thái
         this.currentMode = mode;
         this.currentChapterIndex = chapterIndex;
+        this.pdfUri = pdfUri;
+
+        // Initialize bookmark manager
+        this.bookmarkManager = new BookmarkManager(this);
+        this.btnBookmark = findViewById(R.id.btnBookmark);
 
         // Lấy dữ liệu từ ContentCache - chỉ dùng dữ liệu thật từ API
         if (!ContentCache.hasRealData()) {
@@ -94,6 +103,9 @@ public class ReaderActivity extends AppCompatActivity {
 
         // Setup menu button
         setupMenuButton();
+
+        // Setup bookmark button
+        setupBookmarkButton();
     }
 
     private void showNoDataMessage() {
@@ -140,6 +152,9 @@ public class ReaderActivity extends AppCompatActivity {
             }
             tvContent.setTextSize(currentFontSize);
         }
+
+        // Update bookmark icon
+        updateBookmarkIcon();
     }
 
     private void setupNavigationButtons() {
@@ -299,5 +314,52 @@ public class ReaderActivity extends AppCompatActivity {
     private void addNote() {
         // TODO: Implement note adding functionality
         Toast.makeText(this, "Note feature coming soon", Toast.LENGTH_SHORT).show();
+    }
+
+    private void setupBookmarkButton() {
+        if (btnBookmark == null) {
+            return;
+        }
+
+        // Update bookmark icon dựa trên trạng thái hiện tại
+        updateBookmarkIcon();
+
+        // Handle click
+        btnBookmark.setOnClickListener(v -> {
+            if (chapters == null || chapters.isEmpty()) {
+                return;
+            }
+
+            ChapterUtils.Chapter currentChapter = chapters.get(currentChapterIndex);
+            String bookTitle = getIntent().getStringExtra("book_title");
+
+            // Toggle bookmark
+            boolean added = bookmarkManager.toggleBookmark(
+                    pdfUri != null ? pdfUri : "",
+                    bookTitle != null ? bookTitle : "Unknown",
+                    currentChapterIndex,
+                    currentChapter.title);
+
+            // Update icon
+            updateBookmarkIcon();
+
+            // Show toast
+            String message = added ? "Bookmarked: " + currentChapter.title : "Bookmark removed";
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void updateBookmarkIcon() {
+        if (btnBookmark == null || pdfUri == null) {
+            return;
+        }
+
+        boolean isBookmarked = bookmarkManager.isBookmarked(pdfUri, currentChapterIndex);
+
+        if (isBookmarked) {
+            btnBookmark.setImageResource(android.R.drawable.btn_star_big_on);
+        } else {
+            btnBookmark.setImageResource(android.R.drawable.btn_star_big_off);
+        }
     }
 }

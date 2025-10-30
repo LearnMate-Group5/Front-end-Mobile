@@ -10,9 +10,11 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup; // <== QUAN TRỌNG
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView; // để set tên/ngày trên card
 import android.widget.Toast;
+import android.content.Context;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -30,6 +32,8 @@ import com.example.LearnMate.service.ChapterPollingService;
 import com.example.LearnMate.util.FileUtils;
 import com.example.LearnMate.util.PdfThumbnailGenerator;
 import com.example.LearnMate.util.PdfAnalyzer;
+import com.example.LearnMate.util.ThumbnailCache;
+import com.example.LearnMate.managers.FileHistoryManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
@@ -68,6 +72,7 @@ public class ImportActivity extends AppCompatActivity {
     private final List<PdfItem> imported = new ArrayList<>();
     private SimplePdfAdapter adapter;
     private View loadingOverlay;
+    private FileHistoryManager fileHistoryManager;
 
     private final ActivityResultLauncher<String> pickPdf = registerForActivityResult(
             new ActivityResultContracts.GetContent(), uri -> {
@@ -83,14 +88,20 @@ public class ImportActivity extends AppCompatActivity {
         // Loading overlay
         loadingOverlay = findViewById(R.id.loadingOverlay);
 
+        // File history manager
+        fileHistoryManager = new FileHistoryManager(this);
+
         // Nút "Import from File"
         findViewById(R.id.cardFileImport).setOnClickListener(v -> pickPdf.launch("application/pdf"));
 
         // Recycler grid hiển thị file đã import
         RecyclerView rv = findViewById(R.id.rvImported);
         rv.setLayoutManager(new GridLayoutManager(this, 2));
-        adapter = new SimplePdfAdapter(imported);
+        adapter = new SimplePdfAdapter(imported, this, fileHistoryManager);
         rv.setAdapter(adapter);
+
+        // Load files đã import từ history
+        loadImportedFiles();
 
         // BottomNavigationView: dùng menu của bạn (menu_bottom_home.xml) có id
         // nav_import, nav_home, nav_ai_bot, nav_profile
@@ -125,6 +136,47 @@ public class ImportActivity extends AppCompatActivity {
         return "user_" + System.currentTimeMillis(); // Tạm thời dùng timestamp
     }
 
+    /** Load files đã import từ FileHistoryManager */
+    private void loadImportedFiles() {
+        List<FileHistoryManager.ImportedFile> historyFiles = fileHistoryManager.getFiles();
+
+        android.util.Log.d("ImportActivity", "Loading " + historyFiles.size() + " files from history");
+
+        // Clear list hiện tại
+        imported.clear();
+
+        // Convert từ history format sang PdfItem
+        for (FileHistoryManager.ImportedFile historyFile : historyFiles) {
+            try {
+                Uri uri = Uri.parse(historyFile.uri);
+
+                // Tạo analysis result từ history data
+                PdfAnalyzer.AnalysisResult analysis = new PdfAnalyzer.AnalysisResult();
+                analysis.title = historyFile.fileName;
+                analysis.suggestedCategory = historyFile.category;
+                analysis.detectedLanguage = historyFile.language;
+                analysis.totalPages = historyFile.totalPages;
+
+                // Load thumbnail từ disk nếu có
+                Bitmap thumbnail = null;
+                if (historyFile.thumbnailPath != null) {
+                    thumbnail = ThumbnailCache.loadThumbnailFromPath(historyFile.thumbnailPath);
+                    android.util.Log.d("ImportActivity", "Loaded thumbnail for: " + historyFile.fileName);
+                }
+
+                // Thêm vào list với thumbnail thực tế
+                PdfItem item = new PdfItem(uri, thumbnail, historyFile.fileName, analysis);
+                imported.add(item);
+
+            } catch (Exception e) {
+                android.util.Log.e("ImportActivity", "Error loading file from history: " + e.getMessage());
+            }
+        }
+
+        // Notify adapter
+        adapter.notifyDataSetChanged();
+    }
+
     /** Hiển thị loading overlay */
     private void showLoading() {
         if (loadingOverlay != null) {
@@ -155,7 +207,8 @@ public class ImportActivity extends AppCompatActivity {
             RequestBody userPart = FileUtils.textPart(userId);
 
             android.util.Log.d("ImportActivity", "File part created successfully, starting upload...");
-            AiService svc = RetrofitClient.get().create(AiService.class);
+            // SỬ DỤNG AUTHENTICATED CLIENT để có Bearer token
+            AiService svc = RetrofitClient.getRetrofitWithAuth(this).create(AiService.class);
             svc.uploadPdf(filePart, userPart).enqueue(new Callback<UploadResponse>() {
                 @Override
                 public void onResponse(Call<UploadResponse> call, retrofit2.Response<UploadResponse> resp) {
@@ -236,6 +289,25 @@ public class ImportActivity extends AppCompatActivity {
                                     imported.add(item);
                                     adapter.notifyItemInserted(imported.size() - 1);
 
+                                    // LƯU THUMBNAIL VÀO DISK
+                                    String fileId = ThumbnailCache.generateFileId(uri.toString());
+                                    String thumbnailPath = ThumbnailCache.saveThumbnail(
+                                            ImportActivity.this,
+                                            bitmap,
+                                            fileId);
+                                    android.util.Log.d("ImportActivity", "Thumbnail saved: " + thumbnailPath);
+
+                                    // LƯU VÀO FILE HISTORY (with thumbnail path)
+                                    FileHistoryManager.ImportedFile historyFile = new FileHistoryManager.ImportedFile(
+                                            uri.toString(),
+                                            finalName,
+                                            analysis.suggestedCategory != null ? analysis.suggestedCategory : "General",
+                                            analysis.detectedLanguage != null ? analysis.detectedLanguage : "unknown",
+                                            analysis.totalPages,
+                                            thumbnailPath); // Thêm thumbnail path
+                                    fileHistoryManager.addFile(historyFile);
+                                    android.util.Log.d("ImportActivity", "File saved to history: " + finalName);
+
                                     // Show analysis result
                                     String message = String.format(
                                             "📚 %s\n🏷️ Category: %s\n📄 %d pages\n🌍 Language: %s",
@@ -299,9 +371,13 @@ public class ImportActivity extends AppCompatActivity {
     /** ===== Adapter card PDF có overlay Raw/Dịch ===== */
     static class SimplePdfAdapter extends RecyclerView.Adapter<PdfVH> {
         private final List<PdfItem> data;
+        private final Context context;
+        private final FileHistoryManager fileHistoryManager;
 
-        SimplePdfAdapter(List<PdfItem> d) {
+        SimplePdfAdapter(List<PdfItem> d, Context context, FileHistoryManager historyManager) {
             data = d;
+            this.context = context;
+            this.fileHistoryManager = historyManager;
         }
 
         @Override
@@ -324,6 +400,7 @@ public class ImportActivity extends AppCompatActivity {
             View overlay = h.itemView.findViewById(R.id.overlayActions);
             View btnRaw = h.itemView.findViewById(R.id.btnRaw);
             View btnTr = h.itemView.findViewById(R.id.btnTranslated);
+            ImageButton btnDelete = h.itemView.findViewById(R.id.btnDelete);
 
             // Hiển thị thumbnail thực tế của PDF
             if (ivThumb != null && item.thumbnail != null) {
@@ -370,6 +447,34 @@ public class ImportActivity extends AppCompatActivity {
             };
             btnRaw.setOnClickListener(go);
             btnTr.setOnClickListener(go);
+
+            // Delete button
+            if (btnDelete != null) {
+                btnDelete.setOnClickListener(v -> {
+                    // Confirm dialog
+                    new android.app.AlertDialog.Builder(context)
+                            .setTitle("Delete File")
+                            .setMessage("Are you sure you want to delete \"" + name + "\"?")
+                            .setPositiveButton("Delete", (dialog, which) -> {
+                                // Xóa thumbnail
+                                String fileId = ThumbnailCache.generateFileId(uri.toString());
+                                ThumbnailCache.deleteThumbnail(context, fileId);
+
+                                // Xóa khỏi history
+                                fileHistoryManager.removeFile(uri.toString());
+
+                                // Xóa khỏi list
+                                int position = data.indexOf(item);
+                                if (position >= 0) {
+                                    data.remove(position);
+                                    notifyItemRemoved(position);
+                                    Toast.makeText(context, "Deleted: " + name, Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .show();
+                });
+            }
         }
 
         @Override

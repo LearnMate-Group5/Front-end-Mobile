@@ -223,6 +223,23 @@
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Your Imported Books Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your Imported Books"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:textColor="@color/text_primary"
+                android:paddingBottom="16dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvImportedFiles"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:nestedScrollingEnabled="false"
+                android:paddingBottom="24dp"/>
+
             <!-- Recommended Section -->
             <TextView
                 android:layout_width="wrap_content"

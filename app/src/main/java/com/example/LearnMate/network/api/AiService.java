@@ -1,6 +1,10 @@
 // com/example/LearnMate/network/api/AiService.java
 package com.example.LearnMate.network.api;
 
+import com.example.LearnMate.network.dto.AiFileListResponse;
+import com.example.LearnMate.network.dto.AiFileResponse;
+import com.example.LearnMate.network.dto.ChatSessionListResponse;
+import com.example.LearnMate.network.dto.ChatSessionResponse;
 import com.example.LearnMate.network.dto.ChaptersResponse;
 import com.example.LearnMate.network.dto.UploadResponse;
 
@@ -45,4 +49,38 @@ public interface AiService {
      */
     @GET("api/Ai/status/{jobId}")
     Call<UploadResponse> getStatus(@Path("jobId") String jobId);
+
+    /**
+     * Lấy danh sách tất cả files đã upload
+     * 
+     * @return Danh sách files
+     */
+    @GET("api/Ai/file")
+    Call<AiFileListResponse> getFiles();
+
+    /**
+     * Lấy thông tin chi tiết của 1 file
+     * 
+     * @param fileId - UUID của file
+     * @return Chi tiết file
+     */
+    @GET("api/Ai/file/{fileId}")
+    Call<AiFileResponse> getFile(@Path("fileId") String fileId);
+
+    /**
+     * Lấy danh sách chat sessions
+     * 
+     * @return Danh sách sessions
+     */
+    @GET("api/Ai/session")
+    Call<ChatSessionListResponse> getSessions();
+
+    /**
+     * Lấy chi tiết chat session
+     * 
+     * @param sessionId - ID của session
+     * @return Chi tiết session với messages
+     */
+    @GET("api/Ai/session/{sessionId}")
+    Call<ChatSessionResponse> getSession(@Path("sessionId") String sessionId);
 }

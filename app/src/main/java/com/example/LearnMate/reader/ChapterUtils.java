@@ -28,20 +28,32 @@ public final class ChapterUtils {
     private ChapterUtils() {
     }
 
-    /** (Tuỳ chọn) Helper tách text thành chương bằng regex “Chapter …” */
+    /** (Tuỳ chọn) Helper tách text thành chương bằng regex "Chapter …" */
     public static List<Chapter> splitByRegex(String fullText) {
         List<Chapter> out = new ArrayList<>();
         if (fullText == null || fullText.trim().isEmpty())
             return out;
 
-        // Ví dụ regex đơn giản – bạn có thể nâng cấp tuỳ file PDF
-        String[] parts = fullText.split("(?i)\\bchapter\\s+\\d+\\b");
+        // Regex đơn giản: chia sau mỗi từ "chapter" (không phân biệt hoa thường)
+        // Pattern: chỉ cần có từ "chapter" hoặc "chương" là chia chapter mới
+        String[] parts = fullText.split("(?i)(?=\\bchapter\\b|\\bchương\\b)");
+
         if (parts.length <= 1) {
             out.add(new Chapter("Chapter 1", fullText));
             return out;
         }
-        for (int i = 1; i < parts.length; i++) {
-            out.add(new Chapter("Chapter " + i, parts[i].trim()));
+
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i].trim();
+            if (part.isEmpty())
+                continue;
+
+            // Lấy dòng đầu làm title
+            String[] lines = part.split("\n", 2);
+            String title = lines.length > 0 ? lines[0].trim() : "Chapter " + (i + 1);
+            String content = lines.length > 1 ? lines[1].trim() : part;
+
+            out.add(new Chapter(title, content));
         }
         return out;
     }

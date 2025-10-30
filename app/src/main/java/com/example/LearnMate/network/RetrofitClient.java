@@ -23,7 +23,7 @@ public final class RetrofitClient {
 
     private static final String BASE_URL = "http://10.0.2.2:2406/"; // API chính (Swagger)
     private static final String AI_CHAT_BASE_URL = "http://10.0.2.2:5678/"; // Dịch vụ cũ (nếu còn dùng)
-    private static final String AI_TRANSLATE_BASE_URL = "http://10.0.2.2:2406/"; // Upload/Translate mới
+    private static final String AI_TRANSLATE_BASE_URL = "http://localhost:2406/"; // Upload/Translate mới
 
     // Retrofit “thuần” (không header Authorization)
     private static Retrofit plainRetrofit;
@@ -73,10 +73,20 @@ public final class RetrofitClient {
             Request.Builder builder = original.newBuilder();
 
             SharedPreferences sp = appContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-            String token = sp.getString("token", null);
+
+            // Ưu tiên key mới "user_token", fallback về "token" (legacy)
+            String token = sp.getString("user_token", null);
+            if (token == null || token.isEmpty()) {
+                token = sp.getString("token", null); // Fallback cho compatibility
+            }
+
             if (token != null && !token.isEmpty()) {
                 builder.header("Authorization", "Bearer " + token);
+                android.util.Log.d("RetrofitClient", "Adding Bearer token to request");
+            } else {
+                android.util.Log.w("RetrofitClient", "No token found! Request will fail with 401");
             }
+
             builder.header("Accept", "application/json");
 
             return chain.proceed(builder.build());

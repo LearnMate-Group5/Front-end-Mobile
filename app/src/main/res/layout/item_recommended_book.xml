@@ -11,12 +11,32 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         app:cardCornerRadius="12dp">
-        <ImageView
-            android:id="@+id/ivSmallCover"
+
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@drawable/bg_placeholder"/>
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/ivSmallCover"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/bg_placeholder"/>
+
+            <!-- Delete button -->
+            <ImageButton
+                android:id="@+id/btnDeleteSmall"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_delete"
+                android:padding="4dp"
+                android:tint="@color/white"
+                android:contentDescription="Delete file" />
+        </FrameLayout>
+
     </com.google.android.material.card.MaterialCardView>
 
     <TextView

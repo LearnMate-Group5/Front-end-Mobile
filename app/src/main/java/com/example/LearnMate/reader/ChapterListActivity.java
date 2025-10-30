@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.LearnMate.R;
+import com.example.LearnMate.managers.BookmarkManager;
 
 import java.util.List;
 
@@ -20,6 +21,8 @@ public class ChapterListActivity extends AppCompatActivity {
     private RecyclerView rv;
     private Adapter adapter;
     private String startMode; // "raw" | "translate"
+    private BookmarkManager bookmarkManager;
+    private String fileUri;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -28,6 +31,10 @@ public class ChapterListActivity extends AppCompatActivity {
 
         String bookTitle = getIntent().getStringExtra("book_title");
         startMode = getIntent().getStringExtra("mode");
+        fileUri = getIntent().getStringExtra("pdf_uri");
+
+        // Initialize bookmark manager
+        bookmarkManager = new BookmarkManager(this);
 
         TextView tvBook = findViewById(R.id.tvBook);
 
@@ -56,16 +63,20 @@ public class ChapterListActivity extends AppCompatActivity {
         rv = findViewById(R.id.rvChapters);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        adapter = new Adapter(chapters);
+        adapter = new Adapter(chapters, fileUri, bookTitle);
         rv.setAdapter(adapter);
     }
 
     // ===== Adapter =====
     class Adapter extends RecyclerView.Adapter<VH> {
         private final List<ChapterUtils.Chapter> data;
+        private final String fileUri;
+        private final String bookTitle;
 
-        Adapter(List<ChapterUtils.Chapter> d) {
+        Adapter(List<ChapterUtils.Chapter> d, String uri, String title) {
             this.data = d;
+            this.fileUri = uri;
+            this.bookTitle = title;
         }
 
         @Override
@@ -86,9 +97,12 @@ public class ChapterListActivity extends AppCompatActivity {
             summary = summary.replaceAll("\\n+", " ").trim();
             h.desc.setText(summary);
 
-            // Highlight chapter hiện tại (nếu có)
-            if (pos == 0) { // Có thể thay đổi logic highlight
-                h.itemView.setBackgroundColor(0xFFE3F2FD); // Light blue background
+            // Check if bookmarked
+            boolean isBookmarked = bookmarkManager.isBookmarked(fileUri != null ? fileUri : "", pos);
+
+            // Highlight nếu bookmarked
+            if (isBookmarked) {
+                h.itemView.setBackgroundColor(0xFFFFF9C4); // Light yellow for bookmarked
                 if (h.bookmarkIcon != null) {
                     h.bookmarkIcon.setVisibility(android.view.View.VISIBLE);
                 }
@@ -144,9 +158,21 @@ public class ChapterListActivity extends AppCompatActivity {
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
             if (id == R.id.action_bookmark) {
-                // Bookmark chapter
-                android.widget.Toast.makeText(this, "Bookmarked: " + chapter.title, android.widget.Toast.LENGTH_SHORT)
-                        .show();
+                // Toggle bookmark
+                String uri = getIntent().getStringExtra("pdf_uri");
+                String bookTitle = getIntent().getStringExtra("book_title");
+
+                boolean added = bookmarkManager.toggleBookmark(
+                        uri != null ? uri : "",
+                        bookTitle != null ? bookTitle : "Unknown",
+                        position,
+                        chapter.title);
+
+                String message = added ? "Bookmarked: " + chapter.title : "Bookmark removed: " + chapter.title;
+                android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show();
+
+                // Refresh adapter để update icon
+                adapter.notifyItemChanged(position);
                 return true;
             } else if (id == R.id.action_share) {
                 // Share chapter
