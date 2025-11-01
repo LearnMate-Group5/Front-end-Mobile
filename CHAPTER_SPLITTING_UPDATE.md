@@ -521,3 +521,4 @@ Possible improvements:
 - [ ] Auto-numbering if numbers missing
 - [ ] Language-specific chapter detection
 - [ ] Machine learning for chapter detection
+

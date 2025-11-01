@@ -524,3 +524,4 @@ Giờ đây:
 3. **Debug**: Filter Logcat by "FileHistoryManager"
 4. **Limit**: Không nên lưu > 100 files
 5. **Backup**: Có thể export JSON để backup
+

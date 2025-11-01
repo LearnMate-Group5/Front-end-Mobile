@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.example.LearnMate.network.api.AiChatService;
+import com.example.LearnMate.network.api.AiHighlightService;
 import com.example.LearnMate.network.api.AiTranslateService;
 import com.example.LearnMate.network.api.AuthService;
 import com.google.gson.Gson;
@@ -40,6 +41,7 @@ public final class RetrofitClient {
     // Cached services
     private static AuthService cachedAuthService;
     private static AiChatService cachedAiChatService;
+    private static AiHighlightService cachedAiHighlightService;
     private static AiTranslateService cachedAiTranslateService;
 
     private RetrofitClient() {
@@ -182,5 +184,21 @@ public final class RetrofitClient {
             cachedAiTranslateService = aiTranslateRetrofit.create(AiTranslateService.class);
         }
         return cachedAiTranslateService;
+    }
+
+    // Dịch vụ AI Highlight — dùng client không auth (giống AI Chat)
+    public static AiHighlightService getAiHighlightService(Context appContext) {
+        if (cachedAiHighlightService == null) {
+            if (aiChatRetrofit == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                aiChatRetrofit = new Retrofit.Builder()
+                        .baseUrl(AI_CHAT_BASE_URL)
+                        .client(buildPlainClient())
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedAiHighlightService = aiChatRetrofit.create(AiHighlightService.class);
+        }
+        return cachedAiHighlightService;
     }
 }

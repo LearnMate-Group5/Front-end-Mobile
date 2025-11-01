@@ -43,3 +43,4 @@ public class AiFileResponse {
     @SerializedName("totalPages")
     public int totalPages;
 }
+

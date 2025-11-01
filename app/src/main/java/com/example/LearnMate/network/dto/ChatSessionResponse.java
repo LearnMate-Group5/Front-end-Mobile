@@ -36,3 +36,4 @@ public class ChatSessionResponse {
         public String timestamp;
     }
 }
+

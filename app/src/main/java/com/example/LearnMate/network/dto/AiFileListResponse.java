@@ -19,3 +19,4 @@ public class AiFileListResponse {
     @SerializedName("totalCount")
     public int totalCount;
 }
+

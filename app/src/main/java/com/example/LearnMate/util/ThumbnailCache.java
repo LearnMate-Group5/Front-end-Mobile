@@ -196,3 +196,4 @@ public class ThumbnailCache {
         return "pdf_" + Math.abs(uri.hashCode());
     }
 }
+

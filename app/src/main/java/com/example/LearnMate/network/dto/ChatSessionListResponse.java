@@ -19,3 +19,4 @@ public class ChatSessionListResponse {
     @SerializedName("totalCount")
     public int totalCount;
 }
+

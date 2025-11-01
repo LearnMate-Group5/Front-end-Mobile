@@ -28,11 +28,24 @@ public class ChapterPollingService {
     }
 
     public void startPolling(String jobId) {
+        // Validate jobId before starting
+        if (jobId == null || jobId.trim().isEmpty()) {
+            android.util.Log.w("ChapterPolling", "Cannot start polling: jobId is null or empty");
+            Toast.makeText(context, "Error: Invalid job ID", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         attemptCount = 0;
         pollChapters(jobId);
     }
 
     private void pollChapters(String jobId) {
+        // Validate jobId again before API call
+        if (jobId == null || jobId.trim().isEmpty()) {
+            android.util.Log.w("ChapterPolling", "Cannot poll: jobId is null or empty");
+            return;
+        }
+        
         if (attemptCount >= MAX_ATTEMPTS) {
             Toast.makeText(context, "Timeout: Không thể lấy chapters sau " + MAX_ATTEMPTS + " lần thử",
                     Toast.LENGTH_LONG).show();

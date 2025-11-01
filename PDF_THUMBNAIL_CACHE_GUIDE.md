@@ -453,3 +453,4 @@ Giờ đây:
 - [ ] Thumbnail resize theo screen density
 - [ ] Background refresh thumbnails
 - [ ] WebP format (smaller size)
+
