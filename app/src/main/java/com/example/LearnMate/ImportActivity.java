@@ -23,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.LearnMate.AiChatBotActivity;
 import com.example.LearnMate.network.RetrofitClient;
 import com.example.LearnMate.network.api.AiService;
 import com.example.LearnMate.network.dto.UploadResponse;
@@ -117,7 +118,9 @@ public class ImportActivity extends AppCompatActivity {
             } else if (id == R.id.nav_import) {
                 return true;
             } else if (id == R.id.nav_ai_bot) {
-                // TODO: mở Bot
+                startActivity(new Intent(this, AiChatBotActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
                 return true;
             } else if (id == R.id.nav_profile) {
                 startActivity(new Intent(this, SettingsActivity.class));

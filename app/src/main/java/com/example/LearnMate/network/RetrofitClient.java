@@ -126,15 +126,21 @@ public final class RetrofitClient {
 
     /** (Tuỳ chọn) Nếu cần Retrofit có auth để tự tạo service riêng. */
     public static Retrofit getRetrofitWithAuth(Context appContext) {
+        // Always recreate to ensure latest token is used
+        // Don't cache to avoid stale token issues
+        Gson gson = new GsonBuilder().setLenient().create();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(getAuthenticatedClient(appContext))
+                .build();
+        
+        // Still cache for performance, but refresh when needed
         if (retrofitWithAuth == null) {
-            Gson gson = new GsonBuilder().setLenient().create();
-            retrofitWithAuth = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create(gson))
-                    .client(getAuthenticatedClient(appContext))
-                    .build();
+            retrofitWithAuth = retrofit;
         }
-        return retrofitWithAuth;
+        
+        return retrofit;
     }
 
     // ------------------------

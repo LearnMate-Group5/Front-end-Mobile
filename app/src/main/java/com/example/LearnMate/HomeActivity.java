@@ -22,8 +22,9 @@ import com.example.LearnMate.model.Book;
 import com.example.LearnMate.model.HomeRepositoryImpl;
 import com.example.LearnMate.network.RetrofitClient;
 import com.example.LearnMate.network.api.AiService;
-import com.example.LearnMate.network.dto.AiFileListResponse;
 import com.example.LearnMate.network.dto.AiFileResponse;
+
+import java.util.List;
 import com.example.LearnMate.presenter.HomeContract;
 import com.example.LearnMate.presenter.HomePresenter;
 import com.example.LearnMate.reader.ChapterListActivity;
@@ -134,21 +135,21 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
     /** Optional: Load từ API để sync */
     private void loadFromApi() {
         AiService service = RetrofitClient.getRetrofitWithAuth(this).create(AiService.class);
-        service.getFiles().enqueue(new Callback<AiFileListResponse>() {
+        service.getFiles().enqueue(new Callback<List<AiFileResponse>>() {
             @Override
-            public void onResponse(Call<AiFileListResponse> call, Response<AiFileListResponse> response) {
+            public void onResponse(Call<List<AiFileResponse>> call, Response<List<AiFileResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    AiFileListResponse result = response.body();
-                    if (result.success && result.files != null) {
-                        android.util.Log.d("HomeActivity", "Synced " + result.files.size() + " files from API");
+                    List<AiFileResponse> files = response.body();
+                    if (files != null && !files.isEmpty()) {
+                        android.util.Log.d("HomeActivity", "Synced " + files.size() + " files from API");
                         // Có thể merge với local data
-                        importedFilesAdapter.updateData(result.files);
+                        importedFilesAdapter.updateData(files);
                     }
                 }
             }
 
             @Override
-            public void onFailure(Call<AiFileListResponse> call, Throwable t) {
+            public void onFailure(Call<List<AiFileResponse>> call, Throwable t) {
                 android.util.Log.e("HomeActivity", "API sync failed: " + t.getMessage());
                 // Không sao, vẫn có local data
             }
