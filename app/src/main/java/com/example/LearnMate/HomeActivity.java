@@ -19,6 +19,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.LearnMate.model.Book;
 import com.example.LearnMate.model.HomeRepositoryImpl;
+<<<<<<< Updated upstream
+=======
+import com.example.LearnMate.network.RetrofitClient;
+import com.example.LearnMate.network.api.AiService;
+import com.example.LearnMate.network.dto.AiFileResponse;
+
+import java.util.List;
+>>>>>>> Stashed changes
 import com.example.LearnMate.presenter.HomeContract;
 import com.example.LearnMate.presenter.HomePresenter;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
@@ -67,6 +75,68 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
         super.onStart();
         String name = getSharedPreferences("user_prefs", MODE_PRIVATE).getString("user_name", "User");
         tvGreeting.setText("Good Morning, " + name);
+<<<<<<< Updated upstream
+=======
+
+        // Reload imported files when activity starts
+        loadImportedFiles();
+    }
+
+    /**
+     * Load danh sách files đã import từ Local History + API
+     */
+    private void loadImportedFiles() {
+        if (importedFilesAdapter == null)
+            return;
+
+        // Load từ local history trước (instant)
+        List<FileHistoryManager.ImportedFile> localFiles = fileHistoryManager.getFiles();
+
+        if (!localFiles.isEmpty()) {
+            // Convert sang AiFileResponse format
+            List<AiFileResponse> fileResponses = new ArrayList<>();
+            for (FileHistoryManager.ImportedFile file : localFiles) {
+                AiFileResponse response = new AiFileResponse();
+                response.fileName = file.fileName;
+                response.fileId = file.uri; // Dùng URI để load thumbnail
+                response.category = file.category;
+                response.language = file.language;
+                response.totalPages = file.totalPages;
+                response.uploadedAt = new java.util.Date(file.importedAt).toString();
+                fileResponses.add(response);
+            }
+
+            android.util.Log.d("HomeActivity", "Loaded " + fileResponses.size() + " files from local history");
+            importedFilesAdapter.updateData(fileResponses);
+        }
+
+        // Optional: Sync với API ở background (nếu backend ready)
+        // loadFromApi();
+    }
+
+    /** Optional: Load từ API để sync */
+    private void loadFromApi() {
+        AiService service = RetrofitClient.getRetrofitWithAuth(this).create(AiService.class);
+        service.getFiles().enqueue(new Callback<List<AiFileResponse>>() {
+            @Override
+            public void onResponse(Call<List<AiFileResponse>> call, Response<List<AiFileResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<AiFileResponse> files = response.body();
+                    if (files != null && !files.isEmpty()) {
+                        android.util.Log.d("HomeActivity", "Synced " + files.size() + " files from API");
+                        // Có thể merge với local data
+                        importedFilesAdapter.updateData(files);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<AiFileResponse>> call, Throwable t) {
+                android.util.Log.e("HomeActivity", "API sync failed: " + t.getMessage());
+                // Không sao, vẫn có local data
+            }
+        });
+>>>>>>> Stashed changes
     }
 
     @Override

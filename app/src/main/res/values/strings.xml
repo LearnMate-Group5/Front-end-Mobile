@@ -13,4 +13,9 @@
     <string name="ai_bot_title">AI Assistant</string>
     <string name="chat_message_hint">Type your message...</string>
     <string name="send_message">Send message</string>
+    <string name="new_chat">Đoạn chat mới</string>
+    <string name="chat_history">Lịch sử chat</string>
+    <string name="no_chat_history">Chưa có lịch sử chat</string>
+    <string name="chatbot_locked_message">Bạn chưa import sách hoặc sử dụng sách để có thể dùng Chat Bot</string>
+    <string name="import_file">Import File</string>
 </resources>

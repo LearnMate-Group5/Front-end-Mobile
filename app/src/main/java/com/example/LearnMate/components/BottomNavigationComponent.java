@@ -93,6 +93,7 @@ public class BottomNavigationComponent extends FrameLayout {
                 intent = new Intent(context, ImportActivity.class);
             }
         } else if (itemId == R.id.nav_ai_bot) {
+            // Allow navigation to ChatBot - UI will handle locked state
             if (!(context instanceof AiChatBotActivity)) {
                 intent = new Intent(context, AiChatBotActivity.class);
             }
