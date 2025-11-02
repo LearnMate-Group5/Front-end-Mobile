@@ -8,6 +8,7 @@ import com.example.LearnMate.network.api.AiChatService;
 import com.example.LearnMate.network.api.AiHighlightService;
 import com.example.LearnMate.network.api.AiTranslateService;
 import com.example.LearnMate.network.api.AuthService;
+import com.example.LearnMate.network.api.PayOSService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -43,6 +44,7 @@ public final class RetrofitClient {
     private static AiChatService cachedAiChatService;
     private static AiHighlightService cachedAiHighlightService;
     private static AiTranslateService cachedAiTranslateService;
+    private static PayOSService cachedPayOSService;
 
     private RetrofitClient() {
     }
@@ -200,5 +202,21 @@ public final class RetrofitClient {
             cachedAiHighlightService = aiChatRetrofit.create(AiHighlightService.class);
         }
         return cachedAiHighlightService;
+    }
+    
+    // Dịch vụ PayOS — dùng client có auth (vì cần user context)
+    public static PayOSService getPayOSService(Context appContext) {
+        if (cachedPayOSService == null) {
+            if (retrofitWithAuth == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                retrofitWithAuth = new Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .client(getAuthenticatedClient(appContext))
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedPayOSService = retrofitWithAuth.create(PayOSService.class);
+        }
+        return cachedPayOSService;
     }
 }

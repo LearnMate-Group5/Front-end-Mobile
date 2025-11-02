@@ -40,6 +40,9 @@
             android:name=".SettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".SubscriptionActivity"
+            android:exported="false" />
+        <activity
             android:name=".ProfileActivity"
             android:exported="false" />
         <activity
@@ -55,6 +58,24 @@
             android:name=".reader.ChapterListActivity"
             android:exported="false" />
         <activity android:name=".reader.ReaderActivity"/>
+        
+        <!-- PayOS Payment WebView -->
+        <activity
+            android:name=".payment.PaymentWebViewActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize" />
+        
+        <!-- PayOS Deep Link Handler -->
+        <activity
+            android:name=".payment.PayOSPaymentActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="learnmate" android:host="payment" />
+            </intent-filter>
+        </activity>
 
     </application>
 

@@ -70,6 +70,10 @@ dependencies {
     // Annotation library for @NonNull
     implementation 'androidx.annotation:annotation:1.7.1'
     
+    // PayOS - Payment Gateway
+    // PayOS không cần SDK riêng, sử dụng REST API qua backend
+    // Không cần thêm dependencies cho PayOS
+    
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

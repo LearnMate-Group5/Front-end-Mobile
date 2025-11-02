@@ -216,12 +216,16 @@
 
             <!-- Subscription -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSubscription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                style="@style/Widget.LearnMate.CardView">
+                style="@style/Widget.LearnMate.CardView"
+                android:clickable="false"
+                android:focusable="false">
 
                 <LinearLayout
+                    android:id="@+id/btnSubscription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -230,13 +234,17 @@
                     android:paddingHorizontal="12dp"
                     android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
-                    android:focusable="true">
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:descendantFocusability="blocksDescendants">
 
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginEnd="16dp"
                         android:src="@drawable/ic_subscription"
+                        android:clickable="false"
+                        android:focusable="false"
                         app:tint="@color/purple_primary" />
 
                     <TextView
@@ -245,12 +253,16 @@
                         android:layout_weight="1"
                         android:text="Subscription"
                         android:textColor="@color/text_primary"
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        android:clickable="false"
+                        android:focusable="false" />
 
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_arround_right"
+                        android:clickable="false"
+                        android:focusable="false"
                         app:tint="@color/purple_primary" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
