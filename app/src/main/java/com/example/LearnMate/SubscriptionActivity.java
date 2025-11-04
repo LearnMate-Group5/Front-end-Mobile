@@ -1,5 +1,6 @@
 package com.example.LearnMate;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.LearnMate.components.BottomNavigationComponent;
 import com.example.LearnMate.payment.PayOSConstants;
 import com.example.LearnMate.payment.PayOSPaymentHelper;
+import com.example.LearnMate.payment.ZaloPayPaymentHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +26,9 @@ public class SubscriptionActivity extends AppCompatActivity {
     
     private RecyclerView rvSubscriptionPlans;
     private BottomNavigationComponent bottomNavComponent;
-    private PayOSPaymentHelper paymentHelper;
+    private PayOSPaymentHelper payOSPaymentHelper;
+    private ZaloPayPaymentHelper zaloPayPaymentHelper;
+    private ProgressDialog progressDialog;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +39,9 @@ public class SubscriptionActivity extends AppCompatActivity {
             setContentView(R.layout.activity_subscription);
             Log.d("SubscriptionActivity", "Layout set");
             
-            paymentHelper = new PayOSPaymentHelper(this);
+            // Initialize payment helpers
+            payOSPaymentHelper = new PayOSPaymentHelper(this);
+            zaloPayPaymentHelper = new ZaloPayPaymentHelper(this);
             
             setupUI();
             loadSubscriptionPlans();
@@ -74,7 +81,23 @@ public class SubscriptionActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        dismissLoadingDialog();
         Log.d("SubscriptionActivity", "onDestroy called");
+    }
+    
+    private void showLoadingDialog(String message) {
+        dismissLoadingDialog(); // Đóng dialog cũ nếu có
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(message);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+    }
+    
+    private void dismissLoadingDialog() {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
     }
     
     private void setupUI() {
@@ -180,67 +203,89 @@ public class SubscriptionActivity extends AppCompatActivity {
     private void onPlanSelected(SubscriptionPlan plan) {
         // Nếu là current plan thì không làm gì
         if (plan.isCurrentPlan()) {
+            Log.d("SubscriptionActivity", "Plan is current plan, skipping payment");
             return;
         }
         
-        // Bắt đầu thanh toán PayOS (không cần app riêng, mở trong browser/WebView)
+        Log.d("SubscriptionActivity", "=== Plan selected ===");
+        Log.d("SubscriptionActivity", "Plan: " + plan.getName());
+        Log.d("SubscriptionActivity", "Price: " + plan.getPrice() + " VND");
+        
+        // Kiểm tra payment helper
+        if (zaloPayPaymentHelper == null) {
+            Log.e("SubscriptionActivity", "ZaloPayPaymentHelper is null!");
+            Toast.makeText(this, "Lỗi: Payment helper chưa được khởi tạo", Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        // Bắt đầu thanh toán ZaloPay
         String description = "Thanh toán gói Premium - LearnMate";
         
-        paymentCallback = new PayOSPaymentHelper.PaymentCallback() {
-                @Override
-                public void onPaymentLinkCreated(com.example.LearnMate.payment.dto.PayOSOrderResponse response) {
-                    if (response.isSuccess() && response.getData() != null) {
-                        // Mở PayOS payment page
-                        String checkoutUrl = response.getData().getCheckoutUrl();
-                        paymentHelper.openPaymentPage(SubscriptionActivity.this, checkoutUrl);
-                    } else {
-                        Toast.makeText(SubscriptionActivity.this,
-                            "Lỗi: " + response.getDesc(),
-                            Toast.LENGTH_LONG).show();
-                    }
-                }
-                
-                @Override
-                public void onPaymentSuccess(String orderCode) {
-                    Toast.makeText(SubscriptionActivity.this,
-                        "Thanh toán thành công! Order Code: " + orderCode,
-                        Toast.LENGTH_LONG).show();
-                    // Update subscription status
-                    updateSubscriptionStatus(plan);
-                    
-                    // TODO: Gọi backend API để update user.isPremium = true
-                    // Ví dụ:
-                    // ApiService service = RetrofitClient.getApiService();
-                    // service.updateSubscriptionStatus(userId, true).enqueue(...);
-                }
-                
-                @Override
-                public void onPaymentFailed(String errorMessage) {
-                    Toast.makeText(SubscriptionActivity.this,
-                        "Thanh toán thất bại: " + errorMessage,
-                        Toast.LENGTH_LONG).show();
-                }
-                
-                @Override
-                public void onError(String error) {
-                    Toast.makeText(SubscriptionActivity.this,
-                        "Lỗi: " + error,
-                        Toast.LENGTH_LONG).show();
-                }
-            };
+        Log.d("SubscriptionActivity", "Calling ZaloPay payment...");
         
-        paymentHelper.pay(this, plan.getPrice(), description, paymentCallback);
+        // Hiển thị loading dialog
+        showLoadingDialog("Đang tạo đơn hàng...");
+        
+        zaloPayPaymentHelper.pay(plan.getPrice(), description, new ZaloPayPaymentHelper.ZaloPayPaymentCallback() {
+            @Override
+            public void onPaymentSucceeded(String transactionId, String transToken, String appTransID) {
+                dismissLoadingDialog();
+                Log.d("SubscriptionActivity", "ZaloPay payment succeeded - transactionId: " + transactionId);
+                Toast.makeText(SubscriptionActivity.this,
+                    "Thanh toán thành công! Transaction ID: " + transactionId,
+                    Toast.LENGTH_LONG).show();
+                
+                // Update subscription status
+                updateSubscriptionStatus(plan);
+                
+                // TODO: Gọi backend API để update user.isPremium = true
+                // Ví dụ:
+                // ApiService service = RetrofitClient.getApiService();
+                // service.updateSubscriptionStatus(userId, true).enqueue(...);
+            }
+            
+            @Override
+            public void onPaymentCanceled(String zpTransToken, String appTransID) {
+                dismissLoadingDialog();
+                Log.d("SubscriptionActivity", "ZaloPay payment canceled - appTransID: " + appTransID);
+                Toast.makeText(SubscriptionActivity.this,
+                    "Thanh toán đã bị hủy",
+                    Toast.LENGTH_SHORT).show();
+            }
+            
+            @Override
+            public void onPaymentError(String errorMessage, String zpTransToken, String appTransID) {
+                dismissLoadingDialog();
+                Log.e("SubscriptionActivity", "ZaloPay payment error: " + errorMessage);
+                
+                // Hiển thị dialog với thông tin lỗi chi tiết
+                new AlertDialog.Builder(SubscriptionActivity.this)
+                    .setTitle("Lỗi thanh toán")
+                    .setMessage(errorMessage)
+                    .setPositiveButton("OK", null)
+                    .show();
+            }
+        });
     }
     
-    
-    private PayOSPaymentHelper.PaymentCallback paymentCallback;
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        
+        // Xử lý ZaloPay callback từ deep link
+        if (zaloPayPaymentHelper != null) {
+            zaloPayPaymentHelper.handleResult(intent);
+        }
+    }
     
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         
-        if (requestCode == PayOSConstants.REQUEST_CODE_PAYOS && paymentCallback != null) {
-            paymentHelper.handlePaymentResult(requestCode, resultCode, data, paymentCallback);
+        // Handle PayOS payment result (nếu vẫn cần)
+        if (requestCode == PayOSConstants.REQUEST_CODE_PAYOS && payOSPaymentHelper != null) {
+            // PayOS payment handling if needed
         }
     }
     

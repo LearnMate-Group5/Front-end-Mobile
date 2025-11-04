@@ -7,6 +7,7 @@
 
 
     <application
+        android:name=".LearnMateApplication"
         android:allowBackup="true"
         android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -41,7 +42,16 @@
             android:exported="false" />
         <activity
             android:name=".SubscriptionActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop">
+            <!-- ZaloPay Deep Link Handler -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="learnmate" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />
