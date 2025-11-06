@@ -23,9 +23,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public final class RetrofitClient {
 
-    private static final String BASE_URL = "http://10.0.2.2:2406/"; // API chính (Swagger)
-    private static final String AI_CHAT_BASE_URL = "http://10.0.2.2:5678/"; // Dịch vụ cũ (nếu còn dùng)
-    private static final String AI_TRANSLATE_BASE_URL = "http://localhost:2406/"; // Upload/Translate mới
+    // Sử dụng ApiConfig để lấy BASE_URL tập trung
+    // Tất cả URL được quản lý tại ApiConfig.java - chỉ cần thay đổi ở đó khi deploy
+    private static final String BASE_URL = ApiConfig.BASE_URL;
+    private static final String AI_CHAT_BASE_URL = ApiConfig.AI_CHAT_BASE_URL;
+    private static final String AI_TRANSLATE_BASE_URL = ApiConfig.AI_TRANSLATE_BASE_URL;
 
     // Retrofit “thuần” (không header Authorization)
     private static Retrofit plainRetrofit;
@@ -141,6 +143,26 @@ public final class RetrofitClient {
         }
         
         return retrofit;
+    }
+
+    /**
+     * Clear cache của Retrofit instances để tạo fresh connection
+     * Nên gọi sau khi upload file lớn hoặc khi gặp lỗi 503
+     */
+    public static void clearCache() {
+        plainRetrofit = null;
+        retrofitWithAuth = null;
+        aiChatRetrofit = null;
+        aiTranslateRetrofit = null;
+        
+        // Clear cached services
+        cachedAuthService = null;
+        cachedAiChatService = null;
+        cachedAiHighlightService = null;
+        cachedAiTranslateService = null;
+        cachedPayOSService = null;
+        
+        android.util.Log.d("RetrofitClient", "Cleared all Retrofit cache");
     }
 
     // ------------------------

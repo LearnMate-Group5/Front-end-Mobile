@@ -20,8 +20,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class RetrofitUpload {
     private static UploadApi instance;
 
-    // ⚠️ sửa thành domain n8n của bạn, kết thúc bằng "/"
-    private static final String BASE_URL = "http://localhost:5678/n8n/workflow/MVek4T7WdlkqgNWn/";
+    // Sử dụng ApiConfig để lấy BASE_URL tập trung
+    // Tất cả service (bao gồm N8N webhooks) đều dùng chung BASE_URL
+    // URL được quản lý tại ApiConfig.java - chỉ cần thay đổi ở đó khi deploy
+    private static final String BASE_URL = ApiConfig.BASE_URL;
 
     public static UploadApi api() {
         if (instance == null) {

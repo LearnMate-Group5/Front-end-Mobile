@@ -69,10 +69,6 @@ dependencies {
     
     // Annotation library for @NonNull
     implementation 'androidx.annotation:annotation:1.7.1'
-    implementation fileTree(dir: 'D:\\ZalopayLibs', include: ['*.aar', '*.jar'], exclude: [])
-    
-    // ZaloPay SDK
-    implementation project(':zpdk')
 
     // PayOS - Payment Gateway
     // PayOS không cần SDK riêng, sử dụng REST API qua backend

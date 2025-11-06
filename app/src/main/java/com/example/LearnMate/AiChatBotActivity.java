@@ -371,6 +371,45 @@ public class AiChatBotActivity extends AppCompatActivity {
                             Log.e("AiChatBot", "Error reading/parsing 401 error body: " + e.getMessage());
                             e.printStackTrace();
                         }
+                    } else if (statusCode == 503) {
+                        // 503 Service Temporarily Unavailable - thường xảy ra sau khi upload file lớn
+                        // Clear cache và retry với fresh connection
+                        Log.w("AiChatBot", "503 Service Temporarily Unavailable - Clearing cache and retrying...");
+                        RetrofitClient.clearCache();
+                        
+                        // Retry sau 1 giây với fresh Retrofit instance
+                        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                            Log.d("AiChatBot", "Retrying API call after clearing cache...");
+                            aiService = RetrofitClient.getRetrofitWithAuth(AiChatBotActivity.this).create(AiService.class);
+                            aiService.getFiles().enqueue(new Callback<List<AiFileResponse>>() {
+                                @Override
+                                public void onResponse(Call<List<AiFileResponse>> call, Response<List<AiFileResponse>> response) {
+                                    if (response.isSuccessful() && response.body() != null) {
+                                        List<AiFileResponse> files = response.body();
+                                        if (files != null && !files.isEmpty()) {
+                                            Log.d("AiChatBot", "Retry successful! Found " + files.size() + " files.");
+                                            showChatInterface();
+                                        } else {
+                                            Log.d("AiChatBot", "Retry successful but no files found.");
+                                            showLockedState();
+                                        }
+                                    } else {
+                                        Log.e("AiChatBot", "Retry failed with code: " + response.code());
+                                        showLockedState();
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<List<AiFileResponse>> call, Throwable t) {
+                                    Log.e("AiChatBot", "Retry failed: " + t.getMessage());
+                                    showLockedState();
+                                }
+                            });
+                        }, 1000); // Retry sau 1 giây
+                        
+                        // Tạm thời show locked state trong khi retry
+                        showLockedState();
+                        return;
                     } else {
                         // For other error codes, try to parse error body
                         try {
@@ -643,7 +682,18 @@ public class AiChatBotActivity extends AppCompatActivity {
         // Clear input
         editTextMessage.setText("");
 
-        // Show loading
+        // Add loading message
+        ChatMessage loadingMessage = new ChatMessage(
+            "",
+            ChatMessage.TYPE_LOADING,
+            System.currentTimeMillis()
+        );
+        chatMessages.add(loadingMessage);
+        int loadingPosition = chatMessages.size() - 1;
+        chatAdapter.notifyItemInserted(loadingPosition);
+        recyclerView.scrollToPosition(loadingPosition);
+
+        // Show loading indicator
         showLoading(true);
 
         // Send to API
@@ -654,6 +704,10 @@ public class AiChatBotActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<AiChatResponse>> call, Response<List<AiChatResponse>> response) {
                 showLoading(false);
+                
+                // Remove loading message
+                removeLoadingMessage(loadingPosition);
+                
                 Log.d("AiChatBot", "Response code: " + response.code());
                 
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
@@ -685,6 +739,10 @@ public class AiChatBotActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<AiChatResponse>> call, Throwable t) {
                 showLoading(false);
+                
+                // Remove loading message
+                removeLoadingMessage(loadingPosition);
+                
                 Log.e("AiChatBot", "Network error", t);
                 
                 String errorMessage;
@@ -697,6 +755,26 @@ public class AiChatBotActivity extends AppCompatActivity {
                 showError(errorMessage);
             }
         });
+    }
+    
+    /**
+     * Remove loading message from chat
+     * Tìm và xóa loading message gần nhất (thường là message cuối cùng)
+     */
+    private void removeLoadingMessage(int expectedPosition) {
+        // Tìm loading message từ cuối lên (thường là message mới nhất)
+        for (int i = chatMessages.size() - 1; i >= 0; i--) {
+            ChatMessage message = chatMessages.get(i);
+            if (message.getType() == ChatMessage.TYPE_LOADING) {
+                chatMessages.remove(i);
+                chatAdapter.notifyItemRemoved(i);
+                // Notify adapter that items after removed position have changed
+                if (i < chatMessages.size()) {
+                    chatAdapter.notifyItemRangeChanged(i, chatMessages.size() - i);
+                }
+                break;
+            }
+        }
     }
 
     private void showLoading(boolean show) {

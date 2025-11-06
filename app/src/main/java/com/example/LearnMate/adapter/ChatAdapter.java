@@ -20,6 +20,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     
     private static final int VIEW_TYPE_USER = 1;
     private static final int VIEW_TYPE_BOT = 2;
+    private static final int VIEW_TYPE_LOADING = 3;
     
     private List<ChatMessage> messages;
     
@@ -30,7 +31,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public int getItemViewType(int position) {
         ChatMessage message = messages.get(position);
-        return message.getType() == ChatMessage.TYPE_USER ? VIEW_TYPE_USER : VIEW_TYPE_BOT;
+        if (message.getType() == ChatMessage.TYPE_USER) {
+            return VIEW_TYPE_USER;
+        } else if (message.getType() == ChatMessage.TYPE_LOADING) {
+            return VIEW_TYPE_LOADING;
+        } else {
+            return VIEW_TYPE_BOT;
+        }
     }
     
     @NonNull
@@ -41,6 +48,9 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (viewType == VIEW_TYPE_USER) {
             View view = inflater.inflate(R.layout.item_chat_user, parent, false);
             return new UserMessageViewHolder(view);
+        } else if (viewType == VIEW_TYPE_LOADING) {
+            View view = inflater.inflate(R.layout.item_chat_loading, parent, false);
+            return new LoadingMessageViewHolder(view);
         } else {
             View view = inflater.inflate(R.layout.item_chat_bot, parent, false);
             return new BotMessageViewHolder(view);
@@ -55,6 +65,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ((UserMessageViewHolder) holder).bind(message);
         } else if (holder instanceof BotMessageViewHolder) {
             ((BotMessageViewHolder) holder).bind(message);
+        } else if (holder instanceof LoadingMessageViewHolder) {
+            ((LoadingMessageViewHolder) holder).bind(message);
         }
     }
     
@@ -94,6 +106,21 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public void bind(ChatMessage message) {
             textMessage.setText(message.getMessage());
             textTime.setText(formatTime(message.getTimestamp()));
+        }
+    }
+    
+    // ViewHolder for loading messages
+    public static class LoadingMessageViewHolder extends RecyclerView.ViewHolder {
+        private TextView textLoading;
+        
+        public LoadingMessageViewHolder(@NonNull View itemView) {
+            super(itemView);
+            textLoading = itemView.findViewById(R.id.textLoading);
+        }
+        
+        public void bind(ChatMessage message) {
+            // Loading message doesn't need to show timestamp
+            // The progress bar will animate automatically
         }
     }
     

@@ -243,6 +243,11 @@ public class ImportActivity extends AppCompatActivity {
 
                         // Generate thumbnail trong background thread
                         generateAndAddPdfItem(uri);
+                        
+                        // Clear Retrofit cache sau khi upload thành công để tránh stale connection
+                        // Điều này giúp tránh lỗi 503 khi gọi API ngay sau khi upload
+                        RetrofitClient.clearCache();
+                        android.util.Log.d("ImportActivity", "Cleared Retrofit cache after successful upload");
 
                     } else {
                         hideLoading();
@@ -254,7 +259,16 @@ public class ImportActivity extends AppCompatActivity {
                 public void onFailure(Call<UploadResponse> call, Throwable t) {
                     hideLoading();
                     android.util.Log.e("ImportActivity", "Network error: " + t.getMessage(), t);
-                    Toast.makeText(ImportActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                    
+                    // Hiển thị thông báo lỗi rõ ràng hơn
+                    String errorMessage = t.getMessage();
+                    if (errorMessage != null && errorMessage.contains("Unable to resolve host")) {
+                        errorMessage = "Không thể kết nối đến server. Vui lòng kiểm tra:\n" +
+                                "1. Kết nối internet\n" +
+                                "2. Domain backend có đúng không\n" +
+                                "3. Server có đang chạy không";
+                    }
+                    Toast.makeText(ImportActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                 }
             });
         } catch (Exception e) {

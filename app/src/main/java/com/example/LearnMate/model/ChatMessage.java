@@ -3,6 +3,7 @@ package com.example.LearnMate.model;
 public class ChatMessage {
     public static final int TYPE_USER = 1;
     public static final int TYPE_BOT = 2;
+    public static final int TYPE_LOADING = 3; // Loading message from AI
     
     private String message;
     private int type;
