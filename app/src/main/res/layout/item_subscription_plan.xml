@@ -55,14 +55,53 @@
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvPlanPrice"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="99,000 VND"
-                android:textColor="@color/purple_primary"
-                android:textStyle="bold"
-                android:textSize="18sp" />
+                android:orientation="vertical"
+                android:gravity="end">
+
+                <!-- Price Container -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+
+                    <!-- Original Price (có gạch ngang) -->
+                    <TextView
+                        android:id="@+id/tvOriginalPrice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="200,000 VND"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="8dp"
+                        android:visibility="gone" />
+
+                    <!-- Discount (màu đỏ với dấu - và %) -->
+                    <TextView
+                        android:id="@+id/tvDiscount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="-10%"
+                        android:textColor="@android:color/holo_red_dark"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- Final Price -->
+                <TextView
+                    android:id="@+id/tvPlanPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="99,000 VND"
+                    android:textColor="@color/purple_primary"
+                    android:textStyle="bold"
+                    android:textSize="18sp" />
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -87,16 +126,41 @@
             android:lineSpacingExtra="4dp"
             android:layout_marginBottom="20dp" />
 
-        <!-- Subscribe/Upgrade Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSubscribe"
+        <!-- Button Container -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Upgrade"
-            style="@style/Widget.LearnMate.Button"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:paddingVertical="12dp" />
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <!-- Subscribe/Upgrade Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSubscribe"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Upgrade"
+                style="@style/Widget.LearnMate.Button"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingVertical="12dp"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Cancel Button (chỉ hiển thị cho current plan) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Cancel"
+                android:textColor="@color/text_primary"
+                android:backgroundTint="@android:color/transparent"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingVertical="12dp"
+                android:layout_marginStart="8dp"
+                android:visibility="gone" />
+        </LinearLayout>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

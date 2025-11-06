@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@android:color/white">
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Subscription Details"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:textSize="22sp"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Plan Name -->
+    <TextView
+        android:id="@+id/tvDialogPlanName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Premium Plan"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Price Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="24dp">
+
+        <!-- Original Price and Discount -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <!-- Original Price (có gạch ngang) -->
+            <TextView
+                android:id="@+id/tvDialogOriginalPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="200,000 VND"
+                android:textColor="@color/text_secondary"
+                android:textSize="16sp"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone" />
+
+            <!-- Discount (màu đỏ với dấu - và %) -->
+            <TextView
+                android:id="@+id/tvDialogDiscount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-10%"
+                android:textColor="@android:color/holo_red_dark"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Final Price -->
+        <TextView
+            android:id="@+id/tvDialogFinalPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="180,000 VND"
+            android:textColor="@color/purple_primary"
+            android:textStyle="bold"
+            android:textSize="24sp" />
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/text_secondary"
+        android:alpha="0.3"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Plan Type -->
+    <TextView
+        android:id="@+id/tvDialogPlanType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Type: Premium"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Features -->
+    <TextView
+        android:id="@+id/tvDialogFeatures"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="• Feature 1\n• Feature 2"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Button Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Cancel Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDialogCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:textColor="@color/text_primary"
+            android:backgroundTint="@android:color/transparent"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingVertical="12dp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Pay Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDialogPay"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Pay"
+            style="@style/Widget.LearnMate.Button"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingVertical="12dp"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+</LinearLayout>
+

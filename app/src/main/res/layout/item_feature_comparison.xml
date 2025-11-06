@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="0dp"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- Feature Name -->
+    <TextView
+        android:id="@+id/tvFeatureName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Truy cập vào GPT-5"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp" />
+
+    <!-- Current Plan Status -->
+    <TextView
+        android:id="@+id/tvCurrentPlanStatus"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="—"
+        android:textColor="@color/text_secondary"
+        android:textSize="18sp"
+        android:gravity="center" />
+
+    <!-- Selected Plan Status -->
+    <TextView
+        android:id="@+id/tvSelectedPlanStatus"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="✓"
+        android:textColor="@color/purple_primary"
+        android:textSize="18sp"
+        android:gravity="center" />
+
+</LinearLayout>
+

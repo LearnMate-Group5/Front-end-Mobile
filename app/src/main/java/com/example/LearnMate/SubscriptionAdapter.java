@@ -16,15 +16,23 @@ import java.util.List;
 public class SubscriptionAdapter extends RecyclerView.Adapter<SubscriptionAdapter.ViewHolder> {
     
     private List<SubscriptionActivity.SubscriptionPlan> plans;
-    private OnPlanClickListener listener;
+    private OnPlanClickListener planClickListener;
+    private OnCancelClickListener cancelClickListener;
     
     public interface OnPlanClickListener {
         void onPlanClick(SubscriptionActivity.SubscriptionPlan plan);
     }
     
-    public SubscriptionAdapter(List<SubscriptionActivity.SubscriptionPlan> plans, OnPlanClickListener listener) {
+    public interface OnCancelClickListener {
+        void onCancelClick(SubscriptionActivity.SubscriptionPlan plan);
+    }
+    
+    public SubscriptionAdapter(List<SubscriptionActivity.SubscriptionPlan> plans, 
+                               OnPlanClickListener planListener,
+                               OnCancelClickListener cancelListener) {
         this.plans = plans;
-        this.listener = listener;
+        this.planClickListener = planListener;
+        this.cancelClickListener = cancelListener;
     }
     
     @NonNull
@@ -44,25 +52,63 @@ public class SubscriptionAdapter extends RecyclerView.Adapter<SubscriptionAdapte
         holder.tvPlanSubtitle.setText(plan.getSubtitle());
         holder.tvPlanFeatures.setText(plan.getFeatures());
         
+        // Hiển thị originalPrice và discount nếu có
+        if (plan.hasDiscount() && holder.tvOriginalPrice != null && holder.tvDiscount != null) {
+            holder.tvOriginalPrice.setVisibility(View.VISIBLE);
+            holder.tvDiscount.setVisibility(View.VISIBLE);
+            
+            // Set originalPrice với gạch ngang (strikethrough)
+            holder.tvOriginalPrice.setText(plan.getFormattedOriginalPrice());
+            holder.tvOriginalPrice.setPaintFlags(holder.tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+            
+            // Set discount với màu đỏ
+            holder.tvDiscount.setText(plan.getFormattedDiscount());
+        } else {
+            if (holder.tvOriginalPrice != null) {
+                holder.tvOriginalPrice.setVisibility(View.GONE);
+            }
+            if (holder.tvDiscount != null) {
+                holder.tvDiscount.setVisibility(View.GONE);
+            }
+        }
+        
         boolean isCurrentPlan = plan.isCurrentPlan();
         
         // Hiển thị badge "Current Plan" nếu là current plan
         if (holder.tvCurrentBadge != null) {
-            holder.tvCurrentBadge.setVisibility(isCurrentPlan ? android.view.View.VISIBLE : android.view.View.GONE);
+            holder.tvCurrentBadge.setVisibility(isCurrentPlan ? View.VISIBLE : View.GONE);
         }
         
-        // Ẩn nút Subscribe cho Current Plan, hiển thị cho Premium
+        // Setup Subscribe/Upgrade button
         if (holder.btnSubscribe != null) {
             if (isCurrentPlan) {
-                holder.btnSubscribe.setVisibility(android.view.View.GONE);
+                // Ẩn Subscribe button cho current plan
+                holder.btnSubscribe.setVisibility(View.GONE);
             } else {
-                holder.btnSubscribe.setVisibility(android.view.View.VISIBLE);
-                holder.btnSubscribe.setText("Upgrade");
+                // Hiển thị Subscribe button cho các plans khác
+                holder.btnSubscribe.setVisibility(View.VISIBLE);
+                holder.btnSubscribe.setText("Subscribe");
                 holder.btnSubscribe.setOnClickListener(v -> {
-                    if (listener != null) {
-                        listener.onPlanClick(plan);
+                    if (planClickListener != null) {
+                        planClickListener.onPlanClick(plan);
                     }
                 });
+            }
+        }
+        
+        // Setup Cancel button (chỉ hiển thị cho current plan)
+        if (holder.btnCancel != null) {
+            if (isCurrentPlan && plan.getSubscriptionId() != null) {
+                // Hiển thị Cancel button cho current plan (nếu có subscriptionId)
+                holder.btnCancel.setVisibility(View.VISIBLE);
+                holder.btnCancel.setOnClickListener(v -> {
+                    if (cancelClickListener != null) {
+                        cancelClickListener.onCancelClick(plan);
+                    }
+                });
+            } else {
+                // Ẩn Cancel button cho các plans khác hoặc empty plan
+                holder.btnCancel.setVisibility(View.GONE);
             }
         }
         
@@ -83,22 +129,26 @@ public class SubscriptionAdapter extends RecyclerView.Adapter<SubscriptionAdapte
         MaterialCardView cardView;
         TextView tvPlanName;
         TextView tvPlanPrice;
+        TextView tvOriginalPrice;
+        TextView tvDiscount;
         TextView tvPlanSubtitle;
         TextView tvPlanFeatures;
         TextView tvCurrentBadge;
         MaterialButton btnSubscribe;
+        MaterialButton btnCancel;
         
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             cardView = itemView.findViewById(R.id.cardPlan);
             tvPlanName = itemView.findViewById(R.id.tvPlanName);
             tvPlanPrice = itemView.findViewById(R.id.tvPlanPrice);
+            tvOriginalPrice = itemView.findViewById(R.id.tvOriginalPrice);
+            tvDiscount = itemView.findViewById(R.id.tvDiscount);
             tvPlanSubtitle = itemView.findViewById(R.id.tvPlanSubtitle);
             tvPlanFeatures = itemView.findViewById(R.id.tvPlanFeatures);
             tvCurrentBadge = itemView.findViewById(R.id.tvCurrentBadge);
             btnSubscribe = itemView.findViewById(R.id.btnSubscribe);
+            btnCancel = itemView.findViewById(R.id.btnCancel);
         }
     }
 }
-
-

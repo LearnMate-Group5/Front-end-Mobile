@@ -47,6 +47,9 @@
             android:launchMode="singleTop">
         </activity>
         <activity
+            android:name=".SubscriptionPaymentActivity"
+            android:exported="false" />
+        <activity
             android:name=".ProfileActivity"
             android:exported="false" />
         <activity

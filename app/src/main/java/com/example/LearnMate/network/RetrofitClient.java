@@ -9,6 +9,7 @@ import com.example.LearnMate.network.api.AiHighlightService;
 import com.example.LearnMate.network.api.AiTranslateService;
 import com.example.LearnMate.network.api.AuthService;
 import com.example.LearnMate.network.api.PayOSService;
+import com.example.LearnMate.network.api.SubscriptionService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -47,6 +48,7 @@ public final class RetrofitClient {
     private static AiHighlightService cachedAiHighlightService;
     private static AiTranslateService cachedAiTranslateService;
     private static PayOSService cachedPayOSService;
+    private static SubscriptionService cachedSubscriptionService;
 
     private RetrofitClient() {
     }
@@ -161,6 +163,7 @@ public final class RetrofitClient {
         cachedAiHighlightService = null;
         cachedAiTranslateService = null;
         cachedPayOSService = null;
+        cachedSubscriptionService = null;
         
         android.util.Log.d("RetrofitClient", "Cleared all Retrofit cache");
     }
@@ -246,5 +249,21 @@ public final class RetrofitClient {
             cachedPayOSService = retrofitWithAuth.create(PayOSService.class);
         }
         return cachedPayOSService;
+    }
+
+    // Dịch vụ Subscription — dùng client có auth (vì cần user context)
+    public static SubscriptionService getSubscriptionService(Context appContext) {
+        if (cachedSubscriptionService == null) {
+            if (retrofitWithAuth == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                retrofitWithAuth = new Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .client(getAuthenticatedClient(appContext))
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedSubscriptionService = retrofitWithAuth.create(SubscriptionService.class);
+        }
+        return cachedSubscriptionService;
     }
 }
