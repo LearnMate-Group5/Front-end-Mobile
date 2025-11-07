@@ -82,10 +82,10 @@ public class ProfileActivity extends AppCompatActivity {
         if (etAvatarUrl != null) etAvatarUrl.setEnabled(editMode);
 
         if (editMode) {
-            btnEditProfile.setText("Save");
+            btnEditProfile.setText("Lưu");
             btnEditProfile.setIconResource(android.R.drawable.ic_menu_save);
         } else {
-            btnEditProfile.setText("Edit Profile");
+            btnEditProfile.setText("Chỉnh Sửa Hồ Sơ");
             btnEditProfile.setIconResource(android.R.drawable.ic_menu_edit);
         }
     }
@@ -108,12 +108,12 @@ public class ProfileActivity extends AppCompatActivity {
         String avatarUrl = etAvatarUrl != null ? etAvatarUrl.getText().toString().trim() : "";
 
         if (userIdFromSession == null || userIdFromSession.isEmpty()) {
-            Toast.makeText(this, "Missing userId in session", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Thiếu userId trong phiên đăng nhập", Toast.LENGTH_SHORT).show();
             setEditMode(true);
             return;
         }
         if (name.isEmpty() || email.isEmpty()) {
-            Toast.makeText(this, "Name & Email are required", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Tên và Email là bắt buộc", Toast.LENGTH_SHORT).show();
             setEditMode(true);
             return;
         }
@@ -129,7 +129,7 @@ public class ProfileActivity extends AppCompatActivity {
                     public void onResponse(Call<ApiResult<Object>> call, Response<ApiResult<Object>> response) {
                         btnEditProfile.setEnabled(true);
                         if (response.isSuccessful() && response.body()!=null && response.body().isSuccess) {
-                            Toast.makeText(ProfileActivity.this, "Profile updated", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ProfileActivity.this, "Hồ sơ đã được cập nhật", Toast.LENGTH_SHORT).show();
 
                             SharedPreferences sp = getSharedPreferences("user_prefs", MODE_PRIVATE);
                             sp.edit()
@@ -141,7 +141,7 @@ public class ProfileActivity extends AppCompatActivity {
                             setEditMode(false);
                         } else {
                             setEditMode(true);
-                            String msg = "Update failed";
+                            String msg = "Cập nhật thất bại";
                             if (response.body()!=null && response.body().error!=null
                                     && response.body().error.description!=null) {
                                 msg = response.body().error.description;
@@ -154,7 +154,7 @@ public class ProfileActivity extends AppCompatActivity {
                     public void onFailure(Call<ApiResult<Object>> call, Throwable t) {
                         btnEditProfile.setEnabled(true);
                         setEditMode(true);
-                        Toast.makeText(ProfileActivity.this, "Network error: " + (t.getMessage()==null?"":t.getMessage()), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ProfileActivity.this, "Lỗi mạng: " + (t.getMessage()==null?"":t.getMessage()), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
