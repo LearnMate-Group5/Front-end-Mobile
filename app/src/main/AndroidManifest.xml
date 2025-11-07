@@ -80,6 +80,12 @@
             android:name=".reader.ChapterListActivity"
             android:exported="false" />
         <activity android:name=".reader.ReaderActivity"/>
+        <activity
+            android:name=".BookChapterListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".BookReaderActivity"
+            android:exported="false" />
         
         <!-- PayOS Payment WebView -->
         <activity

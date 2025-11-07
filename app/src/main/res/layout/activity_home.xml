@@ -27,34 +27,13 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:paddingTop="16dp"
-                android:paddingBottom="32dp">
+                android:paddingBottom="16dp">
 
                 <ImageView
                     android:layout_width="220dp"
                     android:layout_height="100dp"
                     android:src="@drawable/logo_learnmate"
                     app:tint="@color/purple_primary" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Learn"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/purple_primary"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text=" Mate"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/purple_primary"/>
-                </LinearLayout>
             </LinearLayout>
 
             <!-- Greeting Section -->
@@ -67,6 +46,7 @@
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 android:layout_gravity="center"
+                android:paddingTop="0dp"
                 android:paddingBottom="8dp"/>
 
             <TextView
@@ -88,94 +68,53 @@
                 android:textColor="@color/text_primary"
                 android:paddingBottom="16dp"/>
 
-            <HorizontalScrollView
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFeaturedBooks"
                 android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:nestedScrollingEnabled="false"
+                android:paddingBottom="24dp"/>
+
+            <!-- Recommended Section -->
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scrollbars="none"
-                android:paddingBottom="24dp">
+                android:text="Đề Xuất Cho Bạn"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:textColor="@color/text_primary"
+                android:paddingBottom="16dp"/>
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvRecommended"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="24dp"/>
 
-                    <!-- Book 1 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="140dp"
-                        android:layout_height="210dp"
-                        android:layout_marginEnd="16dp"
-                        style="@style/Widget.LearnMate.CardView"
-                        app:cardElevation="4dp"
-                        app:cardCornerRadius="12dp">
+            <!-- Favorite Books Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sách Yêu Thích"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:textColor="@color/text_primary"
+                android:paddingBottom="16dp"/>
 
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/mock1"
-                            android:scaleType="centerCrop"
-                            android:contentDescription="Sách nổi bật 1"/>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Book 2 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="140dp"
-                        android:layout_height="210dp"
-                        android:layout_marginEnd="16dp"
-                        style="@style/Widget.LearnMate.CardView"
-                        app:cardElevation="4dp"
-                        app:cardCornerRadius="12dp">
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/mock2"
-                            android:scaleType="centerCrop"
-                            android:contentDescription="Sách nổi bật 2"/>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Book 3 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="140dp"
-                        android:layout_height="210dp"
-                        android:layout_marginEnd="16dp"
-                        style="@style/Widget.LearnMate.CardView"
-                        app:cardElevation="4dp"
-                        app:cardCornerRadius="12dp">
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/mock3"
-                            android:scaleType="centerCrop"
-                            android:contentDescription="Sách nổi bật 3"/>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Book 4 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="140dp"
-                        android:layout_height="210dp"
-                        android:layout_marginEnd="16dp"
-                        style="@style/Widget.LearnMate.CardView"
-                        app:cardElevation="4dp"
-                        app:cardCornerRadius="12dp">
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/mock4"
-                            android:scaleType="centerCrop"
-                            android:contentDescription="Sách nổi bật 4"/>
-                    </com.google.android.material.card.MaterialCardView>
-
-                </LinearLayout>
-            </HorizontalScrollView>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFavoriteBooks"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="24dp"/>
 
             <!-- Import Banner -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardImport"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginTop="32dp"
                 style="@style/Widget.LearnMate.CardView"
                 app:cardBackgroundColor="@color/text_primary"
                 app:cardElevation="8dp"
@@ -222,127 +161,6 @@
                         app:borderWidth="0dp"/>
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
-
-            <!-- Your Imported Books Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sách Đã Nhập Của Bạn"
-                android:textStyle="bold"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary"
-                android:paddingBottom="16dp"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvImportedFiles"
-                android:layout_width="match_parent"
-                android:layout_height="160dp"
-                android:nestedScrollingEnabled="false"
-                android:paddingBottom="24dp"/>
-
-            <!-- Recommended Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Đề Xuất Cho Bạn"
-                android:textStyle="bold"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary"
-                android:paddingBottom="16dp"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvRecommended"
-                android:layout_width="match_parent"
-                android:layout_height="160dp"
-                android:nestedScrollingEnabled="false"/>
-
-            <!-- Screenshots Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ảnh Chụp Màn Hình Ứng Dụng"
-                android:textStyle="bold"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary"
-                android:layout_marginTop="32dp"
-                android:paddingBottom="16dp"/>
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingEnd="20dp">
-
-                    <!-- Screenshot 1 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="200dp"
-                        android:layout_height="300dp"
-                        android:layout_marginEnd="16dp"
-                        style="@style/Widget.LearnMate.CardView"
-                        app:cardElevation="4dp"
-                        app:cardCornerRadius="12dp">
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/mock1"
-                            android:scaleType="centerCrop" />
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Screenshot 2 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="200dp"
-                        android:layout_height="300dp"
-                        android:layout_marginEnd="16dp"
-                        style="@style/Widget.LearnMate.CardView"
-                        app:cardElevation="4dp"
-                        app:cardCornerRadius="12dp">
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/mock2"
-                            android:scaleType="centerCrop" />
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Screenshot 3 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="200dp"
-                        android:layout_height="300dp"
-                        android:layout_marginEnd="16dp"
-                        style="@style/Widget.LearnMate.CardView"
-                        app:cardElevation="4dp"
-                        app:cardCornerRadius="12dp">
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/mock3"
-                            android:scaleType="centerCrop" />
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Screenshot 4 -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="200dp"
-                        android:layout_height="300dp"
-                        style="@style/Widget.LearnMate.CardView"
-                        app:cardElevation="4dp"
-                        app:cardCornerRadius="12dp">
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:src="@drawable/mock4"
-                            android:scaleType="centerCrop" />
-                    </com.google.android.material.card.MaterialCardView>
-
-                </LinearLayout>
-            </HorizontalScrollView>
         </LinearLayout>
     </ScrollView>
 
