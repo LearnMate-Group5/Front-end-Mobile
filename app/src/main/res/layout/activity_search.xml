@@ -32,7 +32,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Search"
+                    android:text="Tìm Kiếm"
                     android:textSize="28sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
@@ -64,7 +64,7 @@
                     android:id="@+id/etSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Search books, authors, topics..."
+                    android:hint="Tìm sách, tác giả, chủ đề..."
                     android:textSize="16sp"
                     android:textColor="@color/text_primary" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -73,7 +73,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Filters"
+                android:text="Bộ Lọc"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
@@ -89,7 +89,7 @@
                     android:id="@+id/btnFilterCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Category"
+                    android:text="Danh Mục"
                     style="@style/Widget.LearnMate.Chip"
                     android:layout_marginEnd="8dp" />
 
@@ -97,7 +97,7 @@
                     android:id="@+id/btnFilterAuthor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Author"
+                    android:text="Tác Giả"
                     style="@style/Widget.LearnMate.Chip"
                     android:layout_marginEnd="8dp" />
 
@@ -105,7 +105,7 @@
                     android:id="@+id/btnFilterRating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Rating"
+                    android:text="Đánh Giá"
                     style="@style/Widget.LearnMate.Chip" />
             </LinearLayout>
 
@@ -113,7 +113,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Recent Searches"
+                android:text="Tìm Kiếm Gần Đây"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
@@ -180,7 +180,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Popular Topics"
+                android:text="Chủ Đề Phổ Biến"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"

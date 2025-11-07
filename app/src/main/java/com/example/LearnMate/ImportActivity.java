@@ -226,7 +226,7 @@ public class ImportActivity extends AppCompatActivity {
                                     Toast.LENGTH_SHORT).show();
                         } else {
                             // API chưa xử lý xong, cần polling
-                            Toast.makeText(ImportActivity.this, "Upload OK - Job ID: " + response.jobId,
+                            Toast.makeText(ImportActivity.this, "Tải lên thành công - Job ID: " + response.jobId,
                                     Toast.LENGTH_SHORT).show();
 
                             // Lưu jobId và URI
@@ -251,7 +251,7 @@ public class ImportActivity extends AppCompatActivity {
 
                     } else {
                         hideLoading();
-                        Toast.makeText(ImportActivity.this, "Upload lỗi: " + resp.code(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(ImportActivity.this, "Lỗi tải lên: " + resp.code(), Toast.LENGTH_LONG).show();
                     }
                 }
 
@@ -274,7 +274,7 @@ public class ImportActivity extends AppCompatActivity {
         } catch (Exception e) {
             hideLoading();
             android.util.Log.e("ImportActivity", "File error: " + e.getMessage(), e);
-            Toast.makeText(this, "File error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Lỗi file: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -470,9 +470,9 @@ public class ImportActivity extends AppCompatActivity {
                 btnDelete.setOnClickListener(v -> {
                     // Confirm dialog
                     new android.app.AlertDialog.Builder(context)
-                            .setTitle("Delete File")
-                            .setMessage("Are you sure you want to delete \"" + name + "\"?")
-                            .setPositiveButton("Delete", (dialog, which) -> {
+                            .setTitle("Xóa File")
+                            .setMessage("Bạn có chắc chắn muốn xóa \"" + name + "\"?")
+                            .setPositiveButton("Xóa", (dialog, which) -> {
                                 // Xóa thumbnail
                                 String fileId = ThumbnailCache.generateFileId(uri.toString());
                                 ThumbnailCache.deleteThumbnail(context, fileId);
@@ -485,10 +485,10 @@ public class ImportActivity extends AppCompatActivity {
                                 if (position >= 0) {
                                     data.remove(position);
                                     notifyItemRemoved(position);
-                                    Toast.makeText(context, "Deleted: " + name, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, "Đã xóa: " + name, Toast.LENGTH_SHORT).show();
                                 }
                             })
-                            .setNegativeButton("Cancel", null)
+                            .setNegativeButton("Hủy", null)
                             .show();
                 });
             }

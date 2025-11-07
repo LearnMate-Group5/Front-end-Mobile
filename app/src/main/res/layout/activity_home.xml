@@ -62,7 +62,7 @@
                 android:id="@+id/tvGreeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Good Morning, Meo"
+                android:text="Chào buổi sáng, Meo"
                 android:textSize="28sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
@@ -72,7 +72,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Make today a little smarter."
+                android:text="Hãy làm hôm nay thông minh hơn một chút."
                 android:textColor="@color/text_secondary"
                 android:textSize="16sp"
                 android:layout_gravity="center"
@@ -82,7 +82,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Featured Books"
+                android:text="Sách Nổi Bật"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
@@ -113,7 +113,7 @@
                             android:layout_height="match_parent"
                             android:src="@drawable/mock1"
                             android:scaleType="centerCrop"
-                            android:contentDescription="Featured Book 1"/>
+                            android:contentDescription="Sách nổi bật 1"/>
                     </com.google.android.material.card.MaterialCardView>
 
                     <!-- Book 2 -->
@@ -130,7 +130,7 @@
                             android:layout_height="match_parent"
                             android:src="@drawable/mock2"
                             android:scaleType="centerCrop"
-                            android:contentDescription="Featured Book 2"/>
+                            android:contentDescription="Sách nổi bật 2"/>
                     </com.google.android.material.card.MaterialCardView>
 
                     <!-- Book 3 -->
@@ -147,7 +147,7 @@
                             android:layout_height="match_parent"
                             android:src="@drawable/mock3"
                             android:scaleType="centerCrop"
-                            android:contentDescription="Featured Book 3"/>
+                            android:contentDescription="Sách nổi bật 3"/>
                     </com.google.android.material.card.MaterialCardView>
 
                     <!-- Book 4 -->
@@ -164,7 +164,7 @@
                             android:layout_height="match_parent"
                             android:src="@drawable/mock4"
                             android:scaleType="centerCrop"
-                            android:contentDescription="Featured Book 4"/>
+                            android:contentDescription="Sách nổi bật 4"/>
                     </com.google.android.material.card.MaterialCardView>
 
                 </LinearLayout>
@@ -195,7 +195,7 @@
                             android:id="@+id/tvImportTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Import Your Book Now"
+                            android:text="Nhập Sách Ngay Bây Giờ"
                             android:textStyle="bold"
                             android:textColor="@color/surface"
                             android:textSize="18sp"/>
@@ -204,7 +204,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Translation ready in 30s"
+                            android:text="Dịch sẵn sàng trong 30 giây"
                             android:textColor="@color/surface"
                             android:textSize="14sp"
                             android:alpha="0.9"/>
@@ -227,7 +227,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Your Imported Books"
+                android:text="Sách Đã Nhập Của Bạn"
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:textColor="@color/text_primary"
@@ -244,7 +244,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Recommended for you"
+                android:text="Đề Xuất Cho Bạn"
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:textColor="@color/text_primary"
@@ -260,7 +260,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="App Screenshots"
+                android:text="Ảnh Chụp Màn Hình Ứng Dụng"
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:textColor="@color/text_primary"
