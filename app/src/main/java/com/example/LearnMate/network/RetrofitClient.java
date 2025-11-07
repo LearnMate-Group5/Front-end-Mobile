@@ -8,6 +8,7 @@ import com.example.LearnMate.network.api.AiChatService;
 import com.example.LearnMate.network.api.AiHighlightService;
 import com.example.LearnMate.network.api.AiTranslateService;
 import com.example.LearnMate.network.api.AuthService;
+import com.example.LearnMate.network.api.MoMoService;
 import com.example.LearnMate.network.api.PayOSService;
 import com.example.LearnMate.network.api.SubscriptionService;
 import com.google.gson.Gson;
@@ -47,6 +48,7 @@ public final class RetrofitClient {
     private static AiChatService cachedAiChatService;
     private static AiHighlightService cachedAiHighlightService;
     private static AiTranslateService cachedAiTranslateService;
+    private static MoMoService cachedMoMoService;
     private static PayOSService cachedPayOSService;
     private static SubscriptionService cachedSubscriptionService;
 
@@ -162,6 +164,7 @@ public final class RetrofitClient {
         cachedAiChatService = null;
         cachedAiHighlightService = null;
         cachedAiTranslateService = null;
+        cachedMoMoService = null;
         cachedPayOSService = null;
         cachedSubscriptionService = null;
         
@@ -265,5 +268,21 @@ public final class RetrofitClient {
             cachedSubscriptionService = retrofitWithAuth.create(SubscriptionService.class);
         }
         return cachedSubscriptionService;
+    }
+
+    // Dịch vụ MoMo — dùng client có auth (vì cần user context)
+    public static MoMoService getMoMoService(Context appContext) {
+        if (cachedMoMoService == null) {
+            if (retrofitWithAuth == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                retrofitWithAuth = new Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .client(getAuthenticatedClient(appContext))
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedMoMoService = retrofitWithAuth.create(MoMoService.class);
+        }
+        return cachedMoMoService;
     }
 }

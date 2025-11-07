@@ -7,11 +7,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.LearnMate.network.dto.ChoosePlanResponse;
+import com.example.LearnMate.payment.MoMoPaymentHelper;
+import com.example.LearnMate.payment.dto.MoMoOrderResponse;
 import com.google.android.material.button.MaterialButton;
 
 import java.text.NumberFormat;
@@ -21,6 +25,7 @@ import java.util.Locale;
 
 public class SubscriptionPaymentActivity extends AppCompatActivity {
     
+    private static final String TAG = "SubscriptionPayment";
     private static final String EXTRA_PLAN_NAME = "plan_name";
     private static final String EXTRA_PLAN_PRICE = "plan_price";
     private static final String EXTRA_PLAN_ORIGINAL_PRICE = "plan_original_price";
@@ -41,9 +46,12 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
     private TextView tvPriceInfo;
     private LinearLayout llFeaturesList;
     private MaterialButton btnPay;
+    private ProgressBar progressBar;
     
     private SubscriptionActivity.SubscriptionPlan selectedPlan;
     private SubscriptionActivity.SubscriptionPlan currentPlan;
+    private MoMoPaymentHelper moMoPaymentHelper;
+    private String userSubscriptionId;  // Lưu userSubscriptionId sau khi choose plan
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,8 +97,80 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
             );
         }
         
+        // Initialize MoMo payment helper
+        moMoPaymentHelper = new MoMoPaymentHelper(this);
+        setupMoMoListener();
+        
         setupUI();
         loadData();
+        
+        // Handle MoMo return if this is a return from MoMo app
+        handleMoMoReturn(getIntent());
+    }
+    
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleMoMoReturn(intent);
+    }
+    
+    private void setupMoMoListener() {
+        moMoPaymentHelper.setListener(new MoMoPaymentHelper.MoMoPaymentListener() {
+            @Override
+            public void onChoosePlanSuccess(ChoosePlanResponse response) {
+                hideLoading();
+                userSubscriptionId = response.userSubscriptionId;
+                Log.d(TAG, "Choose plan success! Starting MoMo payment...");
+                
+                // Bước 2: Tạo MoMo order
+                showLoading();
+                moMoPaymentHelper.createMoMoOrder(userSubscriptionId, selectedPlan.getName());
+            }
+            
+            @Override
+            public void onChoosePlanFailed(String error) {
+                hideLoading();
+                Log.e(TAG, "Choose plan failed: " + error);
+                Toast.makeText(SubscriptionPaymentActivity.this, 
+                    "Không thể chọn gói: " + error, Toast.LENGTH_SHORT).show();
+            }
+            
+            @Override
+            public void onCreateOrderSuccess(MoMoOrderResponse response) {
+                hideLoading();
+                Log.d(TAG, "MoMo order created! Opening MoMo app...");
+                Toast.makeText(SubscriptionPaymentActivity.this, 
+                    "Đang mở ứng dụng MoMo...", Toast.LENGTH_SHORT).show();
+                // MoMo app sẽ tự động mở qua deeplink trong helper
+            }
+            
+            @Override
+            public void onCreateOrderFailed(String error) {
+                hideLoading();
+                Log.e(TAG, "Create MoMo order failed: " + error);
+                Toast.makeText(SubscriptionPaymentActivity.this, 
+                    "Không thể tạo đơn thanh toán: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    
+    private void handleMoMoReturn(Intent intent) {
+        MoMoPaymentHelper.MoMoReturnData returnData = MoMoPaymentHelper.handleMoMoReturn(intent);
+        if (returnData != null) {
+            Log.d(TAG, "MoMo return - Status: " + returnData.status + ", OrderId: " + returnData.orderId);
+            
+            if (returnData.isSuccess()) {
+                Toast.makeText(this, "Thanh toán thành công!", Toast.LENGTH_LONG).show();
+                // Quay về SubscriptionActivity và refresh
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("payment_success", true);
+                setResult(RESULT_OK, resultIntent);
+                finish();
+            } else {
+                Toast.makeText(this, "Thanh toán thất bại: " + returnData.message, Toast.LENGTH_LONG).show();
+            }
+        }
     }
     
     private void setupUI() {
@@ -109,12 +189,46 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
         llFeaturesList = findViewById(R.id.llFeaturesList);
         btnPay = findViewById(R.id.btnPay);
         
-        // Setup Pay button
+        // ProgressBar is optional - may not exist in layout
+        try {
+            progressBar = findViewById(R.id.progressBar);
+        } catch (Exception e) {
+            Log.w(TAG, "ProgressBar not found in layout");
+        }
+        
+        // Setup Pay button - Bắt đầu MoMo payment flow
         btnPay.setOnClickListener(v -> {
-            // TODO: Implement payment logic khi có API
-            Log.d("SubscriptionPaymentActivity", "Pay button clicked for plan: " + selectedPlan.getName());
-            Toast.makeText(this, "Payment feature coming soon", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Pay button clicked! Starting payment flow...");
+            
+            if (selectedPlan.getSubscriptionId() == null || selectedPlan.getSubscriptionId().isEmpty()) {
+                Toast.makeText(this, "Invalid subscription plan", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // Bước 1: Choose plan (sẽ nhận userSubscriptionId)
+            showLoading();
+            moMoPaymentHelper.choosePlan(selectedPlan.getSubscriptionId());
         });
+    }
+    
+    private void showLoading() {
+        if (progressBar != null) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+        if (btnPay != null) {
+            btnPay.setEnabled(false);
+            btnPay.setText("Đang xử lý...");
+        }
+    }
+    
+    private void hideLoading() {
+        if (progressBar != null) {
+            progressBar.setVisibility(View.GONE);
+        }
+        if (btnPay != null) {
+            btnPay.setEnabled(true);
+            btnPay.setText("Thanh toán");
+        }
     }
     
     private void loadData() {

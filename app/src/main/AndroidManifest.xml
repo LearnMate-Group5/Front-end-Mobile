@@ -48,7 +48,18 @@
         </activity>
         <activity
             android:name=".SubscriptionPaymentActivity"
-            android:exported="false" />
+            android:exported="true"
+            android:launchMode="singleTop">
+            <!-- MoMo Deep Link Handler -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="learnmate" 
+                      android:host="payment" 
+                      android:pathPrefix="/momo" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />

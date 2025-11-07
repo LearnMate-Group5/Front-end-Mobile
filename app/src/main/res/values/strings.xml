@@ -18,4 +18,12 @@
     <string name="no_chat_history">Chưa có lịch sử chat</string>
     <string name="chatbot_locked_message">Bạn chưa import sách hoặc sử dụng sách để có thể dùng Chat Bot</string>
     <string name="import_file">Import File</string>
+    
+    <!-- Gender options -->
+    <string-array name="gender_array">
+        <item>Select Gender (Optional)</item>
+        <item>Male</item>
+        <item>Female</item>
+        <item>Other</item>
+    </string-array>
 </resources>

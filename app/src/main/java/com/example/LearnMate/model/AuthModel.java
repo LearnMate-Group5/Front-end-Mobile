@@ -56,20 +56,38 @@ public class AuthModel {
         });
     }
 
-    public void register(@NonNull String name,
+    public void register(@NonNull String fullName,
                          @NonNull String email,
                          @NonNull String password,
                          @NonNull AuthCallback cb) {
-        auth.register(new RegisterUserCommand(name, email, password)).enqueue(new Callback<ApiResult<AuthPayload>>() {
+        register(fullName, email, password, null, null, null, cb);
+    }
+
+    public void register(@NonNull String fullName,
+                         @NonNull String email,
+                         @NonNull String password,
+                         String phoneNumber,
+                         String dateOfBirth,
+                         String gender,
+                         @NonNull AuthCallback cb) {
+        auth.register(new RegisterUserCommand(fullName, email, password, dateOfBirth, gender, phoneNumber))
+            .enqueue(new Callback<ApiResult<AuthPayload>>() {
             @Override public void onResponse(Call<ApiResult<AuthPayload>> call, Response<ApiResult<AuthPayload>> res) {
-                if (!res.isSuccessful() || res.body() == null || !res.body().isSuccess || res.body().value == null) {
-                    cb.onFailure("Signup failed");
+                // Register endpoint returns isSuccess:true but no value field
+                // Success is determined by HTTP 200 and isSuccess flag
+                if (!res.isSuccessful() || res.body() == null || !res.body().isSuccess) {
+                    String errorMsg = "Đăng ký thất bại";
+                    if (res.body() != null && res.body().error != null && res.body().error.description != null) {
+                        errorMsg = res.body().error.description;
+                    }
+                    cb.onFailure(errorMsg);
                     return;
                 }
-                cb.onSuccess(res.body().value);
+                // Registration successful - pass null payload since register doesn't return user data
+                cb.onSuccess(null);
             }
             @Override public void onFailure(Call<ApiResult<AuthPayload>> call, Throwable t) {
-                cb.onFailure(t.getMessage() == null ? "Network error" : t.getMessage());
+                cb.onFailure(t.getMessage() == null ? "Lỗi kết nối" : t.getMessage());
             }
         });
     }

@@ -21,11 +21,16 @@ public class SignupPresenter {
         this.model = new AuthModel(appContext);
     }
 
-    public void performSignup(String email, String password, String confirmPassword, String username) {
-        if (username == null || username.isEmpty()
+    public void performSignup(String email, String password, String confirmPassword, String fullName) {
+        performSignup(email, password, confirmPassword, fullName, null, null, null);
+    }
+
+    public void performSignup(String email, String password, String confirmPassword, String fullName, 
+                            String phoneNumber, String dateOfBirth, String gender) {
+        if (fullName == null || fullName.isEmpty()
                 || email == null || email.isEmpty()
                 || password == null || password.isEmpty()) {
-            view.showSignupError("Please fill all fields");
+            view.showSignupError("Please fill all required fields");
             return;
         }
 
@@ -34,10 +39,10 @@ public class SignupPresenter {
             return;
         }
 
-        model.register(username, email, password, new AuthModel.AuthCallback() {
+        model.register(fullName, email, password, phoneNumber, dateOfBirth, gender, new AuthModel.AuthCallback() {
             @Override
             public void onSuccess(AuthPayload payload) {
-                view.showSignupSuccess("Registration successful! Please login.");
+                view.showSignupSuccess("Đăng ký thành công! Vui lòng đăng nhập.");
                 view.navigateToLogin();
             }
 
