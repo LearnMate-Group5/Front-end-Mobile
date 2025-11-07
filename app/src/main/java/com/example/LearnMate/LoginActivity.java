@@ -64,7 +64,7 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
                     @Override
                     public void onActivityResult(ActivityResult result) {
                         if (result.getData() == null) { 
-                            Toast.makeText(LoginActivity.this, "Google sign-in canceled", Toast.LENGTH_SHORT).show(); 
+                            Toast.makeText(LoginActivity.this, "Đăng nhập Google đã bị hủy", Toast.LENGTH_SHORT).show(); 
                             return; 
                         }
                         Task<GoogleSignInAccount> task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.getData());
@@ -99,7 +99,7 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
 
         // TODO: Implement these features later
         forgotPassword.setOnClickListener(v ->
-                Toast.makeText(this, "TODO: Forgot password flow", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Chức năng quên mật khẩu đang được phát triển", Toast.LENGTH_SHORT).show()
         );
 
         btnGoogle.setOnClickListener(v -> {

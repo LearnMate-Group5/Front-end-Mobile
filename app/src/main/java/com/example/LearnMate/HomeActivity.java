@@ -94,7 +94,7 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
     protected void onStart() {
         super.onStart();
         String name = getSharedPreferences("user_prefs", MODE_PRIVATE).getString("user_name", "User");
-        tvGreeting.setText("Good Morning, " + name);
+        tvGreeting.setText("Chào buổi sáng, " + name);
 
         // Reload imported files when activity starts
         loadImportedFiles();
@@ -165,7 +165,7 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
     // ================== HomeContract.View ==================
     @Override
     public void showGreeting(String name) {
-        tvGreeting.setText("Good Morning, " + name);
+        tvGreeting.setText("Chào buổi sáng, " + name);
     }
 
     @Override
@@ -185,7 +185,7 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
 
     @Override
     public void openBookDetail(Book book) {
-        Toast.makeText(this, "Open: " + book.getTitle(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Mở: " + book.getTitle(), Toast.LENGTH_SHORT).show();
         // TODO: startActivity(...) tới màn chi tiết
     }
 
@@ -240,7 +240,7 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
             h.title.setText(b.title);
             h.cat.setText(b.category);
             h.itemView.setOnClickListener(v -> {
-                Toast.makeText(h.itemView.getContext(), "Open: " + b.title, Toast.LENGTH_SHORT).show();
+                Toast.makeText(h.itemView.getContext(), "Mở: " + b.title, Toast.LENGTH_SHORT).show();
             });
         }
 
@@ -289,10 +289,10 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
             AiFileResponse file = files.get(position);
 
             // Hiển thị thông tin file
-            h.title.setText(file.fileName != null ? file.fileName : "Untitled");
+            h.title.setText(file.fileName != null ? file.fileName : "Chưa có tiêu đề");
 
             // Hiển thị category nếu có
-            String category = file.category != null ? file.category : "Document";
+            String category = file.category != null ? file.category : "Tài liệu";
             h.cat.setText(category);
 
             // Load thumbnail từ local cache nếu có (dùng uploadedAt làm fileId)

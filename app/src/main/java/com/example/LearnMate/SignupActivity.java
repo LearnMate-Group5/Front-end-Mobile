@@ -67,7 +67,7 @@ public class SignupActivity extends AppCompatActivity implements SignupView {
                     @Override
                     public void onActivityResult(ActivityResult result) {
                         if (result.getData() == null) { 
-                            Toast.makeText(SignupActivity.this, "Google sign-in canceled", Toast.LENGTH_SHORT).show(); 
+                            Toast.makeText(SignupActivity.this, "Đăng nhập Google đã bị hủy", Toast.LENGTH_SHORT).show(); 
                             return; 
                         }
                         Task<GoogleSignInAccount> task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.getData());
@@ -88,7 +88,7 @@ public class SignupActivity extends AppCompatActivity implements SignupView {
         );
 
         btnBack.setOnClickListener(v -> finish());
-        privacyPolicy.setOnClickListener(v -> Toast.makeText(this, "Open Privacy Policy", Toast.LENGTH_SHORT).show());
+        privacyPolicy.setOnClickListener(v -> Toast.makeText(this, "Mở Chính Sách Bảo Mật", Toast.LENGTH_SHORT).show());
 
         btnSignUp.setOnClickListener(v -> {
             String username = inputName.getText().toString().trim();

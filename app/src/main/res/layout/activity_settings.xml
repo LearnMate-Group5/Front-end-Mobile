@@ -34,7 +34,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="My Setting"
+                    android:text="Cài Đặt Của Tôi"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold"
                     android:textSize="28sp" />
@@ -46,7 +46,7 @@
                     android:src="@drawable/ic_settings_black_24dp"
                     android:background="@drawable/circle_background_purple"
                     android:padding="8dp"
-                    android:contentDescription="Settings" />
+                    android:contentDescription="Cài đặt" />
             </LinearLayout>
 
             <!-- Profile Section -->
@@ -71,7 +71,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:src="@drawable/logo_learnmate"
-                            android:contentDescription="Profile Image"
+                            android:contentDescription="Ảnh đại diện"
                             android:padding="8dp"
                             android:background="@drawable/circle_background_purple" />
 
@@ -115,7 +115,7 @@
                             android:id="@+id/btnShowProfile"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Show Profile"
+                            android:text="Hiển Thị Hồ Sơ"
                             style="@style/Widget.LearnMate.Button"
                             android:textSize="14sp"
                             android:paddingHorizontal="20dp"
@@ -161,7 +161,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Favourites"
+                            android:text="Yêu Thích"
                             android:textColor="@color/text_primary"
                             android:textSize="16sp" />
 
@@ -201,7 +201,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Downloads"
+                            android:text="Tải Xuống"
                             android:textColor="@color/text_primary"
                             android:textSize="16sp" />
 
@@ -302,7 +302,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Clear Cache"
+                            android:text="Xóa Bộ Nhớ Đệm"
                             android:textColor="@color/text_primary"
                             android:textSize="16sp" />
 
@@ -342,7 +342,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Clear History"
+                            android:text="Xóa Lịch Sử"
                             android:textColor="@color/text_primary"
                             android:textSize="16sp" />
 
@@ -383,7 +383,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Log Out"
+                            android:text="Đăng Xuất"
                             android:textColor="@color/error"
                             android:textSize="16sp" />
 

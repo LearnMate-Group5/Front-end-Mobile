@@ -23,7 +23,7 @@
             android:layout_gravity="start"
             android:background="@drawable/outline_button_background"
             android:src="@drawable/ic_back"
-            android:contentDescription="Back"
+            android:contentDescription="Quay lại"
             android:scaleType="fitCenter"
             android:padding="12dp"/>
 
@@ -32,7 +32,7 @@
             android:id="@+id/welcomeTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Welcome Back!"
+            android:text="Chào Mừng Trở Lại!"
             android:textSize="28sp"
             android:textStyle="bold"
             android:textColor="@color/black"
@@ -44,7 +44,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="40dp"
-            android:text="OR LOG IN WITH EMAIL"
+            android:text="HOẶC ĐĂNG NHẬP BẰNG EMAIL"
             android:textColor="#A1A4B2"
             android:textSize="14sp" />
 
@@ -53,7 +53,7 @@
             android:id="@+id/inputEmail"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:hint="Email address"
+            android:hint="Địa chỉ email"
             android:inputType="textEmailAddress"
             android:padding="12dp"
             android:background="@drawable/edittext_background"
@@ -66,7 +66,7 @@
             android:id="@+id/inputPassword"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:hint="Password"
+            android:hint="Mật khẩu"
             android:inputType="textPassword"
             android:padding="12dp"
             android:background="@drawable/edittext_background"
@@ -81,7 +81,7 @@
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:layout_marginBottom="16dp"
-            android:text="LOG IN"
+            android:text="ĐĂNG NHẬP"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -98,7 +98,7 @@
             android:layout_marginBottom="24dp"
             android:drawableLeft="@drawable/ic_google_origin"
             android:drawablePadding="8dp"
-            android:text="CONTINUE WITH GOOGLE"
+            android:text="TIẾP TỤC VỚI GOOGLE"
             android:textColor="@color/black"
             android:background="@drawable/edittext_background"
             android:textStyle="bold"
@@ -115,7 +115,7 @@
             android:clickable="true"
             android:focusable="true"
             android:padding="8dp"
-            android:text="Forgot Password?"
+            android:text="Quên Mật Khẩu?"
             android:textColor="@color/black"
             android:textSize="14sp" />
 
@@ -130,7 +130,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="ALREADY HAVE AN ACCOUNT? "
+                android:text="ĐÃ CÓ TÀI KHOẢN? "
                 android:textColor="@color/dark_gray"
                 android:textSize="14sp" />
 
@@ -138,7 +138,7 @@
                 android:id="@+id/goToSignUp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SIGN UP"
+                android:text="ĐĂNG KÝ"
                 android:textColor="@color/purple"
                 android:textSize="14sp"
                 android:textStyle="bold"

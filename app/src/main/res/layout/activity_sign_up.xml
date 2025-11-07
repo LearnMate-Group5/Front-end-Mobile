@@ -25,7 +25,7 @@
             android:layout_gravity="start"
             android:background="@drawable/outline_button_background"
             android:src="@drawable/ic_back"
-            android:contentDescription="Back"
+            android:contentDescription="Quay lại"
             android:scaleType="fitCenter"
             android:padding="12dp"/>
 
@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="8dp"
-            android:text="Create your account"
+            android:text="Tạo tài khoản của bạn"
             android:textColor="@color/black"
             android:textSize="28sp"
             android:textStyle="bold"/>
@@ -46,7 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="40dp"
-            android:text="OR LOG IN WITH EMAIL"
+            android:text="HOẶC ĐĂNG NHẬP BẰNG EMAIL"
             android:textColor="@color/dark_gray"
             android:textSize="14sp"/>
 
@@ -63,7 +63,7 @@
                 android:layout_width="0dp"
                 android:layout_height="50dp"
                 android:layout_weight="1"
-                android:hint="Username"
+                android:hint="Tên người dùng"
                 android:inputType="textPersonName"
                 android:padding="12dp"
                 android:background="@drawable/edittext_background"
@@ -106,7 +106,7 @@
                 android:layout_width="0dp"
                 android:layout_height="50dp"
                 android:layout_weight="1"
-                android:hint="Password"
+                android:hint="Mật khẩu"
                 android:inputType="textPassword"
                 android:padding="12dp"
                 android:background="@drawable/edittext_background"
@@ -126,7 +126,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="I have read the "
+                android:text="Tôi đã đọc "
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 />
@@ -135,7 +135,7 @@
                 android:id="@+id/privacyPolicy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Privacy Policy"
+                android:text="Chính Sách Bảo Mật"
                 android:textColor="@color/blue"
                 android:textSize="14sp"
                 android:clickable="true"
@@ -160,7 +160,7 @@
             android:layout_height="55dp"
             android:layout_marginBottom="16dp"
             android:backgroundTint="@color/purple"
-            android:text="GET STARTED"
+            android:text="BẮT ĐẦU"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -174,7 +174,7 @@
             android:layout_marginBottom="30dp"
             android:drawableLeft="@drawable/ic_google_origin"
             android:drawablePadding="8dp"
-            android:text="CONTINUE WITH GOOGLE"
+            android:text="TIẾP TỤC VỚI GOOGLE"
             android:textColor="@color/black"
             android:background="@drawable/edittext_background"
             android:textStyle="bold"
@@ -191,7 +191,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ALREADY HAVE AN ACCOUNT? "
+                android:text="ĐÃ CÓ TÀI KHOẢN? "
                 android:textColor="@color/dark_gray"
                 android:textSize="14sp"/>
 
@@ -199,7 +199,7 @@
                 android:id="@+id/goToSignIn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SIGN IN"
+                android:text="ĐĂNG NHẬP"
                 android:textColor="@color/purple"
                 android:textSize="14sp"
                 android:textStyle="bold"

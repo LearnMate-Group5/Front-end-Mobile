@@ -39,28 +39,28 @@ public class SearchActivity extends AppCompatActivity {
         btnFilterCategory.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(SearchActivity.this, "Filter by Category", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SearchActivity.this, "Lọc theo Danh Mục", Toast.LENGTH_SHORT).show();
             }
         });
 
         btnFilterAuthor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(SearchActivity.this, "Filter by Author", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SearchActivity.this, "Lọc theo Tác Giả", Toast.LENGTH_SHORT).show();
             }
         });
 
         btnFilterRating.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(SearchActivity.this, "Filter by Rating", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SearchActivity.this, "Lọc theo Đánh Giá", Toast.LENGTH_SHORT).show();
             }
         });
 
         btnSearchSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(SearchActivity.this, "Search Settings", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SearchActivity.this, "Cài Đặt Tìm Kiếm", Toast.LENGTH_SHORT).show();
             }
         });
 
