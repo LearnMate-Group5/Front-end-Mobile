@@ -328,9 +328,9 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
                 btnDeleteSmall.setOnClickListener(v -> {
                     // Confirm dialog
                     new android.app.AlertDialog.Builder(HomeActivity.this)
-                            .setTitle("Delete File")
-                            .setMessage("Are you sure you want to delete \"" + file.fileName + "\"?")
-                            .setPositiveButton("Delete", (dialog, which) -> {
+                            .setTitle("Xóa File")
+                            .setMessage("Bạn có chắc chắn muốn xóa \"" + file.fileName + "\"?")
+                            .setPositiveButton("Xóa", (dialog, which) -> {
                                 // Xóa thumbnail
                                 String fileId = ThumbnailCache.generateFileId(file.fileId);
                                 ThumbnailCache.deleteThumbnail(HomeActivity.this, fileId);
@@ -343,11 +343,11 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
                                 if (pos >= 0) {
                                     files.remove(pos);
                                     notifyItemRemoved(pos);
-                                    Toast.makeText(HomeActivity.this, "Deleted: " + file.fileName, Toast.LENGTH_SHORT)
+                                    Toast.makeText(HomeActivity.this, "Đã xóa: " + file.fileName, Toast.LENGTH_SHORT)
                                             .show();
                                 }
                             })
-                            .setNegativeButton("Cancel", null)
+                            .setNegativeButton("Hủy", null)
                             .show();
                 });
             }

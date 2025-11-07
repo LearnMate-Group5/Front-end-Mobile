@@ -17,7 +17,7 @@ public final class ApiConfig {
     }
 
 
-    public static final String BASE_URL = "http://chooy-alb-159893420.us-east-1.elb.amazonaws.com/";
+    public static final String BASE_URL = "http://chooy-alb-797228014.us-east-1.elb.amazonaws.com/";
 
 
     public static final String AI_CHAT_BASE_URL = BASE_URL; 
@@ -27,6 +27,7 @@ public final class ApiConfig {
 
 
 }
+
 
 
 

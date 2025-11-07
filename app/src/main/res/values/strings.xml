@@ -1,21 +1,21 @@
 <resources>
     <string name="app_name">LearnMate</string>
-    <string name="action_settings">Settings</string>
-    <string name="sign_in">Sign In</string>
+    <string name="action_settings">Cài Đặt</string>
+    <string name="sign_in">Đăng Nhập</string>
     <string name="email">Email</string>
-    <string name="password">Password</string>
-    <string name="fill_all_fields">Please fill in all fields</string>
-    <string name="sign_in_success_stub">Sign In success (stub)</string>
-    <string name="google_signin_not_supported">Google Sign-In not supported</string>
-    <string name="navigation_drawer_open">Open menu</string>
-    <string name="navigation_drawer_close">Close menu</string>
+    <string name="password">Mật Khẩu</string>
+    <string name="fill_all_fields">Vui lòng điền đầy đủ các trường</string>
+    <string name="sign_in_success_stub">Đăng nhập thành công (stub)</string>
+    <string name="google_signin_not_supported">Đăng nhập Google không được hỗ trợ</string>
+    <string name="navigation_drawer_open">Mở menu</string>
+    <string name="navigation_drawer_close">Đóng menu</string>
     <string name="default_web_client_id">557955143281-cugna4svepl8knbfgsdu1866q3f3n988.apps.googleusercontent.com</string>
-    <string name="ai_bot_title">AI Assistant</string>
-    <string name="chat_message_hint">Type your message...</string>
-    <string name="send_message">Send message</string>
+    <string name="ai_bot_title">Trợ Lý AI</string>
+    <string name="chat_message_hint">Nhập tin nhắn của bạn...</string>
+    <string name="send_message">Gửi tin nhắn</string>
     <string name="new_chat">Đoạn chat mới</string>
     <string name="chat_history">Lịch sử chat</string>
     <string name="no_chat_history">Chưa có lịch sử chat</string>
     <string name="chatbot_locked_message">Bạn chưa import sách hoặc sử dụng sách để có thể dùng Chat Bot</string>
-    <string name="import_file">Import File</string>
+    <string name="import_file">Nhập Tệp</string>
 </resources>
