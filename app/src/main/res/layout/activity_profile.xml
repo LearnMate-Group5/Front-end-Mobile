@@ -32,34 +32,13 @@
                 android:contentDescription="Quay lại"
                 android:scaleType="fitCenter"
                 android:padding="12dp"/>
-            <!-- Avatar URL (optional) -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="URL Ảnh Đại Diện (tùy chọn)"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/etAvatarUrl"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginBottom="24dp"
-                android:background="@drawable/edit_text_background_material"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:enabled="false"
-                android:hint="https://..." />
-            <!-- Logo -->
+            
+            <!-- Logo at top -->
             <ImageView
                 android:id="@+id/imgLogo"
                 android:layout_width="200dp"
                 android:layout_height="80dp"
-                android:layout_gravity="center"
+                android:layout_gravity="center_horizontal"
                 android:src="@drawable/logo_learnmate"
                 android:layout_marginBottom="32dp" />
 

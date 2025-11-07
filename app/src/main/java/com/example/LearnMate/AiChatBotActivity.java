@@ -131,6 +131,7 @@ public class AiChatBotActivity extends AppCompatActivity {
     private void setupRecyclerView() {
         chatMessages = new ArrayList<>();
         chatAdapter = new ChatAdapter(chatMessages);
+        
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(chatAdapter);
     }

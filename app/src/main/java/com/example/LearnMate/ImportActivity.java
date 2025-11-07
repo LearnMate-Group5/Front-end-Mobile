@@ -35,6 +35,7 @@ import com.example.LearnMate.util.PdfThumbnailGenerator;
 import com.example.LearnMate.util.PdfAnalyzer;
 import com.example.LearnMate.util.ThumbnailCache;
 import com.example.LearnMate.managers.FileHistoryManager;
+import com.example.LearnMate.managers.SessionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
@@ -74,6 +75,7 @@ public class ImportActivity extends AppCompatActivity {
     private SimplePdfAdapter adapter;
     private View loadingOverlay;
     private FileHistoryManager fileHistoryManager;
+    private SessionManager sessionManager;
 
     private final ActivityResultLauncher<String> pickPdf = registerForActivityResult(
             new ActivityResultContracts.GetContent(), uri -> {
@@ -89,8 +91,12 @@ public class ImportActivity extends AppCompatActivity {
         // Loading overlay
         loadingOverlay = findViewById(R.id.loadingOverlay);
 
-        // File history manager
-        fileHistoryManager = new FileHistoryManager(this);
+        // Session manager để lấy userId
+        sessionManager = new SessionManager(this);
+        
+        // File history manager với userId
+        String userId = getCurrentUserId();
+        fileHistoryManager = new FileHistoryManager(this, userId);
 
         // Nút "Import from File"
         findViewById(R.id.cardFileImport).setOnClickListener(v -> pickPdf.launch("application/pdf"));
@@ -132,21 +138,85 @@ public class ImportActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reload files khi quay lại activity (để đảm bảo load đúng userId nếu user đã đổi)
+        String currentUserId = getCurrentUserId();
+        String existingUserId = getFileHistoryManagerUserId();
+        
+        // Tạo lại FileHistoryManager với userId mới nếu userId đã thay đổi
+        if (fileHistoryManager == null || existingUserId == null || !currentUserId.equals(existingUserId)) {
+            android.util.Log.d("ImportActivity", "User changed or first load. Old: " + existingUserId + ", New: " + currentUserId);
+            fileHistoryManager = new FileHistoryManager(this, currentUserId);
+            // Update adapter với FileHistoryManager mới
+            if (adapter != null) {
+                adapter = new SimplePdfAdapter(imported, this, fileHistoryManager);
+                RecyclerView rv = findViewById(R.id.rvImported);
+                if (rv != null) {
+                    rv.setAdapter(adapter);
+                }
+            }
+            loadImportedFiles();
+        }
+    }
+
     /** Lấy UserId hiện tại từ session */
     private String getCurrentUserId() {
-        // TODO: Lấy UserId từ session/login state
-        // Hiện tại dùng tạm thời, sau này sẽ lấy từ SharedPreferences hoặc Session
-        return "user_" + System.currentTimeMillis(); // Tạm thời dùng timestamp
+        if (sessionManager == null) {
+            sessionManager = new SessionManager(this);
+        }
+        
+        // Lấy từ SessionManager
+        com.example.LearnMate.network.dto.LoginResponse.UserData userData = sessionManager.getUserData();
+        if (userData != null && userData.getUserId() != null) {
+            return userData.getUserId();
+        }
+        
+        // Fallback: lấy từ SharedPreferences trực tiếp
+        android.content.SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String userId = prefs.getString("user_id", null);
+        if (userId != null) {
+            return userId;
+        }
+        
+        // Ultimate fallback: dùng default
+        android.util.Log.w("ImportActivity", "No userId found, using default");
+        return "default_user";
+    }
+
+    /**
+     * Lấy userId từ FileHistoryManager hiện tại (dùng reflection vì userId là private)
+     */
+    private String getFileHistoryManagerUserId() {
+        if (fileHistoryManager == null) return null;
+        try {
+            java.lang.reflect.Field userIdField = FileHistoryManager.class.getDeclaredField("userId");
+            userIdField.setAccessible(true);
+            return (String) userIdField.get(fileHistoryManager);
+        } catch (Exception e) {
+            android.util.Log.w("ImportActivity", "Could not get userId from FileHistoryManager: " + e.getMessage());
+            return null;
+        }
     }
 
     /** Load files đã import từ FileHistoryManager */
     private void loadImportedFiles() {
+        if (fileHistoryManager == null) {
+            android.util.Log.w("ImportActivity", "FileHistoryManager is null, cannot load files");
+            return;
+        }
+        
         List<FileHistoryManager.ImportedFile> historyFiles = fileHistoryManager.getFiles();
 
-        android.util.Log.d("ImportActivity", "Loading " + historyFiles.size() + " files from history");
+        android.util.Log.d("ImportActivity", "Loading " + historyFiles.size() + " files from history for userId: " + getFileHistoryManagerUserId());
 
-        // Clear list hiện tại
+        // Clear list hiện tại trước khi load lại
+        int oldSize = imported.size();
         imported.clear();
+        if (oldSize > 0 && adapter != null) {
+            adapter.notifyItemRangeRemoved(0, oldSize);
+        }
 
         // Convert từ history format sang PdfItem
         for (FileHistoryManager.ImportedFile historyFile : historyFiles) {

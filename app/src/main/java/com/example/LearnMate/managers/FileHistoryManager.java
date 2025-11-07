@@ -12,19 +12,56 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Manager để lưu và load lịch sử files đã import
+ * Manager để lưu và load lịch sử files đã import theo userId
  */
 public class FileHistoryManager {
     private static final String PREF_NAME = "file_history";
-    private static final String KEY_IMPORTED_FILES = "imported_files";
+    private static final String KEY_IMPORTED_FILES_PREFIX = "imported_files_";
 
     private final SharedPreferences prefs;
     private final Gson gson;
+    private final String userId;
 
     public FileHistoryManager(Context context) {
+        this(context, null);
+    }
+
+    public FileHistoryManager(Context context, String userId) {
         this.prefs = context.getApplicationContext()
                 .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         this.gson = new Gson();
+        this.userId = userId != null ? userId : getCurrentUserId(context);
+    }
+
+    /**
+     * Lấy userId hiện tại từ SharedPreferences
+     */
+    private String getCurrentUserId(Context context) {
+        SharedPreferences userPrefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        String userId = userPrefs.getString("user_id", null);
+        if (userId == null) {
+            // Try to get from user_data JSON
+            String userDataJson = userPrefs.getString("user_data", null);
+            if (userDataJson != null) {
+                try {
+                    com.example.LearnMate.network.dto.LoginResponse.UserData userData = 
+                        gson.fromJson(userDataJson, com.example.LearnMate.network.dto.LoginResponse.UserData.class);
+                    if (userData != null && userData.getUserId() != null) {
+                        return userData.getUserId();
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e("FileHistoryManager", "Error parsing user_data: " + e.getMessage());
+                }
+            }
+        }
+        return userId != null ? userId : "default_user";
+    }
+
+    /**
+     * Lấy key cho userId hiện tại
+     */
+    private String getKeyForUser() {
+        return KEY_IMPORTED_FILES_PREFIX + userId;
     }
 
     /**
@@ -88,10 +125,11 @@ public class FileHistoryManager {
     }
 
     /**
-     * Lấy danh sách files đã import
+     * Lấy danh sách files đã import cho userId hiện tại
      */
     public List<ImportedFile> getFiles() {
-        String json = prefs.getString(KEY_IMPORTED_FILES, null);
+        String key = getKeyForUser();
+        String json = prefs.getString(key, null);
         if (json == null) {
             return new ArrayList<>();
         }
@@ -108,11 +146,12 @@ public class FileHistoryManager {
     }
 
     /**
-     * Lưu toàn bộ danh sách
+     * Lưu toàn bộ danh sách cho userId hiện tại
      */
     private void saveFiles(List<ImportedFile> files) {
+        String key = getKeyForUser();
         String json = gson.toJson(files);
-        prefs.edit().putString(KEY_IMPORTED_FILES, json).apply();
+        prefs.edit().putString(key, json).apply();
     }
 
     /**
@@ -125,10 +164,26 @@ public class FileHistoryManager {
     }
 
     /**
-     * Xóa toàn bộ lịch sử
+     * Xóa toàn bộ lịch sử cho userId hiện tại
      */
     public void clearAll() {
-        prefs.edit().remove(KEY_IMPORTED_FILES).apply();
+        String key = getKeyForUser();
+        prefs.edit().remove(key).apply();
+    }
+
+    /**
+     * Xóa toàn bộ lịch sử cho tất cả users (dùng khi cần cleanup)
+     */
+    public void clearAllUsers() {
+        SharedPreferences.Editor editor = prefs.edit();
+        // Get all keys and remove those starting with prefix
+        java.util.Map<String, ?> allPrefs = prefs.getAll();
+        for (String key : allPrefs.keySet()) {
+            if (key.startsWith(KEY_IMPORTED_FILES_PREFIX)) {
+                editor.remove(key);
+            }
+        }
+        editor.apply();
     }
 
     /**

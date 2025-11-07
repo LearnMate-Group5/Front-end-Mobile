@@ -69,10 +69,19 @@ dependencies {
     
     // Annotation library for @NonNull
     implementation 'androidx.annotation:annotation:1.7.1'
+    
+    // Markwon - Markdown rendering library (OPTIONAL - CURRENTLY DISABLED)
+    // If you want to use Markwon, uncomment and find the correct version at:
+    // https://search.maven.org/artifact/io.noties/markwon
+    // The app will work with HTML fallback rendering via MarkdownHelper even without Markwon
+    // implementation 'io.noties:markwon:4.6.0'
 
     // PayOS - Payment Gateway
     // PayOS không cần SDK riêng, sử dụng REST API qua backend
     // Không cần thêm dependencies cho PayOS
+    
+    // Picasso - Image loading library
+    implementation 'com.squareup.picasso:picasso:2.8'
     
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit

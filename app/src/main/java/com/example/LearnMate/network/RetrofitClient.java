@@ -8,6 +8,7 @@ import com.example.LearnMate.network.api.AiChatService;
 import com.example.LearnMate.network.api.AiHighlightService;
 import com.example.LearnMate.network.api.AiTranslateService;
 import com.example.LearnMate.network.api.AuthService;
+import com.example.LearnMate.network.api.BookService;
 import com.example.LearnMate.network.api.MoMoService;
 import com.example.LearnMate.network.api.PayOSService;
 import com.example.LearnMate.network.api.SubscriptionService;
@@ -45,6 +46,7 @@ public final class RetrofitClient {
 
     // Cached services
     private static AuthService cachedAuthService;
+    private static BookService cachedBookService;
     private static AiChatService cachedAiChatService;
     private static AiHighlightService cachedAiHighlightService;
     private static AiTranslateService cachedAiTranslateService;
@@ -161,6 +163,7 @@ public final class RetrofitClient {
         
         // Clear cached services
         cachedAuthService = null;
+        cachedBookService = null;
         cachedAiChatService = null;
         cachedAiHighlightService = null;
         cachedAiTranslateService = null;
@@ -284,5 +287,21 @@ public final class RetrofitClient {
             cachedMoMoService = retrofitWithAuth.create(MoMoService.class);
         }
         return cachedMoMoService;
+    }
+
+    // Dịch vụ Book — dùng client có auth (theo API spec cần Bearer token)
+    public static BookService getBookService(Context appContext) {
+        if (cachedBookService == null) {
+            if (retrofitWithAuth == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                retrofitWithAuth = new Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .client(getAuthenticatedClient(appContext))
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedBookService = retrofitWithAuth.create(BookService.class);
+        }
+        return cachedBookService;
     }
 }

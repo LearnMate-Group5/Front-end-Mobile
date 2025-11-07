@@ -141,8 +141,16 @@ public class SignupActivity extends AppCompatActivity implements SignupView {
             // Convert empty optional fields to null
             String finalPhoneNumber = phoneNumber.isEmpty() ? null : phoneNumber;
             String finalDateOfBirth = dateOfBirth.isEmpty() ? null : formatDateForApi(dateOfBirth);
-            // Check for Vietnamese or English default value
-            String finalGender = (gender.equals("Chọn giới tính (Tùy chọn)") || gender.equals("Select Gender (Optional)")) ? null : gender;
+            // Check for Vietnamese or English default value - also handle empty string
+            String finalGender = null;
+            if (gender != null && !gender.isEmpty()) {
+                String trimmedGender = gender.trim();
+                if (!trimmedGender.equals("Chọn giới tính (Tùy chọn)") && 
+                    !trimmedGender.equals("Select Gender (Optional)") &&
+                    !trimmedGender.equals("")) {
+                    finalGender = trimmedGender;
+                }
+            }
 
             presenter.performSignup(email, password, password, fullName, finalPhoneNumber, finalDateOfBirth, finalGender);
         });

@@ -29,7 +29,6 @@ public class ProfileActivity extends AppCompatActivity {
     private ImageView btnFooterSettings;
     private EditText etUsername;
     private EditText etEmail;
-    private EditText etAvatarUrl; // nếu không dùng avatar, có thể bỏ và sửa body
     private MaterialButton btnEditProfile;
     private MaterialButton btnLogout;
     private BottomNavigationComponent bottomNavComponent;
@@ -52,7 +51,6 @@ public class ProfileActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         etUsername = findViewById(R.id.etUsername);
         etEmail = findViewById(R.id.etEmail);
-        etAvatarUrl = findViewById(R.id.etAvatarUrl); // đảm bảo layout có id này, hoặc bỏ nếu không dùng
         btnEditProfile = findViewById(R.id.btnEditProfile);
         btnLogout = findViewById(R.id.btnLogout);
         bottomNavComponent = findViewById(R.id.bottomNavComponent);
@@ -79,7 +77,6 @@ public class ProfileActivity extends AppCompatActivity {
         isEditMode = editMode;
         etUsername.setEnabled(editMode);
         etEmail.setEnabled(editMode);
-        if (etAvatarUrl != null) etAvatarUrl.setEnabled(editMode);
 
         if (editMode) {
             btnEditProfile.setText("Lưu");
@@ -95,17 +92,15 @@ public class ProfileActivity extends AppCompatActivity {
         userIdFromSession = sp.getString("user_id", null);
         String userName = sp.getString("user_name", "");
         String userEmail = sp.getString("user_email", "");
-        String avatar = sp.getString("avatar_url", "");
 
         etUsername.setText(userName);
         etEmail.setText(userEmail);
-        if (etAvatarUrl != null) etAvatarUrl.setText(avatar);
     }
 
     private void saveProfileData() {
         String name  = etUsername.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
-        String avatarUrl = etAvatarUrl != null ? etAvatarUrl.getText().toString().trim() : "";
+        String avatarUrl = ""; // Avatar URL field removed from UI
 
         if (userIdFromSession == null || userIdFromSession.isEmpty()) {
             Toast.makeText(this, "Thiếu userId trong phiên đăng nhập", Toast.LENGTH_SHORT).show();

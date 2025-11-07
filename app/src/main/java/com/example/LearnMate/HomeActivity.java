@@ -69,8 +69,11 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
         rvRecommended.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rvRecommended.setAdapter(new MockRecommendedAdapter());
 
-        // File history manager
-        fileHistoryManager = new FileHistoryManager(this);
+        // File history manager với userId
+        com.example.LearnMate.managers.SessionManager sessionManager = new com.example.LearnMate.managers.SessionManager(this);
+        com.example.LearnMate.network.dto.LoginResponse.UserData userData = sessionManager.getUserData();
+        String userId = (userData != null && userData.getUserId() != null) ? userData.getUserId() : null;
+        fileHistoryManager = new FileHistoryManager(this, userId);
 
         // Setup imported files recycler
         if (rvImportedFiles != null) {

@@ -29,6 +29,7 @@ import com.example.LearnMate.network.RetrofitClient;
 import com.example.LearnMate.network.api.AiHighlightService;
 import com.example.LearnMate.network.dto.AiHighlightRequest;
 import com.example.LearnMate.network.dto.AiHighlightResponse;
+import com.example.LearnMate.util.MarkdownHelper;
 
 import java.util.List;
 import java.util.UUID;
@@ -183,13 +184,22 @@ public class ReaderActivity extends AppCompatActivity {
 
         if (tvContent != null) {
             // Hiển thị nội dung dựa trên mode hiện tại
+            String contentToDisplay;
             if ("translate".equals(currentMode)) {
                 // Hiển thị nội dung đã dịch
-                tvContent.setText(currentChapter.translatedContent);
+                contentToDisplay = currentChapter.translatedContent != null ? currentChapter.translatedContent : "";
             } else {
                 // Hiển thị nội dung gốc
-                tvContent.setText(currentChapter.content);
+                contentToDisplay = currentChapter.content != null ? currentChapter.content : "";
             }
+            
+            // Render markdown (with fallback if Markwon is not available)
+            if (contentToDisplay != null && !contentToDisplay.isEmpty()) {
+                MarkdownHelper.renderMarkdown(tvContent, contentToDisplay);
+            } else {
+                tvContent.setText("");
+            }
+            
             tvContent.setTextSize(currentFontSize);
             
             // Re-enable text selection after setting text
