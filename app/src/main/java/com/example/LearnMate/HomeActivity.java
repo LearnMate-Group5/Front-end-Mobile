@@ -88,6 +88,12 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
         // ---- presenter ----
         presenter = new HomePresenter(new HomeRepositoryImpl());
         presenter.attach(this);
+        
+        // Load subscription nếu đã login (để cache sẵn cho SettingsActivity)
+        com.example.LearnMate.managers.SessionManager sessionManager = new com.example.LearnMate.managers.SessionManager(this);
+        if (sessionManager.isLoggedIn()) {
+            com.example.LearnMate.managers.SubscriptionManager.getInstance(this).loadSubscriptionFromAPI();
+        }
     }
 
     @Override
@@ -98,6 +104,40 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
 
         // Reload imported files when activity starts
         loadImportedFiles();
+    }
+    
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        
+        // Kiểm tra nếu có flag refresh_subscription từ PaymentSuccessActivity
+        if (intent != null && intent.getBooleanExtra("refresh_subscription", false)) {
+            // Refresh subscription khi quay lại từ PaymentSuccessActivity
+            com.example.LearnMate.managers.SessionManager sessionManager = 
+                new com.example.LearnMate.managers.SessionManager(this);
+            if (sessionManager.isLoggedIn()) {
+                com.example.LearnMate.managers.SubscriptionManager.getInstance(this).loadSubscriptionFromAPI();
+            }
+        }
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        
+        // Kiểm tra nếu có flag refresh_subscription từ PaymentSuccessActivity
+        Intent intent = getIntent();
+        if (intent != null && intent.getBooleanExtra("refresh_subscription", false)) {
+            // Refresh subscription khi quay lại từ PaymentSuccessActivity
+            com.example.LearnMate.managers.SessionManager sessionManager = 
+                new com.example.LearnMate.managers.SessionManager(this);
+            if (sessionManager.isLoggedIn()) {
+                com.example.LearnMate.managers.SubscriptionManager.getInstance(this).loadSubscriptionFromAPI();
+            }
+            // Xóa flag để không refresh lại lần sau
+            intent.removeExtra("refresh_subscription");
+        }
     }
 
     /**

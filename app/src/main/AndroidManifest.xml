@@ -34,7 +34,8 @@
             android:exported="false" />
         <activity
             android:name=".HomeActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
@@ -60,6 +61,9 @@
                       android:pathPrefix="/momo" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".PaymentSuccessActivity"
+            android:exported="false" />
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />

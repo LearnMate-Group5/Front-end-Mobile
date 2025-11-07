@@ -68,12 +68,12 @@ public class SessionManager {
 
     /** Đăng xuất: xoá toàn bộ session và quay về WelcomeActivity (clear back stack) */
     public void logout(Activity activity) {
-        // Xoá các key “mới”
+        // Xoá các key "mới"
         editor.remove(KEY_USER_TOKEN);
         editor.remove(KEY_USER_DATA);
         editor.putBoolean(KEY_IS_LOGGED_IN, false);
 
-        // Xoá các key “cũ” (nếu từng dùng)
+        // Xoá các key "cũ" (nếu từng dùng)
         editor.remove(LEGACY_TOKEN);
         editor.remove(LEGACY_REFRESH);
         editor.remove(LEGACY_EXPIRES_AT);
@@ -82,6 +82,9 @@ public class SessionManager {
         editor.remove(LEGACY_USER_EMAIL);
 
         editor.apply();
+        
+        // Clear subscription cache
+        com.example.LearnMate.managers.SubscriptionManager.getInstance(appContext).clearSubscription();
 
         // Điều hướng về màn Welcome và xoá toàn bộ back stack
         Intent i = new Intent(activity, WelcomeActivity.class);

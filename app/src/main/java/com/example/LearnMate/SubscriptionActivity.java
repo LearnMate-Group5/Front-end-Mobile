@@ -152,21 +152,21 @@ public class SubscriptionActivity extends AppCompatActivity {
      * GET /api/Subscription/plans/my/current
      */
     private void loadCurrentSubscription() {
-        showLoadingDialog("Loading subscription...");
+        showLoadingDialog("Đang tải đăng ký...");
         
-        subscriptionService.getCurrentSubscription().enqueue(new Callback<List<CurrentSubscriptionResponse>>() {
+        subscriptionService.getCurrentSubscription().enqueue(new Callback<CurrentSubscriptionResponse>() {
             @Override
-            public void onResponse(Call<List<CurrentSubscriptionResponse>> call, Response<List<CurrentSubscriptionResponse>> response) {
+            public void onResponse(Call<CurrentSubscriptionResponse> call, Response<CurrentSubscriptionResponse> response) {
                 dismissLoadingDialog();
                 
-                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    currentSubscription = response.body().get(0);
+                if (response.isSuccessful() && response.body() != null) {
+                    currentSubscription = response.body();
                     Log.d("SubscriptionActivity", "Current subscription loaded: " + currentSubscription.name);
                     
                     // Load danh sách plans sau khi có current subscription
                     loadSubscriptionPlans();
                 } else {
-                    Log.w("SubscriptionActivity", "No current subscription found or empty response");
+                    Log.w("SubscriptionActivity", "No current subscription found - Response code: " + (response != null ? response.code() : "null"));
                     currentSubscription = null;
                     
                     // Vẫn load danh sách plans để user có thể chọn
@@ -175,9 +175,9 @@ public class SubscriptionActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<CurrentSubscriptionResponse>> call, Throwable t) {
+            public void onFailure(Call<CurrentSubscriptionResponse> call, Throwable t) {
                 dismissLoadingDialog();
-                Log.e("SubscriptionActivity", "Error loading current subscription: " + t.getMessage());
+                Log.e("SubscriptionActivity", "Error loading current subscription: " + t.getMessage(), t);
                 currentSubscription = null;
                 
                 // Hiển thị "Current Plan is Empty" và vẫn load danh sách plans
@@ -191,7 +191,7 @@ public class SubscriptionActivity extends AppCompatActivity {
      * GET /api/Subscription/plans
      */
     private void loadSubscriptionPlans() {
-        showLoadingDialog("Loading plans...");
+        showLoadingDialog("Đang tải gói đăng ký...");
         
         subscriptionService.getPlans().enqueue(new Callback<List<SubscriptionPlanResponse>>() {
             @Override
@@ -204,60 +204,27 @@ public class SubscriptionActivity extends AppCompatActivity {
                     
                     plansList.clear();
                     
-                    // Thêm Current Plan (nếu có) hoặc "Current Plan is Empty"
-                    if (currentSubscription != null) {
-                        SubscriptionPlan currentPlan = new SubscriptionPlan(
-                            currentSubscription.name,
-                            currentSubscription.getFinalPrice(),
-                            currentSubscription.originalPrice,
-                            currentSubscription.discount,
-                            "Status: " + currentSubscription.status,
-                            buildFeaturesFromType(currentSubscription.type),
-                            currentSubscription.type,
-                            true,
-                            currentSubscription.subscriptionId
-                        );
-                        plansList.add(currentPlan);
-                    } else {
-                        // Hiển thị "Current Plan is Empty"
-                        SubscriptionPlan emptyPlan = new SubscriptionPlan(
-                            "Current Plan",
-                            0,
-                            0,
-                            0,
-                            "Current Plan is Empty",
-                            "• No active subscription\n• Choose a plan below to get started",
-                            "FREE",
-                            true,
-                            null
-                        );
-                        plansList.add(emptyPlan);
-                    }
-                    
-                    // Thêm các plans từ API
+                    // Chỉ thêm các plans từ API (không thêm Current Plan nữa vì đã chuyển sang Settings)
                     for (SubscriptionPlanResponse apiPlan : apiPlans) {
-                        // Chỉ thêm nếu không phải current plan
-                        if (currentSubscription == null || !apiPlan.subscriptionId.equals(currentSubscription.subscriptionId)) {
-                            SubscriptionPlan plan = new SubscriptionPlan(
-                                apiPlan.name,
-                                apiPlan.getFinalPrice(),
-                                apiPlan.originalPrice,
-                                apiPlan.discount,
-                                "Type: " + apiPlan.type,
-                                buildFeaturesFromType(apiPlan.type),
-                                apiPlan.type,
-                                false,
-                                apiPlan.subscriptionId
-                            );
-                            plansList.add(plan);
-                        }
+                        SubscriptionPlan plan = new SubscriptionPlan(
+                            apiPlan.name,
+                            apiPlan.getFinalPrice(),
+                            apiPlan.originalPrice,
+                            apiPlan.discount,
+                            "Loại: " + translateType(apiPlan.type),
+                            buildFeaturesFromType(apiPlan.type),
+                            apiPlan.type,
+                            false,
+                            apiPlan.subscriptionId
+                        );
+                        plansList.add(plan);
                     }
                     
                     // Setup adapter
                     updateAdapter();
                 } else {
                     Log.e("SubscriptionActivity", "Failed to load plans: " + response.code());
-                    Toast.makeText(SubscriptionActivity.this, "Failed to load subscription plans", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SubscriptionActivity.this, "Không thể tải danh sách gói đăng ký", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -265,24 +232,40 @@ public class SubscriptionActivity extends AppCompatActivity {
             public void onFailure(Call<List<SubscriptionPlanResponse>> call, Throwable t) {
                 dismissLoadingDialog();
                 Log.e("SubscriptionActivity", "Error loading plans: " + t.getMessage());
-                Toast.makeText(SubscriptionActivity.this, "Error loading plans: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SubscriptionActivity.this, "Lỗi khi tải gói đăng ký: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
     
     /**
-     * Build features string từ plan type
+     * Build features string từ plan type (tiếng Việt)
      */
     private String buildFeaturesFromType(String type) {
         if (type == null) return "";
         
         type = type.toLowerCase();
         if (type.contains("premium")) {
-            return "• Unlimited PDF imports\n• Advanced AI features\n• Priority support\n• Cloud storage\n• Ad-free experience\n• Early access to new features";
+            return "• Nhập PDF không giới hạn\n• Tính năng AI nâng cao\n• Hỗ trợ ưu tiên\n• Lưu trữ đám mây\n• Trải nghiệm không quảng cáo\n• Truy cập sớm các tính năng mới";
         } else if (type.contains("standard")) {
-            return "• 20 PDF imports per month\n• Standard AI features\n• Email support\n• Limited cloud storage";
+            return "• 20 lần nhập PDF mỗi tháng\n• Tính năng AI tiêu chuẩn\n• Hỗ trợ qua email\n• Lưu trữ đám mây giới hạn";
         } else {
-            return "• 5 PDF imports per month\n• Basic AI features\n• Limited storage";
+            return "• 5 lần nhập PDF mỗi tháng\n• Tính năng AI cơ bản\n• Lưu trữ giới hạn";
+        }
+    }
+    
+    /**
+     * Dịch type sang tiếng Việt
+     */
+    private String translateType(String type) {
+        if (type == null) return "";
+        
+        type = type.toLowerCase();
+        if (type.contains("premium")) {
+            return "Cao cấp";
+        } else if (type.contains("standard")) {
+            return "Tiêu chuẩn";
+        } else {
+            return "Miễn phí";
         }
     }
     
@@ -315,7 +298,7 @@ public class SubscriptionActivity extends AppCompatActivity {
         }
         
         if (plan.getSubscriptionId() == null) {
-            Toast.makeText(this, "Invalid plan", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Gói không hợp lệ", Toast.LENGTH_SHORT).show();
             return;
         }
         
@@ -357,7 +340,7 @@ public class SubscriptionActivity extends AppCompatActivity {
      * POST /api/Subscription/plans/{subscriptionId}/choose
      */
     private void choosePlan(String subscriptionId) {
-        showLoadingDialog("Subscribing to plan...");
+        showLoadingDialog("Đang đăng ký gói...");
         
         subscriptionService.choosePlan(subscriptionId).enqueue(new Callback<ChoosePlanResponse>() {
             @Override
@@ -368,13 +351,16 @@ public class SubscriptionActivity extends AppCompatActivity {
                     ChoosePlanResponse result = response.body();
                     Log.d("SubscriptionActivity", "Plan chosen successfully: " + result.name);
                     
-                    Toast.makeText(SubscriptionActivity.this, "Successfully subscribed to " + result.name + "!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(SubscriptionActivity.this, "Đăng ký thành công gói " + result.name + "!", Toast.LENGTH_LONG).show();
+                    
+                    // Refresh subscription trong SubscriptionManager để cache lại
+                    com.example.LearnMate.managers.SubscriptionManager.getInstance(SubscriptionActivity.this).loadSubscriptionFromAPI();
                     
                     // Reload current subscription và plans
                     loadCurrentSubscription();
                 } else {
                     Log.e("SubscriptionActivity", "Failed to choose plan: " + response.code());
-                    Toast.makeText(SubscriptionActivity.this, "Failed to subscribe to plan", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SubscriptionActivity.this, "Không thể đăng ký gói", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -382,7 +368,7 @@ public class SubscriptionActivity extends AppCompatActivity {
             public void onFailure(Call<ChoosePlanResponse> call, Throwable t) {
                 dismissLoadingDialog();
                 Log.e("SubscriptionActivity", "Error choosing plan: " + t.getMessage());
-                Toast.makeText(SubscriptionActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SubscriptionActivity.this, "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -397,12 +383,12 @@ public class SubscriptionActivity extends AppCompatActivity {
         
         // Hiển thị popup confirmation
         new AlertDialog.Builder(this)
-            .setTitle("Cancel Subscription")
-            .setMessage("Are you sure you want to cancel your current subscription?")
-            .setPositiveButton("Yes, Cancel", (dialog, which) -> {
+            .setTitle("Hủy Đăng Ký")
+            .setMessage("Bạn có chắc chắn muốn hủy đăng ký hiện tại?")
+            .setPositiveButton("Có, Hủy", (dialog, which) -> {
                 cancelSubscription();
             })
-            .setNegativeButton("No", (dialog, which) -> {
+            .setNegativeButton("Không", (dialog, which) -> {
                 dialog.dismiss();
             })
             .show();
@@ -413,7 +399,7 @@ public class SubscriptionActivity extends AppCompatActivity {
      * POST /api/Subscription/plans/cancel
      */
     private void cancelSubscription() {
-        showLoadingDialog("Cancelling subscription...");
+        showLoadingDialog("Đang hủy đăng ký...");
         
         subscriptionService.cancelSubscription().enqueue(new Callback<Void>() {
             @Override
@@ -422,13 +408,16 @@ public class SubscriptionActivity extends AppCompatActivity {
                 
                 if (response.isSuccessful()) {
                     Log.d("SubscriptionActivity", "Subscription cancelled successfully");
-                    Toast.makeText(SubscriptionActivity.this, "Subscription cancelled successfully", Toast.LENGTH_LONG).show();
+                    Toast.makeText(SubscriptionActivity.this, "Hủy đăng ký thành công", Toast.LENGTH_LONG).show();
+                    
+                    // Refresh subscription trong SubscriptionManager để cache lại
+                    com.example.LearnMate.managers.SubscriptionManager.getInstance(SubscriptionActivity.this).loadSubscriptionFromAPI();
                     
                     // Reload current subscription và plans
                     loadCurrentSubscription();
                 } else {
                     Log.e("SubscriptionActivity", "Failed to cancel subscription: " + response.code());
-                    Toast.makeText(SubscriptionActivity.this, "Failed to cancel subscription", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SubscriptionActivity.this, "Không thể hủy đăng ký", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -436,7 +425,7 @@ public class SubscriptionActivity extends AppCompatActivity {
             public void onFailure(Call<Void> call, Throwable t) {
                 dismissLoadingDialog();
                 Log.e("SubscriptionActivity", "Error cancelling subscription: " + t.getMessage());
-                Toast.makeText(SubscriptionActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SubscriptionActivity.this, "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -494,7 +483,7 @@ public class SubscriptionActivity extends AppCompatActivity {
         public String getSubscriptionId() { return subscriptionId; }
         
         public String getFormattedPrice() {
-            if (price == 0) return isCurrentPlan ? "Active" : "Free";
+            if (price == 0) return isCurrentPlan ? "Hoạt Động" : "Miễn Phí";
             NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US);
             return formatter.format(price) + " VND";
         }
