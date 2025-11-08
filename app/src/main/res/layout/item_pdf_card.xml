@@ -33,7 +33,7 @@
                 android:background="@drawable/circle_background_purple"
                 android:src="@android:drawable/ic_menu_delete"
                 android:padding="10dp"
-                android:tint="@android:color/white"
+                android:tint="#F44336"
                 android:elevation="8dp"
                 android:contentDescription="Delete file" />
 

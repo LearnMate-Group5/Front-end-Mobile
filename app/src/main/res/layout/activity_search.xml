@@ -192,6 +192,15 @@
                 android:nestedScrollingEnabled="false"
                 android:visibility="gone" />
 
+            <!-- Progress Bar for loading -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
+
             <!-- Popular Topics (shown when no search query) -->
             <TextView
                 android:id="@+id/tvPopularTopics"

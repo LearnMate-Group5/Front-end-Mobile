@@ -46,7 +46,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@android:drawable/ic_menu_delete"
                 android:padding="4dp"
-                android:tint="@color/white"
+                android:tint="#F44336"
                 android:contentDescription="Delete file"
                 android:visibility="gone" />
         </FrameLayout>

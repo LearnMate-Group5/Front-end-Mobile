@@ -4,16 +4,20 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.LearnMate.adapter.BookSearchAdapter;
 import com.example.LearnMate.components.BottomNavigationComponent;
 import com.example.LearnMate.network.RetrofitClient;
 import com.example.LearnMate.network.api.BookService;
 import com.example.LearnMate.network.dto.BookResponse;
+import com.example.LearnMate.network.dto.CategoryResponse;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -33,14 +37,16 @@ public class SearchActivity extends AppCompatActivity {
     private View btnSearchSettings;
     private BottomNavigationComponent bottomNavComponent;
     private RecyclerView recyclerViewSearchResults;
+    private ProgressBar progressBar;
     
     private BookService bookService;
-    private List<BookResponse> allBooks;
-    private List<BookResponse> filteredBooks;
-    private SearchResultsAdapter searchAdapter;
+    private List<BookResponse> searchResults;
+    private List<CategoryResponse> categories;
+    private BookSearchAdapter searchAdapter;
     
     private String currentSearchQuery = "";
-    private String selectedCategory = null;
+    private String selectedCategoryId = null;
+    private String selectedCategoryName = null;
     private String selectedAuthor = null;
 
     @Override
@@ -58,25 +64,27 @@ public class SearchActivity extends AppCompatActivity {
         
         // Initialize RecyclerView for search results
         recyclerViewSearchResults = findViewById(R.id.recyclerViewSearchResults);
+        progressBar = findViewById(R.id.progressBar);
+        
+        // Initialize service
+        bookService = RetrofitClient.getBookService(this);
+        
+        // Initialize data
+        searchResults = new ArrayList<>();
+        categories = new ArrayList<>();
+        searchAdapter = new BookSearchAdapter(searchResults, book -> {
+            // Handle book click - navigate to book detail or chapter list
+            Toast.makeText(this, "Clicked: " + (book.title != null ? book.title : "Unknown"), Toast.LENGTH_SHORT).show();
+            // TODO: Navigate to book detail activity
+        });
+        
         if (recyclerViewSearchResults != null) {
             recyclerViewSearchResults.setLayoutManager(new LinearLayoutManager(this));
             recyclerViewSearchResults.setAdapter(searchAdapter);
         }
         
-        // Get references to popular topics views to show/hide
-        View tvPopularTopics = findViewById(R.id.tvPopularTopics);
-        View cardPopularTopics = findViewById(R.id.cardPopularTopics);
-
-        // Initialize service
-        bookService = RetrofitClient.getBookService(this);
-        
-        // Initialize data
-        allBooks = new ArrayList<>();
-        filteredBooks = new ArrayList<>();
-        searchAdapter = new SearchResultsAdapter(filteredBooks);
-        
-        // Load all books
-        loadBooks();
+        // Load categories for filter
+        loadCategories();
 
         // Search text watcher
         etSearch.addTextChangedListener(new TextWatcher() {
@@ -95,16 +103,8 @@ public class SearchActivity extends AppCompatActivity {
 
         // Filter chips click listeners
         btnFilterCategory.setOnClickListener(v -> {
-            // Toggle filter
-            if (btnFilterCategory.isSelected()) {
-                btnFilterCategory.setSelected(false);
-                selectedCategory = null;
-            } else {
-                btnFilterCategory.setSelected(true);
-                // Show category selection dialog or dropdown
-                Toast.makeText(this, "Chọn danh mục", Toast.LENGTH_SHORT).show();
-            }
-            performSearch();
+            // Show category selection dialog
+            showCategorySelectionDialog();
         });
 
         btnFilterAuthor.setOnClickListener(v -> {
@@ -131,34 +131,63 @@ public class SearchActivity extends AppCompatActivity {
         bottomNavComponent.setSelectedItem(R.id.nav_search);
     }
     
-    private void loadBooks() {
-        bookService.getBooks().enqueue(new Callback<List<BookResponse>>() {
+    private void loadCategories() {
+        bookService.getCategories().enqueue(new Callback<List<CategoryResponse>>() {
             @Override
-            public void onResponse(Call<List<BookResponse>> call, Response<List<BookResponse>> response) {
+            public void onResponse(Call<List<CategoryResponse>> call, Response<List<CategoryResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    allBooks = response.body();
-                    performSearch();
-                } else {
-                    Toast.makeText(SearchActivity.this, "Không thể tải danh sách sách", Toast.LENGTH_SHORT).show();
+                    categories = response.body();
                 }
             }
 
             @Override
-            public void onFailure(Call<List<BookResponse>> call, Throwable t) {
-                Toast.makeText(SearchActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<List<CategoryResponse>> call, Throwable t) {
+                // Silently fail - categories are optional
             }
         });
     }
     
-    private void performSearch() {
-        filteredBooks.clear();
+    private void showCategorySelectionDialog() {
+        if (categories == null || categories.isEmpty()) {
+            Toast.makeText(this, "Đang tải danh mục...", Toast.LENGTH_SHORT).show();
+            loadCategories();
+            return;
+        }
         
+        String[] categoryNames = new String[categories.size() + 1];
+        categoryNames[0] = "Tất cả danh mục";
+        for (int i = 0; i < categories.size(); i++) {
+            categoryNames[i + 1] = categories.get(i).name != null ? categories.get(i).name : "Unknown";
+        }
+        
+        new AlertDialog.Builder(this)
+            .setTitle("Chọn danh mục")
+            .setItems(categoryNames, (dialog, which) -> {
+                if (which == 0) {
+                    // Clear category filter
+                    selectedCategoryId = null;
+                    selectedCategoryName = null;
+                    btnFilterCategory.setSelected(false);
+                } else {
+                    CategoryResponse category = categories.get(which - 1);
+                    selectedCategoryId = category.categoryId;
+                    selectedCategoryName = category.name;
+                    btnFilterCategory.setSelected(true);
+                    btnFilterCategory.setText(category.name);
+                }
+                performSearch();
+            })
+            .setNegativeButton("Hủy", null)
+            .show();
+    }
+    
+    private void performSearch() {
         // Show/hide search results and popular topics
         View tvPopularTopics = findViewById(R.id.tvPopularTopics);
         View cardPopularTopics = findViewById(R.id.cardPopularTopics);
         View recentSearches = findViewById(R.id.recentSearches);
         
-        boolean hasQuery = !currentSearchQuery.isEmpty() || selectedCategory != null || selectedAuthor != null;
+        boolean hasQuery = !currentSearchQuery.isEmpty() || selectedCategoryId != null || selectedAuthor != null;
         
         if (recyclerViewSearchResults != null) {
             recyclerViewSearchResults.setVisibility(hasQuery ? View.VISIBLE : View.GONE);
@@ -173,97 +202,96 @@ public class SearchActivity extends AppCompatActivity {
             recentSearches.setVisibility(hasQuery ? View.GONE : View.VISIBLE);
         }
         
-        for (BookResponse book : allBooks) {
-            boolean matches = true;
-            
-            // Search by query
-            if (!currentSearchQuery.isEmpty()) {
-                String query = currentSearchQuery.toLowerCase();
-                boolean matchesQuery = (book.title != null && book.title.toLowerCase().contains(query)) ||
-                                      (book.author != null && book.author.toLowerCase().contains(query)) ||
-                                      (book.description != null && book.description.toLowerCase().contains(query));
+        // If no query and no filter, don't search
+        if (!hasQuery) {
+            searchResults.clear();
+            searchAdapter.notifyDataSetChanged();
+            return;
+        }
+        
+        // Show loading
+        if (progressBar != null) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+        
+        // Call API with filters
+        Call<List<BookResponse>> call;
+        
+        if (selectedCategoryId != null) {
+            // Search by categoryId
+            call = bookService.getBooks(true, selectedCategoryId, null);
+        } else if (selectedCategoryName != null) {
+            // Search by categoryName
+            call = bookService.getBooks(true, null, selectedCategoryName);
+        } else {
+            // Search all active books
+            call = bookService.getBooks(true, null, null);
+        }
+        
+        call.enqueue(new Callback<List<BookResponse>>() {
+            @Override
+            public void onResponse(Call<List<BookResponse>> call, Response<List<BookResponse>> response) {
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.GONE);
+                }
                 
-                // Also search in categories
-                if (!matchesQuery && book.categories != null) {
-                    for (String category : book.categories) {
-                        if (category != null && category.toLowerCase().contains(query)) {
-                            matchesQuery = true;
-                            break;
+                if (response.isSuccessful() && response.body() != null) {
+                    searchResults.clear();
+                    
+                    // Filter by search query if provided
+                    if (!currentSearchQuery.isEmpty()) {
+                        String query = currentSearchQuery.toLowerCase();
+                        for (BookResponse book : response.body()) {
+                            boolean matches = false;
+                            
+                            // Search in title
+                            if (book.title != null && book.title.toLowerCase().contains(query)) {
+                                matches = true;
+                            }
+                            // Search in author
+                            else if (book.author != null && book.author.toLowerCase().contains(query)) {
+                                matches = true;
+                            }
+                            // Search in description
+                            else if (book.description != null && book.description.toLowerCase().contains(query)) {
+                                matches = true;
+                            }
+                            // Search in categories
+                            else if (book.categories != null) {
+                                for (String category : book.categories) {
+                                    if (category != null && category.toLowerCase().contains(query)) {
+                                        matches = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (matches) {
+                                searchResults.add(book);
+                            }
                         }
+                    } else {
+                        // No search query, show all results from API
+                        searchResults.addAll(response.body());
                     }
-                }
-                
-                if (!matchesQuery) {
-                    matches = false;
-                }
-            }
-            
-            // Filter by category
-            if (selectedCategory != null && book.categories != null && !book.categories.isEmpty()) {
-                // Check if any category in the list matches
-                boolean categoryMatches = false;
-                for (String category : book.categories) {
-                    if (category != null && category.equals(selectedCategory)) {
-                        categoryMatches = true;
-                        break;
+                    
+                    searchAdapter.notifyDataSetChanged();
+                    
+                    if (searchResults.isEmpty()) {
+                        Toast.makeText(SearchActivity.this, "Không tìm thấy kết quả", Toast.LENGTH_SHORT).show();
                     }
-                }
-                if (!categoryMatches) {
-                    matches = false;
-                }
-            }
-            
-            // Filter by author
-            if (selectedAuthor != null && book.author != null) {
-                if (!book.author.equals(selectedAuthor)) {
-                    matches = false;
+                } else {
+                    Toast.makeText(SearchActivity.this, "Không thể tải kết quả tìm kiếm", Toast.LENGTH_SHORT).show();
                 }
             }
-            
-            if (matches) {
-                filteredBooks.add(book);
+
+            @Override
+            public void onFailure(Call<List<BookResponse>> call, Throwable t) {
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.GONE);
+                }
+                Toast.makeText(SearchActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        }
-        
-        searchAdapter.notifyDataSetChanged();
-    }
-    
-    // Simple adapter for search results
-    private static class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.ViewHolder> {
-        private List<BookResponse> books;
-        
-        SearchResultsAdapter(List<BookResponse> books) {
-            this.books = books;
-        }
-        
-        @Override
-        public ViewHolder onCreateViewHolder(android.view.ViewGroup parent, int viewType) {
-            // Create view holder - you may want to create a proper layout for this
-            android.view.View view = android.view.LayoutInflater.from(parent.getContext())
-                    .inflate(android.R.layout.simple_list_item_2, parent, false);
-            return new ViewHolder(view);
-        }
-        
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            BookResponse book = books.get(position);
-            holder.text1.setText(book.title != null ? book.title : "No Title");
-            holder.text2.setText(book.author != null ? book.author : "Unknown Author");
-        }
-        
-        @Override
-        public int getItemCount() {
-            return books.size();
-        }
-        
-        static class ViewHolder extends RecyclerView.ViewHolder {
-            android.widget.TextView text1, text2;
-            
-            ViewHolder(android.view.View itemView) {
-                super(itemView);
-                text1 = itemView.findViewById(android.R.id.text1);
-                text2 = itemView.findViewById(android.R.id.text2);
-            }
-        }
+        });
     }
 }

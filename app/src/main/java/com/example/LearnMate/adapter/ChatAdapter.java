@@ -1,6 +1,5 @@
 package com.example.LearnMate.adapter;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +10,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.LearnMate.R;
 import com.example.LearnMate.model.ChatMessage;
-import com.example.LearnMate.util.MarkdownUtil;
+import com.example.LearnMate.util.MarkdownHelper;
+import com.example.LearnMate.util.MarkdownWithMathHelper;
+import android.webkit.WebView;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -95,21 +96,80 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
     
     // ViewHolder for bot messages
-    public static class BotMessageViewHolder extends RecyclerView.ViewHolder {
+    public class BotMessageViewHolder extends RecyclerView.ViewHolder {
         private TextView textMessage;
+        private WebView webViewMessage;
         private TextView textTime;
-        private Context context;
         
         public BotMessageViewHolder(@NonNull View itemView) {
             super(itemView);
-            context = itemView.getContext();
             textMessage = itemView.findViewById(R.id.textMessage);
+            webViewMessage = itemView.findViewById(R.id.webViewMessage);
             textTime = itemView.findViewById(R.id.textTime);
+            
+            // Setup WebView for MathJax rendering
+            if (webViewMessage != null) {
+                MarkdownWithMathHelper.setupWebViewForMath(webViewMessage);
+            }
         }
         
         public void bind(ChatMessage message) {
-            // Render markdown for bot messages
-            MarkdownUtil.renderMarkdown(context, textMessage, message.getMessage());
+            String messageText = message.getMessage();
+            
+            if (messageText != null && !messageText.isEmpty()) {
+                // ALWAYS use WebView for bot messages to ensure consistent markdown and LaTeX rendering
+                // This fixes issues with LaTeX formulas and complex markdown
+                if (webViewMessage != null) {
+                    // Use WebView for rendering with MathJax and markdown
+                    textMessage.setVisibility(android.view.View.GONE);
+                    webViewMessage.setVisibility(android.view.View.VISIBLE);
+                    MarkdownWithMathHelper.renderMarkdownWithMath(webViewMessage, messageText);
+                    
+                    // Update textTime constraint to be below webViewMessage
+                    android.view.ViewGroup.LayoutParams timeParams = textTime.getLayoutParams();
+                    if (timeParams instanceof androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) {
+                        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams constraintParams = 
+                            (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) timeParams;
+                        constraintParams.topToBottom = webViewMessage.getId();
+                        textTime.setLayoutParams(constraintParams);
+                    }
+                } else {
+                    // Use TextView for simple plain text (no markdown, no LaTeX)
+                    if (webViewMessage != null) {
+                        webViewMessage.setVisibility(android.view.View.GONE);
+                        // Clear WebView to prevent memory leaks
+                        webViewMessage.loadData("", "text/html", "UTF-8");
+                    }
+                    textMessage.setVisibility(android.view.View.VISIBLE);
+                    textMessage.setAutoLinkMask(0); // Disable auto-linking to avoid conflicts
+                    textMessage.setText(messageText); // Plain text, no markdown processing
+                    
+                    // Update textTime constraint to be below textMessage
+                    android.view.ViewGroup.LayoutParams timeParams = textTime.getLayoutParams();
+                    if (timeParams instanceof androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) {
+                        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams constraintParams = 
+                            (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) timeParams;
+                        constraintParams.topToBottom = textMessage.getId();
+                        textTime.setLayoutParams(constraintParams);
+                    }
+                }
+            } else {
+                // Empty message
+                if (webViewMessage != null) {
+                    webViewMessage.setVisibility(android.view.View.GONE);
+                }
+                textMessage.setVisibility(android.view.View.VISIBLE);
+                textMessage.setText("");
+                
+                // Update textTime constraint to be below textMessage
+                android.view.ViewGroup.LayoutParams timeParams = textTime.getLayoutParams();
+                if (timeParams instanceof androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) {
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams constraintParams = 
+                        (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) timeParams;
+                    constraintParams.topToBottom = textMessage.getId();
+                    textTime.setLayoutParams(constraintParams);
+                }
+            }
             textTime.setText(formatTime(message.getTimestamp()));
         }
     }
