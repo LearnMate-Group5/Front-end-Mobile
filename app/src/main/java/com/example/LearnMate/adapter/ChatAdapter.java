@@ -1,5 +1,6 @@
 package com.example.LearnMate.adapter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.LearnMate.R;
 import com.example.LearnMate.model.ChatMessage;
+import com.example.LearnMate.util.MarkdownUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -96,15 +98,18 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public static class BotMessageViewHolder extends RecyclerView.ViewHolder {
         private TextView textMessage;
         private TextView textTime;
+        private Context context;
         
         public BotMessageViewHolder(@NonNull View itemView) {
             super(itemView);
+            context = itemView.getContext();
             textMessage = itemView.findViewById(R.id.textMessage);
             textTime = itemView.findViewById(R.id.textTime);
         }
         
         public void bind(ChatMessage message) {
-            textMessage.setText(message.getMessage());
+            // Render markdown for bot messages
+            MarkdownUtil.renderMarkdown(context, textMessage, message.getMessage());
             textTime.setText(formatTime(message.getTimestamp()));
         }
     }
