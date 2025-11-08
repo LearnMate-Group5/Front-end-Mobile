@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.LearnMate.R;
 import com.example.LearnMate.network.dto.BookResponse;
+import com.example.LearnMate.util.MarkdownHelper;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -85,15 +86,26 @@ public class BookSearchAdapter extends RecyclerView.Adapter<BookSearchAdapter.Bo
                 tvBookAuthor.setText(book.getAuthor() != null ? book.getAuthor() : "Không rõ tác giả");
             }
             
-            // Set description
+            // Set description with markdown rendering
             if (tvBookDescription != null) {
                 String description = book.getDescription();
                 if (description != null && !description.isEmpty()) {
-                    // Limit description length
-                    if (description.length() > 150) {
-                        description = description.substring(0, 150) + "...";
+                    // Render markdown for description
+                    // For search results, we limit the length but still render markdown
+                    String descriptionToRender = description;
+                    if (description.length() > 200) {
+                        // Truncate but keep complete words
+                        int lastSpace = description.lastIndexOf(' ', 200);
+                        if (lastSpace > 0) {
+                            descriptionToRender = description.substring(0, lastSpace) + "...";
+                        } else {
+                            descriptionToRender = description.substring(0, 200) + "...";
+                        }
                     }
-                    tvBookDescription.setText(description);
+                    // Render markdown
+                    MarkdownHelper.renderMarkdown(tvBookDescription, descriptionToRender);
+                    // Allow text selection
+                    tvBookDescription.setTextIsSelectable(true);
                 } else {
                     tvBookDescription.setText("Không có mô tả");
                 }

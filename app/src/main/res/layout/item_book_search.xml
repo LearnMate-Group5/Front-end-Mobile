@@ -69,8 +69,11 @@
                 android:textSize="13sp"
                 android:textColor="@color/text_secondary"
                 android:layout_marginTop="8dp"
-                android:maxLines="3"
-                android:ellipsize="end" />
+                android:maxLines="4"
+                android:ellipsize="end"
+                android:textIsSelectable="true"
+                android:breakStrategy="balanced"
+                android:lineSpacingExtra="2dp" />
 
         </LinearLayout>
     </LinearLayout>
