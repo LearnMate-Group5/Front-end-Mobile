@@ -1,5 +1,6 @@
 package com.example.LearnMate.network.api;
 
+import com.example.LearnMate.network.dto.BookChapterResponse;
 import com.example.LearnMate.network.dto.BookResponse;
 import com.example.LearnMate.network.dto.CategoryResponse;
 
@@ -56,4 +57,13 @@ public interface BookService {
      */
     @GET("api/Book/Categories/{categoryId}")
     Call<CategoryResponse> getCategoryById(@Path("categoryId") String categoryId);
+
+    /**
+     * Get all chapters for a book
+     * 
+     * @param bookId Book ID (UUID)
+     * @return List of book chapters
+     */
+    @GET("api/Book/{bookId}/chapters")
+    Call<List<BookChapterResponse>> getBookChapters(@Path("bookId") String bookId);
 }
