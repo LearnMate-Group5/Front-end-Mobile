@@ -80,6 +80,17 @@ public class ImportActivity extends AppCompatActivity {
                 if (uri != null)
                     uploadPdf(uri, getCurrentUserId());
             });
+    
+    // Google Drive picker launcher
+    private final ActivityResultLauncher<Intent> googleDrivePicker = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        uploadPdf(uri, getCurrentUserId());
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -94,6 +105,16 @@ public class ImportActivity extends AppCompatActivity {
 
         // Nút "Import from File"
         findViewById(R.id.cardFileImport).setOnClickListener(v -> pickPdf.launch("application/pdf"));
+        
+        // Nút "Import from Google Drive"
+        findViewById(R.id.cardGoogleDriveImport).setOnClickListener(v -> {
+            // Open file picker that can access Google Drive
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.setType("application/pdf");
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/pdf"});
+            googleDrivePicker.launch(intent);
+        });
 
         // Recycler grid hiển thị file đã import
         RecyclerView rv = findViewById(R.id.rvImported);

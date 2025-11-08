@@ -21,7 +21,7 @@
     
     <!-- Gender options -->
     <string-array name="gender_array">
-        <item>Chọn giới tính (Tùy chọn)</item>
+        <item>Giới tính (Tùy chọn)</item>
         <item>Nam</item>
         <item>Nữ</item>
         <item>Khác</item>

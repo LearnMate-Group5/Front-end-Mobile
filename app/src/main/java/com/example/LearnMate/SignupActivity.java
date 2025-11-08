@@ -142,7 +142,9 @@ public class SignupActivity extends AppCompatActivity implements SignupView {
             String finalPhoneNumber = phoneNumber.isEmpty() ? null : phoneNumber;
             String finalDateOfBirth = dateOfBirth.isEmpty() ? null : formatDateForApi(dateOfBirth);
             // Check for Vietnamese or English default value
-            String finalGender = (gender.equals("Chọn giới tính (Tùy chọn)") || gender.equals("Select Gender (Optional)")) ? null : gender;
+            String finalGender = (gender.equals("Giới tính (Tùy chọn)") || 
+                                 gender.equals("Chọn giới tính (Tùy chọn)") || 
+                                 gender.equals("Select Gender (Optional)")) ? null : gender;
 
             presenter.performSignup(email, password, password, fullName, finalPhoneNumber, finalDateOfBirth, finalGender);
         });

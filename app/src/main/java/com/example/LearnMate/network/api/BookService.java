@@ -27,4 +27,3 @@ public interface BookService {
     @GET("api/Book/{bookId}/chapters")
     Call<List<BookChapterResponse>> getBookChapters(@Path("bookId") String bookId);
 }
-

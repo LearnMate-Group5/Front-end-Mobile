@@ -23,17 +23,18 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/ic_picture_as_pdf_24" />
 
-            <!-- Delete button -->
+            <!-- Delete button with better visibility -->
             <ImageButton
                 android:id="@+id/btnDelete"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:layout_gravity="top|end"
-                android:layout_margin="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_margin="12dp"
+                android:background="@drawable/circle_background_purple"
                 android:src="@android:drawable/ic_menu_delete"
-                android:padding="6dp"
-                android:tint="@color/white"
+                android:padding="10dp"
+                android:tint="@android:color/white"
+                android:elevation="8dp"
                 android:contentDescription="Delete file" />
 
             <LinearLayout
