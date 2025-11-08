@@ -15,43 +15,45 @@ import retrofit2.http.Query;
  * Handles all book-related API calls
  */
 public interface BookService {
-    
+
     /**
      * Get all books with optional filters
      * API may return List<BookResponse> directly or wrapped in ApiResult
-     * @param onlyActive Filter by active status (optional)
-     * @param categoryId Filter by category ID (optional)
+     * 
+     * @param onlyActive   Filter by active status (optional)
+     * @param categoryId   Filter by category ID (optional)
      * @param categoryName Filter by category name (optional)
      * @return List of books (direct array response)
      */
     @GET("api/Book")
     Call<List<BookResponse>> getBooks(
-        @Query("onlyActive") Boolean onlyActive,
-        @Query("categoryId") String categoryId,
-        @Query("categoryName") String categoryName
-    );
-    
+            @Query("onlyActive") Boolean onlyActive,
+            @Query("categoryId") String categoryId,
+            @Query("categoryName") String categoryName);
+
     /**
      * Get book by ID
+     * 
      * @param bookId Book ID (UUID)
      * @return Book details
      */
     @GET("api/Book/{bookId}")
     Call<BookResponse> getBookById(@Path("bookId") String bookId);
-    
+
     /**
      * Get all categories
+     * 
      * @return List of categories
      */
     @GET("api/Book/Categories")
     Call<List<CategoryResponse>> getCategories();
-    
+
     /**
      * Get category by ID
+     * 
      * @param categoryId Category ID (UUID)
      * @return Category details
      */
     @GET("api/Book/Categories/{categoryId}")
     Call<CategoryResponse> getCategoryById(@Path("categoryId") String categoryId);
 }
-

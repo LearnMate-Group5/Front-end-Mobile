@@ -46,10 +46,10 @@ public final class RetrofitClient {
 
     // Cached services
     private static AuthService cachedAuthService;
-    private static BookService cachedBookService;
     private static AiChatService cachedAiChatService;
     private static AiHighlightService cachedAiHighlightService;
     private static AiTranslateService cachedAiTranslateService;
+    private static BookService cachedBookService;
     private static MoMoService cachedMoMoService;
     private static PayOSService cachedPayOSService;
     private static SubscriptionService cachedSubscriptionService;
@@ -142,12 +142,12 @@ public final class RetrofitClient {
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .client(getAuthenticatedClient(appContext))
                 .build();
-        
+
         // Still cache for performance, but refresh when needed
         if (retrofitWithAuth == null) {
             retrofitWithAuth = retrofit;
         }
-        
+
         return retrofit;
     }
 
@@ -160,17 +160,18 @@ public final class RetrofitClient {
         retrofitWithAuth = null;
         aiChatRetrofit = null;
         aiTranslateRetrofit = null;
-        
+
         // Clear cached services
         cachedAuthService = null;
         cachedBookService = null;
         cachedAiChatService = null;
         cachedAiHighlightService = null;
         cachedAiTranslateService = null;
+        cachedBookService = null;
         cachedMoMoService = null;
         cachedPayOSService = null;
         cachedSubscriptionService = null;
-        
+
         android.util.Log.d("RetrofitClient", "Cleared all Retrofit cache");
     }
 
@@ -240,7 +241,7 @@ public final class RetrofitClient {
         }
         return cachedAiHighlightService;
     }
-    
+
     // Dịch vụ PayOS — dùng client có auth (vì cần user context)
     public static PayOSService getPayOSService(Context appContext) {
         if (cachedPayOSService == null) {
@@ -289,7 +290,7 @@ public final class RetrofitClient {
         return cachedMoMoService;
     }
 
-    // Dịch vụ Book — dùng client có auth (theo API spec cần Bearer token)
+    // Dịch vụ Book — dùng client có auth (vì có thể cần user context)
     public static BookService getBookService(Context appContext) {
         if (cachedBookService == null) {
             if (retrofitWithAuth == null) {

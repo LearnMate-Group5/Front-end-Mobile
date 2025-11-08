@@ -23,6 +23,19 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/bg_placeholder"/>
 
+            <!-- Favorite button (Heart icon) -->
+            <ImageButton
+                android:id="@+id/btnFavorite"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/btn_star_big_off"
+                android:padding="6dp"
+                android:tint="@color/white"
+                android:contentDescription="Favorite book" />
+
             <!-- Delete button -->
             <ImageButton
                 android:id="@+id/btnDeleteSmall"
@@ -34,7 +47,8 @@
                 android:src="@android:drawable/ic_menu_delete"
                 android:padding="4dp"
                 android:tint="@color/white"
-                android:contentDescription="Delete file" />
+                android:contentDescription="Delete file"
+                android:visibility="gone" />
         </FrameLayout>
 
     </com.google.android.material.card.MaterialCardView>
@@ -46,13 +60,5 @@
         android:text="Trace"
         android:textStyle="bold"
         android:paddingTop="6dp"
-        android:maxLines="1"/>
-
-    <TextView
-        android:id="@+id/tvSmallCat"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Science, Horror"
-        android:textColor="#9AA0A6"
         android:maxLines="1"/>
 </LinearLayout>
