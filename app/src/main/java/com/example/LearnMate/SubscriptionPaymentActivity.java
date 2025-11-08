@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.LearnMate.model.SubscriptionPlan;
 import com.example.LearnMate.network.dto.ChoosePlanResponse;
 import com.example.LearnMate.payment.MoMoPaymentHelper;
 import com.example.LearnMate.payment.dto.MoMoOrderResponse;
@@ -48,8 +49,8 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
     private MaterialButton btnPay;
     private ProgressBar progressBar;
     
-    private SubscriptionActivity.SubscriptionPlan selectedPlan;
-    private SubscriptionActivity.SubscriptionPlan currentPlan;
+    private SubscriptionPlan selectedPlan;
+    private SubscriptionPlan currentPlan;
     private MoMoPaymentHelper moMoPaymentHelper;
     private String userSubscriptionId;  // Lưu userSubscriptionId sau khi choose plan
     
@@ -79,19 +80,19 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
         String currentPlanType = intent.getStringExtra(EXTRA_CURRENT_PLAN_TYPE);
         
         // Create plan objects
-        selectedPlan = new SubscriptionActivity.SubscriptionPlan(
+        selectedPlan = new SubscriptionPlan(
             planName, planPrice, planOriginalPrice, planDiscount,
             "", planFeatures, planType, false, planSubscriptionId
         );
         
         if (currentPlanName != null) {
-            currentPlan = new SubscriptionActivity.SubscriptionPlan(
+            currentPlan = new SubscriptionPlan(
                 currentPlanName, 0, 0, 0,
                 "", "", currentPlanType != null ? currentPlanType : "FREE",
                 true, null
             );
         } else {
-            currentPlan = new SubscriptionActivity.SubscriptionPlan(
+            currentPlan = new SubscriptionPlan(
                 "Free", 0, 0, 0,
                 "", "", "FREE", true, null
             );
@@ -355,7 +356,7 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
     /**
      * Static method để start Activity này
      */
-    public static void start(Context context, SubscriptionActivity.SubscriptionPlan selectedPlan, SubscriptionActivity.SubscriptionPlan currentPlan) {
+    public static void start(Context context, SubscriptionPlan selectedPlan, SubscriptionPlan currentPlan) {
         Intent intent = new Intent(context, SubscriptionPaymentActivity.class);
         intent.putExtra(EXTRA_PLAN_NAME, selectedPlan.getName());
         intent.putExtra(EXTRA_PLAN_PRICE, selectedPlan.getPrice());

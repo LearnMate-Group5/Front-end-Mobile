@@ -1,11 +1,9 @@
 package com.example.LearnMate;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
@@ -14,19 +12,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.LearnMate.components.BottomNavigationComponent;
 import com.example.LearnMate.managers.SessionManager;
-import com.example.LearnMate.network.RetrofitClient;
-import com.example.LearnMate.network.api.AuthService;
-import com.example.LearnMate.network.dto.ApiResult;
-import com.example.LearnMate.network.dto.UpdateUserProfileRequest;
+import com.example.LearnMate.presenter.ProfilePresenter;
+import com.example.LearnMate.view.ProfileView;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends AppCompatActivity implements ProfileView {
 
     private ImageButton btnBack;
-    private ImageView btnFooterSettings;
     private EditText etUsername;
     private EditText etEmail;
     private MaterialButton btnEditProfile;
@@ -34,18 +25,16 @@ public class ProfileActivity extends AppCompatActivity {
     private BottomNavigationComponent bottomNavComponent;
     private SessionManager sessionManager;
 
-    private boolean isEditMode = false;
-
-    private AuthService authService;
-    private String userIdFromSession;
+    private ProfilePresenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        // Initialize Presenter
+        presenter = new ProfilePresenter(this, this);
         sessionManager = new SessionManager(getApplicationContext());
-        authService = RetrofitClient.getAuthService(getApplicationContext());
 
         // bind views
         btnBack = findViewById(R.id.btnBack);
@@ -55,102 +44,83 @@ public class ProfileActivity extends AppCompatActivity {
         btnLogout = findViewById(R.id.btnLogout);
         bottomNavComponent = findViewById(R.id.bottomNavComponent);
 
-        setEditMode(false);
-        preloadFromSession();
+        // Load profile data
+        presenter.loadProfile();
 
-        btnBack.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            finish();
-        });
+        // Setup click listeners
+        btnBack.setOnClickListener(v -> presenter.navigateToSettings());
 
         btnEditProfile.setOnClickListener(v -> {
-            if (isEditMode) saveProfileData();
-            else setEditMode(true);
+            if (presenter.isEditMode()) {
+                String username = etUsername.getText().toString();
+                String email = etEmail.getText().toString();
+                presenter.saveProfile(username, email);
+            } else {
+                presenter.toggleEditMode();
+            }
         });
 
-        btnLogout.setOnClickListener(v -> sessionManager.logout(ProfileActivity.this));
+        btnLogout.setOnClickListener(v -> presenter.performLogout());
     }
 
-    private void setEditMode(boolean editMode) {
-        isEditMode = editMode;
-        etUsername.setEnabled(editMode);
-        etEmail.setEnabled(editMode);
+    // ================== ProfileView Implementation ==================
 
-        if (editMode) {
-            btnEditProfile.setText("Lưu");
-            btnEditProfile.setIconResource(android.R.drawable.ic_menu_save);
-        } else {
-            btnEditProfile.setText("Chỉnh Sửa Hồ Sơ");
-            btnEditProfile.setIconResource(android.R.drawable.ic_menu_edit);
-        }
+    @Override
+    public void showUsername(String username) {
+        etUsername.setText(username);
     }
 
-    private void preloadFromSession() {
-        SharedPreferences sp = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        userIdFromSession = sp.getString("user_id", null);
-        String userName = sp.getString("user_name", "");
-        String userEmail = sp.getString("user_email", "");
-
-        etUsername.setText(userName);
-        etEmail.setText(userEmail);
+    @Override
+    public void showEmail(String email) {
+        etEmail.setText(email);
     }
 
-    private void saveProfileData() {
-        String name  = etUsername.getText().toString().trim();
-        String email = etEmail.getText().toString().trim();
-        String avatarUrl = ""; // Avatar URL field removed from UI
+    @Override
+    public void setEditMode(boolean editMode) {
+        // This is handled by setFieldsEnabled
+    }
 
-        if (userIdFromSession == null || userIdFromSession.isEmpty()) {
-            Toast.makeText(this, "Thiếu userId trong phiên đăng nhập", Toast.LENGTH_SHORT).show();
-            setEditMode(true);
-            return;
-        }
-        if (name.isEmpty() || email.isEmpty()) {
-            Toast.makeText(this, "Tên và Email là bắt buộc", Toast.LENGTH_SHORT).show();
-            setEditMode(true);
-            return;
-        }
+    @Override
+    public void setEditButtonText(String text) {
+        btnEditProfile.setText(text);
+    }
 
-        UpdateUserProfileRequest body = new UpdateUserProfileRequest(name, email, avatarUrl);
+    @Override
+    public void setEditButtonIcon(int iconRes) {
+        btnEditProfile.setIconResource(iconRes);
+    }
 
-        setEditMode(false);
-        btnEditProfile.setEnabled(false);
+    @Override
+    public void setFieldsEnabled(boolean enabled) {
+        etUsername.setEnabled(enabled);
+        etEmail.setEnabled(enabled);
+    }
 
-        authService.updateUserProfile(userIdFromSession, body)
-                .enqueue(new Callback<ApiResult<Object>>() {
-                    @Override
-                    public void onResponse(Call<ApiResult<Object>> call, Response<ApiResult<Object>> response) {
-                        btnEditProfile.setEnabled(true);
-                        if (response.isSuccessful() && response.body()!=null && response.body().isSuccess) {
-                            Toast.makeText(ProfileActivity.this, "Hồ sơ đã được cập nhật", Toast.LENGTH_SHORT).show();
+    @Override
+    public void setEditButtonEnabled(boolean enabled) {
+        btnEditProfile.setEnabled(enabled);
+    }
 
-                            SharedPreferences sp = getSharedPreferences("user_prefs", MODE_PRIVATE);
-                            sp.edit()
-                                    .putString("user_name", name)
-                                    .putString("user_email", email)
-                                    .putString("avatar_url", avatarUrl)
-                                    .apply();
+    @Override
+    public void showSuccessMessage(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
 
-                            setEditMode(false);
-                        } else {
-                            setEditMode(true);
-                            String msg = "Cập nhật thất bại";
-                            if (response.body()!=null && response.body().error!=null
-                                    && response.body().error.description!=null) {
-                                msg = response.body().error.description;
-                            }
-                            Toast.makeText(ProfileActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        }
-                    }
+    @Override
+    public void showErrorMessage(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
 
-                    @Override
-                    public void onFailure(Call<ApiResult<Object>> call, Throwable t) {
-                        btnEditProfile.setEnabled(true);
-                        setEditMode(true);
-                        Toast.makeText(ProfileActivity.this, "Lỗi mạng: " + (t.getMessage()==null?"":t.getMessage()), Toast.LENGTH_SHORT).show();
-                    }
-                });
+    @Override
+    public void navigateToSettings() {
+        Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    public void performLogout() {
+        sessionManager.logout(ProfileActivity.this);
     }
 }

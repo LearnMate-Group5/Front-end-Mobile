@@ -8,6 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.LearnMate.model.SubscriptionPlan;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
@@ -15,19 +16,19 @@ import java.util.List;
 
 public class SubscriptionAdapter extends RecyclerView.Adapter<SubscriptionAdapter.ViewHolder> {
     
-    private List<SubscriptionActivity.SubscriptionPlan> plans;
+    private List<SubscriptionPlan> plans;
     private OnPlanClickListener planClickListener;
     private OnCancelClickListener cancelClickListener;
     
     public interface OnPlanClickListener {
-        void onPlanClick(SubscriptionActivity.SubscriptionPlan plan);
+        void onPlanClick(SubscriptionPlan plan);
     }
     
     public interface OnCancelClickListener {
-        void onCancelClick(SubscriptionActivity.SubscriptionPlan plan);
+        void onCancelClick(SubscriptionPlan plan);
     }
     
-    public SubscriptionAdapter(List<SubscriptionActivity.SubscriptionPlan> plans, 
+    public SubscriptionAdapter(List<SubscriptionPlan> plans, 
                                OnPlanClickListener planListener,
                                OnCancelClickListener cancelListener) {
         this.plans = plans;
@@ -45,7 +46,7 @@ public class SubscriptionAdapter extends RecyclerView.Adapter<SubscriptionAdapte
     
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        SubscriptionActivity.SubscriptionPlan plan = plans.get(position);
+        SubscriptionPlan plan = plans.get(position);
         
         holder.tvPlanName.setText(plan.getName());
         holder.tvPlanPrice.setText(plan.getFormattedPrice());

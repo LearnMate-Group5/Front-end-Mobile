@@ -92,8 +92,41 @@ public class AuthModel {
         });
     }
 
+    public void updateProfile(@NonNull String userId,
+                              @NonNull String name,
+                              @NonNull String email,
+                              String avatarUrl,
+                              @NonNull ProfileCallback cb) {
+        UpdateUserProfileRequest request = new UpdateUserProfileRequest(name, email, avatarUrl != null ? avatarUrl : "");
+        auth.updateUserProfile(userId, request).enqueue(new Callback<ApiResult<Object>>() {
+            @Override
+            public void onResponse(Call<ApiResult<Object>> call, Response<ApiResult<Object>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess) {
+                    cb.onSuccess(name, email, avatarUrl != null ? avatarUrl : "");
+                } else {
+                    String msg = "Cập nhật thất bại";
+                    if (response.body() != null && response.body().error != null
+                            && response.body().error.description != null) {
+                        msg = response.body().error.description;
+                    }
+                    cb.onFailure(msg);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResult<Object>> call, Throwable t) {
+                cb.onFailure("Lỗi mạng: " + (t.getMessage() == null ? "" : t.getMessage()));
+            }
+        });
+    }
+
     public interface AuthCallback {
         void onSuccess(AuthPayload payload);
+        void onFailure(String message);
+    }
+
+    public interface ProfileCallback {
+        void onSuccess(String name, String email, String avatarUrl);
         void onFailure(String message);
     }
 }
