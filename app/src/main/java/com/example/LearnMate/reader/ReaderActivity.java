@@ -833,7 +833,7 @@ public class ReaderActivity extends AppCompatActivity {
         
         Log.d("ReaderActivity", "=== TTS Request ===");
         Log.d("ReaderActivity", "Text length: " + chapterContent.length());
-        Log.d("ReaderActivity", "User ID: " + currentUserId);
+        Log.d("ReaderActivity", "User ID: " + currentxxxUserId);
         Log.d("ReaderActivity", "Unique ID: " + currentChapterIndex);
         
         // Clear cache to ensure we get fresh TTS service with updated timeout
