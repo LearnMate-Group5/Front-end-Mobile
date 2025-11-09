@@ -48,6 +48,7 @@ public class ReaderActivity extends AppCompatActivity {
     private BookmarkManager bookmarkManager;
     private String pdfUri;
     private ImageButton btnBookmark;
+    private ImageButton btnSound;
     
     // AI Highlight
     private AiHighlightService aiHighlightService;
@@ -55,6 +56,10 @@ public class ReaderActivity extends AppCompatActivity {
     private PopupWindow highlightPopup;
     private String currentSessionId;
     private String currentUserId;
+    
+    // Text-to-Speech
+    private android.media.MediaPlayer mediaPlayer;
+    private boolean isPlayingAudio = false;
 
     /** Helper mở Reader nhanh */
     public static void open(Context ctx, Uri pdfUri, int chapterIndex, String mode) {
@@ -147,6 +152,9 @@ public class ReaderActivity extends AppCompatActivity {
 
         // Setup bookmark button
         setupBookmarkButton();
+        
+        // Setup sound button (TTS)
+        setupSoundButton();
     }
 
     private void showNoDataMessage() {
@@ -754,6 +762,237 @@ public class ReaderActivity extends AppCompatActivity {
             btnBookmark.setImageResource(android.R.drawable.btn_star_big_on);
         } else {
             btnBookmark.setImageResource(android.R.drawable.btn_star_big_off);
+        }
+    }
+    
+    /**
+     * Setup sound button for Text-to-Speech
+     */
+    private void setupSoundButton() {
+        btnSound = findViewById(R.id.btnSound);
+        if (btnSound == null) {
+            return;
+        }
+        
+        btnSound.setOnClickListener(v -> {
+            if (isPlayingAudio) {
+                stopAudio();
+            } else {
+                // Show loading immediately when button is clicked
+                ProgressBar progress = findViewById(R.id.progress);
+                if (progress != null) {
+                    progress.setVisibility(View.VISIBLE);
+                }
+                btnSound.setEnabled(false); // Disable button while loading
+                playChapterAudio();
+            }
+        });
+    }
+    
+    /**
+     * Convert chapter text to speech and play
+     */
+    private void playChapterAudio() {
+        ProgressBar progress = findViewById(R.id.progress);
+        
+        if (chapters == null || chapters.isEmpty()) {
+            if (progress != null) {
+                progress.setVisibility(View.GONE);
+            }
+            if (btnSound != null) {
+                btnSound.setEnabled(true);
+            }
+            Toast.makeText(this, "No chapter content to read", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        ChapterUtils.Chapter currentChapter = chapters.get(currentChapterIndex);
+        String chapterContent = currentMode.equals("translate") && currentChapter.translatedContent != null && !currentChapter.translatedContent.isEmpty()
+                ? currentChapter.translatedContent
+                : currentChapter.content;
+        
+        if (chapterContent == null || chapterContent.trim().isEmpty()) {
+            if (progress != null) {
+                progress.setVisibility(View.GONE);
+            }
+            if (btnSound != null) {
+                btnSound.setEnabled(true);
+            }
+            Toast.makeText(this, "Chapter content is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Prepare TTS request
+        com.example.LearnMate.network.dto.TTSRequest request = new com.example.LearnMate.network.dto.TTSRequest(
+            chapterContent,
+            1.2f,  // speed
+            "2b277023-e5e6-42af-bcd7-c1841f19527b",  // hardcoded voiceId
+            currentUserId,
+            String.valueOf(currentChapterIndex)  // Use chapter index as uniqueId
+        );
+        
+        Log.d("ReaderActivity", "=== TTS Request ===");
+        Log.d("ReaderActivity", "Text length: " + chapterContent.length());
+        Log.d("ReaderActivity", "User ID: " + currentUserId);
+        Log.d("ReaderActivity", "Unique ID: " + currentChapterIndex);
+        
+        // Clear cache to ensure we get fresh TTS service with updated timeout
+        RetrofitClient.clearCache();
+        
+        // Call TTS API
+        com.example.LearnMate.network.api.TTSService ttsService = RetrofitClient.getTTSService(this);
+        Call<List<com.example.LearnMate.network.dto.TTSResponse>> call = ttsService.convertTextToSpeech(request);
+        
+        Log.d("ReaderActivity", "TTS API call created with 5-minute timeout, sending request...");
+        
+        call.enqueue(new Callback<List<com.example.LearnMate.network.dto.TTSResponse>>() {
+            @Override
+            public void onResponse(Call<List<com.example.LearnMate.network.dto.TTSResponse>> call, 
+                                 Response<List<com.example.LearnMate.network.dto.TTSResponse>> response) {
+                Log.d("ReaderActivity", "=== TTS Response ===");
+                Log.d("ReaderActivity", "Response code: " + response.code());
+                Log.d("ReaderActivity", "Response successful: " + response.isSuccessful());
+                
+                // Hide loading
+                if (progress != null) {
+                    progress.setVisibility(View.GONE);
+                }
+                // Re-enable sound button
+                if (btnSound != null) {
+                    btnSound.setEnabled(true);
+                }
+                
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    com.example.LearnMate.network.dto.TTSResponse ttsResponse = response.body().get(0);
+                    
+                    if (ttsResponse.isCompleted() && ttsResponse.getResult() != null) {
+                        // Play the audio from URL
+                        playAudioFromUrl(ttsResponse.getResult());
+                    } else {
+                        Toast.makeText(ReaderActivity.this, 
+                            "Audio not ready: " + ttsResponse.getStatus(), 
+                            Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(ReaderActivity.this, 
+                        "Failed to convert text to speech", 
+                        Toast.LENGTH_SHORT).show();
+                }
+            }
+            
+            @Override
+            public void onFailure(Call<List<com.example.LearnMate.network.dto.TTSResponse>> call, Throwable t) {
+                Log.e("ReaderActivity", "=== TTS Failure ===");
+                Log.e("ReaderActivity", "Error: " + t.getMessage(), t);
+                
+                // Hide loading
+                if (progress != null) {
+                    progress.setVisibility(View.GONE);
+                }
+                // Re-enable sound button
+                if (btnSound != null) {
+                    btnSound.setEnabled(true);
+                }
+                
+                Toast.makeText(ReaderActivity.this, 
+                    "Error: " + t.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    
+    /**
+     * Play audio from URL using MediaPlayer
+     */
+    private void playAudioFromUrl(String audioUrl) {
+        try {
+            // Stop any existing audio
+            stopAudio();
+            
+            // Create and prepare MediaPlayer
+            mediaPlayer = new android.media.MediaPlayer();
+            mediaPlayer.setAudioAttributes(
+                new android.media.AudioAttributes.Builder()
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                    .build()
+            );
+            
+            mediaPlayer.setDataSource(audioUrl);
+            mediaPlayer.setOnPreparedListener(mp -> {
+                mp.start();
+                isPlayingAudio = true;
+                updateSoundIcon();
+                Toast.makeText(ReaderActivity.this, "Playing audio...", Toast.LENGTH_SHORT).show();
+            });
+            
+            mediaPlayer.setOnCompletionListener(mp -> {
+                isPlayingAudio = false;
+                updateSoundIcon();
+                Toast.makeText(ReaderActivity.this, "Audio completed", Toast.LENGTH_SHORT).show();
+            });
+            
+            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                Log.e("ReaderActivity", "MediaPlayer error: " + what + ", " + extra);
+                isPlayingAudio = false;
+                updateSoundIcon();
+                Toast.makeText(ReaderActivity.this, "Error playing audio", Toast.LENGTH_SHORT).show();
+                return true;
+            });
+            
+            mediaPlayer.prepareAsync();
+            
+        } catch (Exception e) {
+            Log.e("ReaderActivity", "Error playing audio", e);
+            Toast.makeText(this, "Failed to play audio: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    /**
+     * Stop audio playback
+     */
+    private void stopAudio() {
+        if (mediaPlayer != null) {
+            try {
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                }
+                mediaPlayer.release();
+            } catch (Exception e) {
+                Log.e("ReaderActivity", "Error stopping audio", e);
+            }
+            mediaPlayer = null;
+        }
+        isPlayingAudio = false;
+        updateSoundIcon();
+    }
+    
+    /**
+     * Update sound button icon based on playing state
+     */
+    private void updateSoundIcon() {
+        if (btnSound != null) {
+            if (isPlayingAudio) {
+                btnSound.setImageResource(android.R.drawable.ic_media_pause);
+            } else {
+                btnSound.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
+            }
+        }
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Clean up MediaPlayer
+        stopAudio();
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Pause audio when activity is paused
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
         }
     }
 }

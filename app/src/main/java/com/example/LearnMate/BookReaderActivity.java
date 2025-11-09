@@ -1,6 +1,7 @@
 package com.example.LearnMate;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
@@ -10,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.LearnMate.managers.SessionManager;
 import com.example.LearnMate.network.RetrofitClient;
 import com.example.LearnMate.network.api.BookService;
 import com.example.LearnMate.network.dto.BookChapterResponse;
@@ -17,6 +19,7 @@ import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,6 +40,13 @@ public class BookReaderActivity extends AppCompatActivity {
     private TextView btnNext;
     private SeekBar sbFont;
     private CircularProgressIndicator progress;
+    private ImageButton btnSound;
+    
+    // Text-to-Speech
+    private android.media.MediaPlayer mediaPlayer;
+    private boolean isPlayingAudio = false;
+    private SessionManager sessionManager;
+    private String currentUserId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,6 +72,16 @@ public class BookReaderActivity extends AppCompatActivity {
         btnNext = findViewById(R.id.btnNext);
         sbFont = findViewById(R.id.sbFont);
         progress = findViewById(R.id.progress);
+        btnSound = findViewById(R.id.btnSound);
+        
+        // Initialize session manager for user ID
+        sessionManager = new SessionManager(this);
+        com.example.LearnMate.network.dto.LoginResponse.UserData userData = sessionManager.getUserData();
+        if (userData != null && userData.getUserId() != null) {
+            currentUserId = userData.getUserId();
+        } else {
+            currentUserId = UUID.randomUUID().toString();
+        }
 
         // Back button
         ImageButton btnBack = findViewById(R.id.btnBack);
@@ -78,6 +98,9 @@ public class BookReaderActivity extends AppCompatActivity {
         if (btnMore != null) {
             btnMore.setVisibility(View.GONE);
         }
+        
+        // Setup sound button for TTS
+        setupSoundButton();
 
         // Set book title
         if (tvBookTitle != null && bookTitle != null) {
@@ -223,6 +246,231 @@ public class BookReaderActivity extends AppCompatActivity {
             boolean hasNext = currentChapterIndex < chapters.size() - 1;
             btnNext.setEnabled(hasNext);
             btnNext.setAlpha(hasNext ? 1.0f : 0.5f);
+        }
+    }
+    
+    /**
+     * Setup sound button for Text-to-Speech
+     */
+    private void setupSoundButton() {
+        if (btnSound == null) {
+            return;
+        }
+        
+        btnSound.setOnClickListener(v -> {
+            if (isPlayingAudio) {
+                stopAudio();
+            } else {
+                // Show loading immediately when button is clicked
+                if (progress != null) {
+                    progress.setVisibility(View.VISIBLE);
+                }
+                btnSound.setEnabled(false); // Disable button while loading
+                playChapterAudio();
+            }
+        });
+    }
+    
+    /**
+     * Convert chapter text to speech and play
+     */
+    private void playChapterAudio() {
+        if (chapters == null || chapters.isEmpty()) {
+            if (progress != null) {
+                progress.setVisibility(View.GONE);
+            }
+            if (btnSound != null) {
+                btnSound.setEnabled(true);
+            }
+            Toast.makeText(this, "No chapter content to read", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        BookChapterResponse currentChapter = chapters.get(currentChapterIndex);
+        String chapterContent = currentChapter.content;
+        
+        if (chapterContent == null || chapterContent.trim().isEmpty()) {
+            if (progress != null) {
+                progress.setVisibility(View.GONE);
+            }
+            if (btnSound != null) {
+                btnSound.setEnabled(true);
+            }
+            Toast.makeText(this, "Chapter content is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Prepare TTS request
+        com.example.LearnMate.network.dto.TTSRequest request = new com.example.LearnMate.network.dto.TTSRequest(
+            chapterContent,
+            1.2f,  // speed
+            "2b277023-e5e6-42af-bcd7-c1841f19527b",  // hardcoded voiceId
+            currentUserId,
+            String.valueOf(currentChapterIndex)  // Use chapter index as uniqueId
+        );
+        
+        Log.d("BookReaderActivity", "=== TTS Request ===");
+        Log.d("BookReaderActivity", "Text length: " + chapterContent.length());
+        Log.d("BookReaderActivity", "User ID: " + currentUserId);
+        Log.d("BookReaderActivity", "Unique ID: " + currentChapterIndex);
+        
+        // Clear cache to ensure we get fresh TTS service with updated timeout
+        RetrofitClient.clearCache();
+        
+        // Call TTS API
+        com.example.LearnMate.network.api.TTSService ttsService = RetrofitClient.getTTSService(this);
+        Call<List<com.example.LearnMate.network.dto.TTSResponse>> call = ttsService.convertTextToSpeech(request);
+        
+        Log.d("BookReaderActivity", "TTS API call created with 5-minute timeout, sending request...");
+        
+        call.enqueue(new Callback<List<com.example.LearnMate.network.dto.TTSResponse>>() {
+            @Override
+            public void onResponse(Call<List<com.example.LearnMate.network.dto.TTSResponse>> call, 
+                                 Response<List<com.example.LearnMate.network.dto.TTSResponse>> response) {
+                Log.d("BookReaderActivity", "=== TTS Response ===");
+                Log.d("BookReaderActivity", "Response code: " + response.code());
+                Log.d("BookReaderActivity", "Response successful: " + response.isSuccessful());
+                
+                // Hide loading
+                if (progress != null) {
+                    progress.setVisibility(View.GONE);
+                }
+                // Re-enable sound button
+                if (btnSound != null) {
+                    btnSound.setEnabled(true);
+                }
+                
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    com.example.LearnMate.network.dto.TTSResponse ttsResponse = response.body().get(0);
+                    
+                    if (ttsResponse.isCompleted() && ttsResponse.getResult() != null) {
+                        // Play the audio from URL
+                        playAudioFromUrl(ttsResponse.getResult());
+                    } else {
+                        Toast.makeText(BookReaderActivity.this, 
+                            "Audio not ready: " + ttsResponse.getStatus(), 
+                            Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(BookReaderActivity.this, 
+                        "Failed to convert text to speech", 
+                        Toast.LENGTH_SHORT).show();
+                }
+            }
+            
+            @Override
+            public void onFailure(Call<List<com.example.LearnMate.network.dto.TTSResponse>> call, Throwable t) {
+                Log.e("BookReaderActivity", "=== TTS Failure ===");
+                Log.e("BookReaderActivity", "Error: " + t.getMessage(), t);
+                
+                // Hide loading
+                if (progress != null) {
+                    progress.setVisibility(View.GONE);
+                }
+                // Re-enable sound button
+                if (btnSound != null) {
+                    btnSound.setEnabled(true);
+                }
+                
+                Toast.makeText(BookReaderActivity.this, 
+                    "Error: " + t.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    
+    /**
+     * Play audio from URL using MediaPlayer
+     */
+    private void playAudioFromUrl(String audioUrl) {
+        try {
+            // Stop any existing audio
+            stopAudio();
+            
+            // Create and prepare MediaPlayer
+            mediaPlayer = new android.media.MediaPlayer();
+            mediaPlayer.setAudioAttributes(
+                new android.media.AudioAttributes.Builder()
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                    .build()
+            );
+            
+            mediaPlayer.setDataSource(audioUrl);
+            mediaPlayer.setOnPreparedListener(mp -> {
+                mp.start();
+                isPlayingAudio = true;
+                updateSoundIcon();
+                Toast.makeText(BookReaderActivity.this, "Playing audio...", Toast.LENGTH_SHORT).show();
+            });
+            
+            mediaPlayer.setOnCompletionListener(mp -> {
+                isPlayingAudio = false;
+                updateSoundIcon();
+                Toast.makeText(BookReaderActivity.this, "Audio completed", Toast.LENGTH_SHORT).show();
+            });
+            
+            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                Log.e("BookReaderActivity", "MediaPlayer error: " + what + ", " + extra);
+                isPlayingAudio = false;
+                updateSoundIcon();
+                Toast.makeText(BookReaderActivity.this, "Error playing audio", Toast.LENGTH_SHORT).show();
+                return true;
+            });
+            
+            mediaPlayer.prepareAsync();
+            
+        } catch (Exception e) {
+            Log.e("BookReaderActivity", "Error playing audio", e);
+            Toast.makeText(this, "Failed to play audio: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    /**
+     * Stop audio playback
+     */
+    private void stopAudio() {
+        if (mediaPlayer != null) {
+            try {
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                }
+                mediaPlayer.release();
+            } catch (Exception e) {
+                Log.e("BookReaderActivity", "Error stopping audio", e);
+            }
+            mediaPlayer = null;
+        }
+        isPlayingAudio = false;
+        updateSoundIcon();
+    }
+    
+    /**
+     * Update sound button icon based on playing state
+     */
+    private void updateSoundIcon() {
+        if (btnSound != null) {
+            if (isPlayingAudio) {
+                btnSound.setImageResource(android.R.drawable.ic_media_pause);
+            } else {
+                btnSound.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
+            }
+        }
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Clean up MediaPlayer
+        stopAudio();
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Pause audio when activity is paused
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
         }
     }
 }

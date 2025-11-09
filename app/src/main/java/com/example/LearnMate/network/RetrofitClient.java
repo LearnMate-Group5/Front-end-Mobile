@@ -12,6 +12,7 @@ import com.example.LearnMate.network.api.BookService;
 import com.example.LearnMate.network.api.MoMoService;
 import com.example.LearnMate.network.api.PayOSService;
 import com.example.LearnMate.network.api.SubscriptionService;
+import com.example.LearnMate.network.api.TTSService;
 import com.example.LearnMate.network.api.ZaloPayService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -32,8 +33,9 @@ public final class RetrofitClient {
     private static final String BASE_URL = ApiConfig.BASE_URL;
     private static final String AI_CHAT_BASE_URL = ApiConfig.AI_CHAT_BASE_URL;
     private static final String AI_TRANSLATE_BASE_URL = ApiConfig.AI_TRANSLATE_BASE_URL;
+    private static final String TTS_BASE_URL = "https://d2j7q4aa2pvgbz.cloudfront.net/"; // TTS base URL
 
-    // Retrofit “thuần” (không header Authorization)
+    // Retrofit "thuần" (không header Authorization)
     private static Retrofit plainRetrofit;
 
     // Retrofit có kèm interceptor Authorization
@@ -44,6 +46,9 @@ public final class RetrofitClient {
 
     // Retrofit riêng cho AI translate (có auth)
     private static Retrofit aiTranslateRetrofit;
+    
+    // Retrofit riêng cho TTS (không auth)
+    private static Retrofit ttsRetrofit;
 
     // Cached services
     private static AuthService cachedAuthService;
@@ -54,6 +59,7 @@ public final class RetrofitClient {
     private static MoMoService cachedMoMoService;
     private static PayOSService cachedPayOSService;
     private static SubscriptionService cachedSubscriptionService;
+    private static TTSService cachedTTSService;
     private static ZaloPayService cachedZaloPayService;
 
     private RetrofitClient() {
@@ -73,6 +79,21 @@ public final class RetrofitClient {
                 .connectTimeout(60, TimeUnit.SECONDS) // Tăng timeout cho Google Drive
                 .readTimeout(300, TimeUnit.SECONDS) // Tăng timeout cho file lớn
                 .writeTimeout(300, TimeUnit.SECONDS) // Tăng timeout cho upload
+                .retryOnConnectionFailure(true)
+                .build();
+    }
+    
+    /** OkHttp client cho TTS với timeout dài hơn (5 phút) */
+    private static OkHttpClient buildTTSClient() {
+        HttpLoggingInterceptor log = new HttpLoggingInterceptor();
+        log.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        return new OkHttpClient.Builder()
+                .addInterceptor(log)
+                .connectTimeout(60, TimeUnit.SECONDS) // Connection timeout 1 minute
+                .readTimeout(300, TimeUnit.SECONDS) // Read timeout 5 minutes for TTS processing
+                .writeTimeout(300, TimeUnit.SECONDS) // Write timeout 5 minutes
+                .callTimeout(360, TimeUnit.SECONDS) // Overall call timeout 6 minutes
                 .retryOnConnectionFailure(true)
                 .build();
     }
@@ -162,6 +183,7 @@ public final class RetrofitClient {
         retrofitWithAuth = null;
         aiChatRetrofit = null;
         aiTranslateRetrofit = null;
+        ttsRetrofit = null;
         
         // Clear cached services
         cachedAuthService = null;
@@ -172,6 +194,7 @@ public final class RetrofitClient {
         cachedMoMoService = null;
         cachedPayOSService = null;
         cachedSubscriptionService = null;
+        cachedTTSService = null;
         cachedZaloPayService = null;
         
         android.util.Log.d("RetrofitClient", "Cleared all Retrofit cache");
@@ -322,5 +345,22 @@ public final class RetrofitClient {
             cachedZaloPayService = retrofitWithAuth.create(ZaloPayService.class);
         }
         return cachedZaloPayService;
+    }
+
+    // Dịch vụ TTS (Text-to-Speech) — dùng client không auth, base URL riêng, timeout dài
+    public static TTSService getTTSService(Context appContext) {
+        if (cachedTTSService == null) {
+            if (ttsRetrofit == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                ttsRetrofit = new Retrofit.Builder()
+                        .baseUrl(TTS_BASE_URL) // Use TTS-specific base URL
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .client(buildTTSClient()) // Use TTS client with longer timeout
+                        .build();
+                android.util.Log.d("RetrofitClient", "Created TTS Retrofit with base URL: " + TTS_BASE_URL + " and 5-minute timeout");
+            }
+            cachedTTSService = ttsRetrofit.create(TTSService.class);
+        }
+        return cachedTTSService;
     }
 }
