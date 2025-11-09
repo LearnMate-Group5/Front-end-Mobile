@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">chooy-alb-196282736.us-east-1.elb.amazonaws.com</domain>
+        <domain includeSubdomains="true">d20mvv9mkid2jt.cloudfront.net</domain>
         <domain includeSubdomains="true">192.168.0.0</domain>
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>

@@ -13,43 +13,13 @@ package com.example.LearnMate.network;
  */
 public final class ApiConfig {
     private ApiConfig() {
-        
+
     }
 
+    public static final String BASE_URL = "https://d2j7q4aa2pvgbz.cloudfront.net/";
 
-    public static final String BASE_URL = "http://chooy-alb-196282736.us-east-1.elb.amazonaws.com/";
+    public static final String AI_CHAT_BASE_URL = BASE_URL;
 
-
-    public static final String AI_CHAT_BASE_URL = BASE_URL; 
-
-
-    public static final String AI_TRANSLATE_BASE_URL = BASE_URL; 
-
+    public static final String AI_TRANSLATE_BASE_URL = BASE_URL;
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
