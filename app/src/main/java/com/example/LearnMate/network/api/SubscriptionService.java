@@ -23,7 +23,7 @@ public interface SubscriptionService {
      * @return CurrentSubscriptionResponse hoặc null nếu chưa có subscription
      */
     @GET("api/Subscription/plans/my/current")
-    Call<List<CurrentSubscriptionResponse>> getCurrentSubscription();
+    Call<CurrentSubscriptionResponse> getCurrentSubscription();
 
     /**
      * Lấy danh sách tất cả subscription plans có sẵn

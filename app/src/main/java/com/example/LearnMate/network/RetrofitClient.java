@@ -8,9 +8,11 @@ import com.example.LearnMate.network.api.AiChatService;
 import com.example.LearnMate.network.api.AiHighlightService;
 import com.example.LearnMate.network.api.AiTranslateService;
 import com.example.LearnMate.network.api.AuthService;
+import com.example.LearnMate.network.api.BookService;
 import com.example.LearnMate.network.api.MoMoService;
 import com.example.LearnMate.network.api.PayOSService;
 import com.example.LearnMate.network.api.SubscriptionService;
+import com.example.LearnMate.network.api.ZaloPayService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -48,9 +50,11 @@ public final class RetrofitClient {
     private static AiChatService cachedAiChatService;
     private static AiHighlightService cachedAiHighlightService;
     private static AiTranslateService cachedAiTranslateService;
+    private static BookService cachedBookService;
     private static MoMoService cachedMoMoService;
     private static PayOSService cachedPayOSService;
     private static SubscriptionService cachedSubscriptionService;
+    private static ZaloPayService cachedZaloPayService;
 
     private RetrofitClient() {
     }
@@ -164,9 +168,11 @@ public final class RetrofitClient {
         cachedAiChatService = null;
         cachedAiHighlightService = null;
         cachedAiTranslateService = null;
+        cachedBookService = null;
         cachedMoMoService = null;
         cachedPayOSService = null;
         cachedSubscriptionService = null;
+        cachedZaloPayService = null;
         
         android.util.Log.d("RetrofitClient", "Cleared all Retrofit cache");
     }
@@ -284,5 +290,37 @@ public final class RetrofitClient {
             cachedMoMoService = retrofitWithAuth.create(MoMoService.class);
         }
         return cachedMoMoService;
+    }
+
+    // Dịch vụ Book — dùng client có auth (vì có thể cần user context)
+    public static BookService getBookService(Context appContext) {
+        if (cachedBookService == null) {
+            if (retrofitWithAuth == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                retrofitWithAuth = new Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .client(getAuthenticatedClient(appContext))
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedBookService = retrofitWithAuth.create(BookService.class);
+        }
+        return cachedBookService;
+    }
+
+    // Dịch vụ ZaloPay — dùng client có auth (vì cần user context)
+    public static ZaloPayService getZaloPayService(Context appContext) {
+        if (cachedZaloPayService == null) {
+            if (retrofitWithAuth == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                retrofitWithAuth = new Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .client(getAuthenticatedClient(appContext))
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedZaloPayService = retrofitWithAuth.create(ZaloPayService.class);
+        }
+        return cachedZaloPayService;
     }
 }

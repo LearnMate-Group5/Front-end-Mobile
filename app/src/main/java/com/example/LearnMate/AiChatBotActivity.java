@@ -60,19 +60,19 @@ public class AiChatBotActivity extends AppCompatActivity {
     private ImageButton buttonMenu;
     private CircularProgressIndicator progressIndicator;
     private BottomNavigationComponent bottomNavComponent;
-    
+
     // Sidebar views
     private RecyclerView recyclerViewChatSessions;
     private Button buttonNewChat;
     private ImageButton buttonCloseSidebar;
     private TextView textEmptyChatHistory;
-    
+
     // Locked state views
     private View mainContentLayout;
     private View lockedStateLayout;
     private BottomNavigationComponent lockedBottomNavComponent;
     private Button buttonImportFile;
-    
+
     private ChatAdapter chatAdapter;
     private ChatSessionAdapter sessionAdapter;
     private List<ChatMessage> chatMessages;
@@ -90,11 +90,11 @@ public class AiChatBotActivity extends AppCompatActivity {
         initViews();
         initializeServices();
         loadUserId();
-        
+
         // Check if user has files before setting up chat
         checkFilesAndSetupUI();
     }
-    
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -109,20 +109,20 @@ public class AiChatBotActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         mainContentLayout = findViewById(R.id.mainContentLayout);
         lockedStateLayout = findViewById(R.id.lockedStateLayout);
-        
+
         recyclerView = findViewById(R.id.recyclerViewChat);
         editTextMessage = findViewById(R.id.editTextMessage);
         buttonSend = findViewById(R.id.buttonSend);
         buttonMenu = findViewById(R.id.buttonMenu);
         progressIndicator = findViewById(R.id.progressIndicator);
         bottomNavComponent = findViewById(R.id.bottomNavComponent);
-        
+
         // Sidebar views
         recyclerViewChatSessions = findViewById(R.id.recyclerViewChatSessions);
         buttonNewChat = findViewById(R.id.buttonNewChat);
         buttonCloseSidebar = findViewById(R.id.buttonCloseSidebar);
         textEmptyChatHistory = findViewById(R.id.textEmptyChatHistory);
-        
+
         // Locked state views
         lockedBottomNavComponent = findViewById(R.id.lockedBottomNavComponent);
         buttonImportFile = findViewById(R.id.buttonImportFile);
@@ -141,7 +141,7 @@ public class AiChatBotActivity extends AppCompatActivity {
         sessionAdapter.updateSessions(chatSessions);
         recyclerViewChatSessions.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewChatSessions.setAdapter(sessionAdapter);
-        
+
         sessionAdapter.setOnSessionClickListener(session -> {
             loadSessionMessages(session.sessionId);
             closeDrawer();
@@ -156,35 +156,35 @@ public class AiChatBotActivity extends AppCompatActivity {
             closeDrawer();
         });
         buttonCloseSidebar.setOnClickListener(v -> closeDrawer());
-        
+
         editTextMessage.setOnEditorActionListener((v, actionId, event) -> {
             sendMessage();
             return true;
         });
     }
-    
+
     private void openDrawer() {
         if (drawerLayout != null) {
             drawerLayout.openDrawer(findViewById(R.id.sidebarLayout));
         }
     }
-    
+
     private void closeDrawer() {
         if (drawerLayout != null) {
             drawerLayout.closeDrawer(findViewById(R.id.sidebarLayout));
         }
     }
-    
+
     private void startNewChat() {
         sessionId = "";
         chatMessages.clear();
         chatAdapter.notifyDataSetChanged();
-        
+
         // Clear selection in sidebar
         if (sessionAdapter != null) {
             sessionAdapter.setSelectedSessionId(null);
         }
-        
+
         addWelcomeMessage();
     }
 
@@ -196,7 +196,7 @@ public class AiChatBotActivity extends AppCompatActivity {
         aiChatService = RetrofitClient.getAiChatService(this);
         aiService = RetrofitClient.getRetrofitWithAuth(this).create(AiService.class);
     }
-    
+
     /**
      * Check if user has imported files and setup UI accordingly
      * API có thể trả về:
@@ -211,7 +211,7 @@ public class AiChatBotActivity extends AppCompatActivity {
         if (token == null || token.isEmpty()) {
             token = prefs.getString("token", null);
         }
-        
+
         if (token == null || token.isEmpty()) {
             Log.w("AiChatBot", "No token found in SharedPreferences! Showing locked state.");
             showLockedState();
@@ -219,15 +219,15 @@ public class AiChatBotActivity extends AppCompatActivity {
         } else {
             Log.d("AiChatBot", "Token found. Length: " + token.length() + " characters");
         }
-        
+
         // Always create fresh service instance to ensure latest token is used
         aiService = RetrofitClient.getRetrofitWithAuth(this).create(AiService.class);
-        
+
         aiService.getFiles().enqueue(new Callback<List<AiFileResponse>>() {
             @Override
             public void onResponse(Call<List<AiFileResponse>> call, Response<List<AiFileResponse>> response) {
                 boolean hasFiles = false;
-                
+
                 // Check response status
                 if (response.isSuccessful()) {
                     // Success: parse response body
@@ -245,15 +245,15 @@ public class AiChatBotActivity extends AppCompatActivity {
                             bodyString = gson.toJson(response.body());
                             Log.d("AiChatBot", "API Response (from body): " + bodyString);
                         }
-                        
+
                         if (bodyString != null && !bodyString.isEmpty()) {
-                            
+
                             Gson gson = new Gson();
                             JsonParser parser = new JsonParser();
                             JsonElement jsonElement = parser.parse(bodyString);
-                            
+
                             List<AiFileResponse> files = new ArrayList<>();
-                            
+
                             if (jsonElement.isJsonArray()) {
                                 // Case 1: Array trực tiếp [{...}, {...}]
                                 JsonArray jsonArray = jsonElement.getAsJsonArray();
@@ -267,7 +267,7 @@ public class AiChatBotActivity extends AppCompatActivity {
                                 Log.d("AiChatBot", "Parsed as array. Found " + files.size() + " files.");
                             } else if (jsonElement.isJsonObject()) {
                                 JsonObject jsonObject = jsonElement.getAsJsonObject();
-                                
+
                                 // Check if it's wrapper object {success, files[], ...}
                                 if (jsonObject.has("files") && jsonObject.get("files").isJsonArray()) {
                                     // Case 3: Wrapper object
@@ -290,7 +290,7 @@ public class AiChatBotActivity extends AppCompatActivity {
                                     Log.d("AiChatBot", "Parsed as single object. Found 1 file.");
                                 }
                             }
-                            
+
                             // Check result from response.body() as fallback
                             if (!hasFiles && response.body() != null && !response.body().isEmpty()) {
                                 List<AiFileResponse> filesList = response.body();
@@ -301,7 +301,7 @@ public class AiChatBotActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         Log.e("AiChatBot", "Error parsing response body: " + e.getMessage());
                         e.printStackTrace();
-                        
+
                         // Fallback: try response.body()
                         if (response.body() != null && !response.body().isEmpty()) {
                             hasFiles = true;
@@ -312,7 +312,7 @@ public class AiChatBotActivity extends AppCompatActivity {
                     // Response not successful - check error body
                     int statusCode = response.code();
                     Log.e("AiChatBot", "API returned error code: " + statusCode);
-                    
+
                     // For error responses, try to parse error body
                     if (statusCode == 401) {
                         // 401 Unauthorized - check if it's auth issue or if error body contains data
@@ -321,45 +321,49 @@ public class AiChatBotActivity extends AppCompatActivity {
                             if (errorBody != null) {
                                 String errorString = errorBody.string();
                                 Log.e("AiChatBot", "401 Unauthorized - Error body: " + errorString);
-                                
+
                                 // Try to parse error body - sometimes API returns data even with 401
                                 Gson gson = new Gson();
                                 JsonParser parser = new JsonParser();
                                 JsonElement jsonElement = parser.parse(errorString);
-                                
+
                                 // Check if error body contains file data
                                 if (jsonElement.isJsonArray()) {
                                     JsonArray jsonArray = jsonElement.getAsJsonArray();
                                     if (jsonArray.size() > 0) {
                                         // Has files in error response - unlock anyway
                                         hasFiles = true;
-                                        Log.w("AiChatBot", "401 but found " + jsonArray.size() + " files in error response. Unlocking.");
+                                        Log.w("AiChatBot", "401 but found " + jsonArray.size()
+                                                + " files in error response. Unlocking.");
                                     } else {
                                         // Empty array - no files
                                         Log.w("AiChatBot", "401 Unauthorized with empty array - showing locked state.");
                                     }
                                 } else if (jsonElement.isJsonObject()) {
                                     JsonObject jsonObject = jsonElement.getAsJsonObject();
-                                    
+
                                     // Check if it has fileId (single file)
                                     if (jsonObject.has("fileId")) {
                                         hasFiles = true;
                                         Log.w("AiChatBot", "401 but found file in error response. Unlocking.");
-                                    } 
+                                    }
                                     // Check if it has "message" field indicating auth error
                                     else if (jsonObject.has("message")) {
                                         String message = jsonObject.get("message").getAsString();
                                         Log.w("AiChatBot", "401 Unauthorized - Auth issue: " + message);
                                         // This is likely auth issue, but check SharedPreferences for token
-                                        SharedPreferences prefs = getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+                                        SharedPreferences prefs = getSharedPreferences("user_prefs",
+                                                Context.MODE_PRIVATE);
                                         String token = prefs.getString("user_token", null);
                                         if (token == null || token.isEmpty()) {
                                             token = prefs.getString("token", null);
                                         }
                                         if (token == null || token.isEmpty()) {
-                                            Log.e("AiChatBot", "No token found in SharedPreferences! This is an auth issue.");
+                                            Log.e("AiChatBot",
+                                                    "No token found in SharedPreferences! This is an auth issue.");
                                         } else {
-                                            Log.w("AiChatBot", "Token exists but API returned 401 - token may be expired or invalid.");
+                                            Log.w("AiChatBot",
+                                                    "Token exists but API returned 401 - token may be expired or invalid.");
                                         }
                                         // Show locked state for security
                                         showLockedState();
@@ -376,14 +380,16 @@ public class AiChatBotActivity extends AppCompatActivity {
                         // Clear cache và retry với fresh connection
                         Log.w("AiChatBot", "503 Service Temporarily Unavailable - Clearing cache and retrying...");
                         RetrofitClient.clearCache();
-                        
+
                         // Retry sau 1 giây với fresh Retrofit instance
                         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                             Log.d("AiChatBot", "Retrying API call after clearing cache...");
-                            aiService = RetrofitClient.getRetrofitWithAuth(AiChatBotActivity.this).create(AiService.class);
+                            aiService = RetrofitClient.getRetrofitWithAuth(AiChatBotActivity.this)
+                                    .create(AiService.class);
                             aiService.getFiles().enqueue(new Callback<List<AiFileResponse>>() {
                                 @Override
-                                public void onResponse(Call<List<AiFileResponse>> call, Response<List<AiFileResponse>> response) {
+                                public void onResponse(Call<List<AiFileResponse>> call,
+                                        Response<List<AiFileResponse>> response) {
                                     if (response.isSuccessful() && response.body() != null) {
                                         List<AiFileResponse> files = response.body();
                                         if (files != null && !files.isEmpty()) {
@@ -406,7 +412,7 @@ public class AiChatBotActivity extends AppCompatActivity {
                                 }
                             });
                         }, 1000); // Retry sau 1 giây
-                        
+
                         // Tạm thời show locked state trong khi retry
                         showLockedState();
                         return;
@@ -416,13 +422,14 @@ public class AiChatBotActivity extends AppCompatActivity {
                             ResponseBody errorBody = response.errorBody();
                             if (errorBody != null) {
                                 String errorString = errorBody.string();
-                                Log.d("AiChatBot", "Error code " + statusCode + " - Trying to parse error body: " + errorString);
-                                
+                                Log.d("AiChatBot",
+                                        "Error code " + statusCode + " - Trying to parse error body: " + errorString);
+
                                 // Sometimes API might return data even with error status
                                 Gson gson = new Gson();
                                 JsonParser parser = new JsonParser();
                                 JsonElement jsonElement = parser.parse(errorString);
-                                
+
                                 if (jsonElement.isJsonArray()) {
                                     JsonArray jsonArray = jsonElement.getAsJsonArray();
                                     if (jsonArray.size() > 0) {
@@ -442,7 +449,7 @@ public class AiChatBotActivity extends AppCompatActivity {
                         }
                     }
                 }
-                
+
                 if (hasFiles) {
                     Log.d("AiChatBot", "User has files. Unlocking chat interface.");
                     showChatInterface();
@@ -461,7 +468,7 @@ public class AiChatBotActivity extends AppCompatActivity {
             }
         });
     }
-    
+
     /**
      * Show chat interface and hide locked state
      */
@@ -472,16 +479,16 @@ public class AiChatBotActivity extends AppCompatActivity {
         if (lockedStateLayout != null) {
             lockedStateLayout.setVisibility(View.GONE);
         }
-        
+
         // Setup chat components
         setupRecyclerView();
         setupSidebarRecyclerView();
         setupClickListeners();
         setupBottomNavigation();
-        
+
         // Load chat sessions
         loadChatSessions();
-        
+
         // Add welcome message if no session selected
         if (sessionId == null || sessionId.isEmpty()) {
             // Clear selection when starting new chat
@@ -494,7 +501,7 @@ public class AiChatBotActivity extends AppCompatActivity {
             // This will be called in loadChatSessions callback
         }
     }
-    
+
     /**
      * Show locked state and hide chat interface
      */
@@ -505,12 +512,12 @@ public class AiChatBotActivity extends AppCompatActivity {
         if (lockedStateLayout != null) {
             lockedStateLayout.setVisibility(View.VISIBLE);
         }
-        
+
         // Setup locked state bottom navigation
         if (lockedBottomNavComponent != null) {
             lockedBottomNavComponent.setSelectedItem(R.id.nav_ai_bot);
         }
-        
+
         // Setup Import File button click listener
         if (buttonImportFile != null) {
             buttonImportFile.setOnClickListener(v -> {
@@ -520,21 +527,22 @@ public class AiChatBotActivity extends AppCompatActivity {
             });
         }
     }
-    
+
     private void loadChatSessions() {
         if (aiService == null) {
             return;
         }
-        
+
         aiService.getSessions().enqueue(new Callback<List<ChatSessionItemResponse>>() {
             @Override
-            public void onResponse(Call<List<ChatSessionItemResponse>> call, Response<List<ChatSessionItemResponse>> response) {
+            public void onResponse(Call<List<ChatSessionItemResponse>> call,
+                    Response<List<ChatSessionItemResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<ChatSessionItemResponse> sessions = response.body();
                     if (sessions != null) {
                         chatSessions = sessions;
                         sessionAdapter.updateSessions(chatSessions);
-                        
+
                         // Show/hide empty state
                         if (chatSessions.isEmpty()) {
                             textEmptyChatHistory.setVisibility(View.VISIBLE);
@@ -544,7 +552,7 @@ public class AiChatBotActivity extends AppCompatActivity {
                             recyclerViewChatSessions.setVisibility(View.VISIBLE);
                         }
                         Log.d("AiChatBot", "Loaded " + chatSessions.size() + " chat sessions");
-                        
+
                         // Highlight current session if exists
                         if (sessionId != null && !sessionId.isEmpty() && sessionAdapter != null) {
                             sessionAdapter.setSelectedSessionId(sessionId);
@@ -562,21 +570,21 @@ public class AiChatBotActivity extends AppCompatActivity {
             }
         });
     }
-    
+
     private void loadSessionMessages(String targetSessionId) {
         if (aiService == null || targetSessionId == null || targetSessionId.isEmpty()) {
             return;
         }
-        
+
         this.sessionId = targetSessionId;
         chatMessages.clear();
         chatAdapter.notifyDataSetChanged();
-        
+
         // Update selected session in sidebar
         if (sessionAdapter != null) {
             sessionAdapter.setSelectedSessionId(targetSessionId);
         }
-        
+
         aiService.getSession(targetSessionId).enqueue(new Callback<ChatSessionDetailResponse>() {
             @Override
             public void onResponse(Call<ChatSessionDetailResponse> call, Response<ChatSessionDetailResponse> response) {
@@ -584,19 +592,22 @@ public class AiChatBotActivity extends AppCompatActivity {
                     ChatSessionDetailResponse session = response.body();
                     if (session.messages != null && !session.messages.isEmpty()) {
                         // Convert session messages to ChatMessage objects
-                        // message field là JSON string cần parse: {"type": "human/ai", "content": "..."}
+                        // message field là JSON string cần parse: {"type": "human/ai", "content":
+                        // "..."}
                         Gson gson = new Gson();
-                        
+
                         for (ChatSessionDetailResponse.SessionMessage msg : session.messages) {
                             try {
                                 // Parse message JSON string
-                                ChatSessionDetailResponse.ParsedMessage parsedMsg = 
-                                    gson.fromJson(msg.message, ChatSessionDetailResponse.ParsedMessage.class);
-                                
+                                ChatSessionDetailResponse.ParsedMessage parsedMsg = gson.fromJson(msg.message,
+                                        ChatSessionDetailResponse.ParsedMessage.class);
+
                                 if (parsedMsg != null && parsedMsg.content != null) {
                                     // Determine message type: "human" = user, "ai" = bot
-                                    int type = "human".equals(parsedMsg.type) ? ChatMessage.TYPE_USER : ChatMessage.TYPE_BOT;
-                                    ChatMessage chatMsg = new ChatMessage(parsedMsg.content, type, System.currentTimeMillis());
+                                    int type = "human".equals(parsedMsg.type) ? ChatMessage.TYPE_USER
+                                            : ChatMessage.TYPE_BOT;
+                                    ChatMessage chatMsg = new ChatMessage(parsedMsg.content, type,
+                                            System.currentTimeMillis());
                                     chatMessages.add(chatMsg);
                                 }
                             } catch (Exception e) {
@@ -605,12 +616,13 @@ public class AiChatBotActivity extends AppCompatActivity {
                                 // Skip this message if parsing fails
                             }
                         }
-                        
+
                         chatAdapter.notifyDataSetChanged();
                         if (chatMessages.size() > 0) {
                             recyclerView.scrollToPosition(chatMessages.size() - 1);
                         }
-                        Log.d("AiChatBot", "Loaded " + chatMessages.size() + " messages from session " + targetSessionId);
+                        Log.d("AiChatBot",
+                                "Loaded " + chatMessages.size() + " messages from session " + targetSessionId);
                     } else {
                         Log.d("AiChatBot", "Session has no messages");
                     }
@@ -628,14 +640,15 @@ public class AiChatBotActivity extends AppCompatActivity {
             }
         });
     }
-    
+
     private long parseTimestamp(String timestamp) {
         if (timestamp == null || timestamp.isEmpty()) {
             return System.currentTimeMillis();
         }
         try {
             // Parse ISO 8601 format: "2025-01-15T10:30:00Z"
-            java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US);
+            java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'",
+                    java.util.Locale.US);
             return format.parse(timestamp).getTime();
         } catch (Exception e) {
             return System.currentTimeMillis();
@@ -645,7 +658,7 @@ public class AiChatBotActivity extends AppCompatActivity {
     private void loadUserId() {
         SharedPreferences prefs = getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
         userId = prefs.getString("user_id", null);
-        
+
         if (userId == null) {
             Toast.makeText(this, "User ID not found. Please login again.", Toast.LENGTH_LONG).show();
             finish();
@@ -654,10 +667,9 @@ public class AiChatBotActivity extends AppCompatActivity {
 
     private void addWelcomeMessage() {
         ChatMessage welcomeMessage = new ChatMessage(
-            "Hello! I'm your AI assistant. How can I help you today?",
-            ChatMessage.TYPE_BOT,
-            System.currentTimeMillis()
-        );
+                "Hello! I'm your AI assistant. How can I help you today?",
+                ChatMessage.TYPE_BOT,
+                System.currentTimeMillis());
         chatMessages.add(welcomeMessage);
         chatAdapter.notifyItemInserted(chatMessages.size() - 1);
         recyclerView.scrollToPosition(chatMessages.size() - 1);
@@ -671,10 +683,9 @@ public class AiChatBotActivity extends AppCompatActivity {
 
         // Add user message to chat
         ChatMessage userMessage = new ChatMessage(
-            message,
-            ChatMessage.TYPE_USER,
-            System.currentTimeMillis()
-        );
+                message,
+                ChatMessage.TYPE_USER,
+                System.currentTimeMillis());
         chatMessages.add(userMessage);
         chatAdapter.notifyItemInserted(chatMessages.size() - 1);
         recyclerView.scrollToPosition(chatMessages.size() - 1);
@@ -684,10 +695,9 @@ public class AiChatBotActivity extends AppCompatActivity {
 
         // Add loading message
         ChatMessage loadingMessage = new ChatMessage(
-            "",
-            ChatMessage.TYPE_LOADING,
-            System.currentTimeMillis()
-        );
+                "",
+                ChatMessage.TYPE_LOADING,
+                System.currentTimeMillis());
         chatMessages.add(loadingMessage);
         int loadingPosition = chatMessages.size() - 1;
         chatAdapter.notifyItemInserted(loadingPosition);
@@ -698,32 +708,32 @@ public class AiChatBotActivity extends AppCompatActivity {
 
         // Send to API
         AiChatRequest request = new AiChatRequest(message, sessionId, userId);
-        Log.d("AiChatBot", "Sending request: " + request.getMessage() + " | SessionId: " + request.getSessionId() + " | UserId: " + request.getUserId());
-        
+        Log.d("AiChatBot", "Sending request: " + request.getMessage() + " | SessionId: " + request.getSessionId()
+                + " | UserId: " + request.getUserId());
+
         aiChatService.sendMessage(request).enqueue(new Callback<List<AiChatResponse>>() {
             @Override
             public void onResponse(Call<List<AiChatResponse>> call, Response<List<AiChatResponse>> response) {
                 showLoading(false);
-                
+
                 // Remove loading message
                 removeLoadingMessage(loadingPosition);
-                
+
                 Log.d("AiChatBot", "Response code: " + response.code());
-                
+
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     String botResponse = response.body().get(0).getOutput();
                     Log.d("AiChatBot", "Bot response: " + botResponse);
-                    
+
                     if (botResponse != null && !botResponse.isEmpty()) {
                         ChatMessage botMessage = new ChatMessage(
-                            botResponse,
-                            ChatMessage.TYPE_BOT,
-                            System.currentTimeMillis()
-                        );
+                                botResponse,
+                                ChatMessage.TYPE_BOT,
+                                System.currentTimeMillis());
                         chatMessages.add(botMessage);
                         chatAdapter.notifyItemInserted(chatMessages.size() - 1);
                         recyclerView.scrollToPosition(chatMessages.size() - 1);
-                        
+
                         // Reload sessions to update sidebar
                         loadChatSessions();
                     } else {
@@ -739,24 +749,24 @@ public class AiChatBotActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<AiChatResponse>> call, Throwable t) {
                 showLoading(false);
-                
+
                 // Remove loading message
                 removeLoadingMessage(loadingPosition);
-                
+
                 Log.e("AiChatBot", "Network error", t);
-                
+
                 String errorMessage;
                 if (t instanceof java.net.SocketTimeoutException) {
                     errorMessage = "Request timeout. AI is taking longer than expected to respond. Please try again.";
                 } else {
                     errorMessage = "Network error: " + t.getMessage();
                 }
-                
+
                 showError(errorMessage);
             }
         });
     }
-    
+
     /**
      * Remove loading message from chat
      * Tìm và xóa loading message gần nhất (thường là message cuối cùng)
@@ -784,7 +794,7 @@ public class AiChatBotActivity extends AppCompatActivity {
 
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-        
+
         // Add error message to chat
         String chatErrorMessage;
         if (message.contains("timeout")) {
@@ -792,12 +802,11 @@ public class AiChatBotActivity extends AppCompatActivity {
         } else {
             chatErrorMessage = "Sorry, I encountered an error. Please check your network connection and try again.";
         }
-        
+
         ChatMessage errorMessage = new ChatMessage(
-            chatErrorMessage,
-            ChatMessage.TYPE_BOT,
-            System.currentTimeMillis()
-        );
+                chatErrorMessage,
+                ChatMessage.TYPE_BOT,
+                System.currentTimeMillis());
         chatMessages.add(errorMessage);
         chatAdapter.notifyItemInserted(chatMessages.size() - 1);
         recyclerView.scrollToPosition(chatMessages.size() - 1);

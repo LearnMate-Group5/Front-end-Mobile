@@ -15,7 +15,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.LearnMate.network.dto.ChoosePlanResponse;
 import com.example.LearnMate.payment.MoMoPaymentHelper;
+import com.example.LearnMate.payment.ZaloPayPaymentHelper;
 import com.example.LearnMate.payment.dto.MoMoOrderResponse;
+import com.example.LearnMate.payment.dto.ZaloPayOrderResponse;
 import com.google.android.material.button.MaterialButton;
 
 import java.text.NumberFormat;
@@ -45,12 +47,14 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
     private TextView tvSelectedPlanLabel;
     private TextView tvPriceInfo;
     private LinearLayout llFeaturesList;
-    private MaterialButton btnPay;
+    private MaterialButton btnPayMoMo;
+    private MaterialButton btnPayZaloPay;
     private ProgressBar progressBar;
     
     private SubscriptionActivity.SubscriptionPlan selectedPlan;
     private SubscriptionActivity.SubscriptionPlan currentPlan;
     private MoMoPaymentHelper moMoPaymentHelper;
+    private ZaloPayPaymentHelper zaloPayPaymentHelper;
     private String userSubscriptionId;  // Lưu userSubscriptionId sau khi choose plan
     
     @Override
@@ -97,22 +101,14 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
             );
         }
         
-        // Initialize MoMo payment helper
+        // Initialize payment helpers
         moMoPaymentHelper = new MoMoPaymentHelper(this);
+        zaloPayPaymentHelper = new ZaloPayPaymentHelper(this);
         setupMoMoListener();
+        setupZaloPayListener();
         
         setupUI();
         loadData();
-        
-        // Handle MoMo return if this is a return from MoMo app
-        handleMoMoReturn(getIntent());
-    }
-    
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        handleMoMoReturn(intent);
     }
     
     private void setupMoMoListener() {
@@ -155,22 +151,73 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
         });
     }
     
-    private void handleMoMoReturn(Intent intent) {
-        MoMoPaymentHelper.MoMoReturnData returnData = MoMoPaymentHelper.handleMoMoReturn(intent);
-        if (returnData != null) {
-            Log.d(TAG, "MoMo return - Status: " + returnData.status + ", OrderId: " + returnData.orderId);
+    private void setupZaloPayListener() {
+        zaloPayPaymentHelper.setListener(new ZaloPayPaymentHelper.ZaloPayPaymentListener() {
+            @Override
+            public void onChoosePlanSuccess(ChoosePlanResponse response) {
+                hideLoading();
+                userSubscriptionId = response.userSubscriptionId;
+                Log.d(TAG, "Choose plan success! Starting ZaloPay payment...");
+                
+                // Bước 2: Tạo ZaloPay order
+                showLoading();
+                zaloPayPaymentHelper.createZaloPayOrder(userSubscriptionId, selectedPlan.getName());
+            }
             
-            if (returnData.isSuccess()) {
-                Toast.makeText(this, "Thanh toán thành công!", Toast.LENGTH_LONG).show();
+            @Override
+            public void onChoosePlanFailed(String error) {
+                hideLoading();
+                Log.e(TAG, "Choose plan failed: " + error);
+                Toast.makeText(SubscriptionPaymentActivity.this, 
+                    "Không thể chọn gói: " + error, Toast.LENGTH_SHORT).show();
+            }
+            
+            @Override
+            public void onCreateOrderSuccess(ZaloPayOrderResponse response) {
+                hideLoading();
+                Log.d(TAG, "ZaloPay order created! Opening ZaloPay...");
+                Toast.makeText(SubscriptionPaymentActivity.this, 
+                    "Đang mở ZaloPay...", Toast.LENGTH_SHORT).show();
+                // ZaloPay SDK sẽ tự động xử lý trong helper
+            }
+            
+            @Override
+            public void onCreateOrderFailed(String error) {
+                hideLoading();
+                Log.e(TAG, "Create ZaloPay order failed: " + error);
+                Toast.makeText(SubscriptionPaymentActivity.this, 
+                    "Không thể tạo đơn thanh toán: " + error, Toast.LENGTH_SHORT).show();
+            }
+            
+            @Override
+            public void onPaymentSuccess(String transactionId) {
+                hideLoading();
+                Log.d(TAG, "ZaloPay payment success: " + transactionId);
+                Toast.makeText(SubscriptionPaymentActivity.this, 
+                    "Thanh toán thành công!", Toast.LENGTH_LONG).show();
                 // Quay về SubscriptionActivity và refresh
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("payment_success", true);
                 setResult(RESULT_OK, resultIntent);
                 finish();
-            } else {
-                Toast.makeText(this, "Thanh toán thất bại: " + returnData.message, Toast.LENGTH_LONG).show();
             }
-        }
+            
+            @Override
+            public void onPaymentFailed(String error) {
+                hideLoading();
+                Log.e(TAG, "ZaloPay payment failed: " + error);
+                Toast.makeText(SubscriptionPaymentActivity.this, 
+                    "Thanh toán thất bại: " + error, Toast.LENGTH_LONG).show();
+            }
+            
+            @Override
+            public void onPaymentCancelled() {
+                hideLoading();
+                Log.d(TAG, "ZaloPay payment cancelled");
+                Toast.makeText(SubscriptionPaymentActivity.this, 
+                    "Đã hủy thanh toán", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
     
     private void setupUI() {
@@ -187,7 +234,8 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
         tvSelectedPlanLabel = findViewById(R.id.tvSelectedPlanLabel);
         tvPriceInfo = findViewById(R.id.tvPriceInfo);
         llFeaturesList = findViewById(R.id.llFeaturesList);
-        btnPay = findViewById(R.id.btnPay);
+        btnPayMoMo = findViewById(R.id.btnPayMoMo);
+        btnPayZaloPay = findViewById(R.id.btnPayZaloPay);
         
         // ProgressBar is optional - may not exist in layout
         try {
@@ -196,28 +244,50 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
             Log.w(TAG, "ProgressBar not found in layout");
         }
         
-        // Setup Pay button - Bắt đầu MoMo payment flow
-        btnPay.setOnClickListener(v -> {
-            Log.d(TAG, "Pay button clicked! Starting payment flow...");
-            
-            if (selectedPlan.getSubscriptionId() == null || selectedPlan.getSubscriptionId().isEmpty()) {
-                Toast.makeText(this, "Invalid subscription plan", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            
-            // Bước 1: Choose plan (sẽ nhận userSubscriptionId)
-            showLoading();
-            moMoPaymentHelper.choosePlan(selectedPlan.getSubscriptionId());
-        });
+        // Setup MoMo Pay button
+        if (btnPayMoMo != null) {
+            btnPayMoMo.setOnClickListener(v -> {
+                Log.d(TAG, "MoMo pay button clicked! Starting MoMo payment flow...");
+                
+                if (selectedPlan.getSubscriptionId() == null || selectedPlan.getSubscriptionId().isEmpty()) {
+                    Toast.makeText(this, "Invalid subscription plan", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // Bước 1: Choose plan (sẽ nhận userSubscriptionId)
+                showLoading();
+                moMoPaymentHelper.choosePlan(selectedPlan.getSubscriptionId());
+            });
+        }
+        
+        // Setup ZaloPay Pay button
+        if (btnPayZaloPay != null) {
+            btnPayZaloPay.setOnClickListener(v -> {
+                Log.d(TAG, "ZaloPay pay button clicked! Starting ZaloPay payment flow...");
+                
+                if (selectedPlan.getSubscriptionId() == null || selectedPlan.getSubscriptionId().isEmpty()) {
+                    Toast.makeText(this, "Invalid subscription plan", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // Bước 1: Choose plan (sẽ nhận userSubscriptionId)
+                showLoading();
+                zaloPayPaymentHelper.choosePlan(selectedPlan.getSubscriptionId());
+            });
+        }
     }
     
     private void showLoading() {
         if (progressBar != null) {
             progressBar.setVisibility(View.VISIBLE);
         }
-        if (btnPay != null) {
-            btnPay.setEnabled(false);
-            btnPay.setText("Đang xử lý...");
+        if (btnPayMoMo != null) {
+            btnPayMoMo.setEnabled(false);
+            btnPayMoMo.setText("Đang xử lý...");
+        }
+        if (btnPayZaloPay != null) {
+            btnPayZaloPay.setEnabled(false);
+            btnPayZaloPay.setText("Đang xử lý...");
         }
     }
     
@@ -225,9 +295,13 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
         if (progressBar != null) {
             progressBar.setVisibility(View.GONE);
         }
-        if (btnPay != null) {
-            btnPay.setEnabled(true);
-            btnPay.setText("Thanh toán");
+        if (btnPayMoMo != null) {
+            btnPayMoMo.setEnabled(true);
+            btnPayMoMo.setText("Thanh toán MoMo");
+        }
+        if (btnPayZaloPay != null) {
+            btnPayZaloPay.setEnabled(true);
+            btnPayZaloPay.setText("Thanh toán ZaloPay");
         }
     }
     

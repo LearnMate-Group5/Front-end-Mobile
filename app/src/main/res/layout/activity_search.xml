@@ -110,20 +110,26 @@
             </LinearLayout>
 
             <!-- Recent Searches -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tìm Kiếm Gần Đây"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="16dp" />
-
-            <com.google.android.material.card.MaterialCardView
+            <LinearLayout
+                android:id="@+id/recentSearches"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                style="@style/Widget.LearnMate.CardView">
+                android:orientation="vertical">
+            
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tìm Kiếm Gần Đây"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="16dp" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    style="@style/Widget.LearnMate.CardView">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -173,20 +179,42 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:background="?android:attr/selectableItemBackground" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            
+            </LinearLayout>
 
-            <!-- Popular Topics -->
+            <!-- Search Results -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewSearchResults"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:visibility="gone" />
+
+            <!-- Progress Bar for loading -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
+
+            <!-- Popular Topics (shown when no search query) -->
             <TextView
+                android:id="@+id/tvPopularTopics"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Chủ Đề Phổ Biến"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="16dp"
+                android:layout_marginTop="16dp" />
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPopularTopics"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@style/Widget.LearnMate.CardView">

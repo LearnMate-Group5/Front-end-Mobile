@@ -98,6 +98,9 @@ public class SignupPresenter {
                         .putBoolean("is_firebase_login", true)
                         .apply();
 
+                // Load subscription ngay sau khi signup thành công
+                com.example.LearnMate.managers.SubscriptionManager.getInstance(appContext).loadSubscriptionFromAPI();
+
                 Log.d(TAG, "Successfully saved user data to SharedPreferences");
                 view.showSignupSuccess("Firebase signup successful");
                 navigateToHome();
@@ -119,6 +122,9 @@ public class SignupPresenter {
                 .putBoolean("is_logged_in", true)
                 .putBoolean("is_firebase_login", true)
                 .apply();
+
+        // Load subscription ngay sau khi signup thành công
+        com.example.LearnMate.managers.SubscriptionManager.getInstance(appContext).loadSubscriptionFromAPI();
 
         Log.d(TAG, "Fallback: Successfully saved basic token data");
         view.showSignupSuccess("Firebase signup successful");

@@ -74,6 +74,9 @@ dependencies {
     // PayOS không cần SDK riêng, sử dụng REST API qua backend
     // Không cần thêm dependencies cho PayOS
     
+    // ZaloPay SDK
+    implementation files('../zpdk-release-v3.1.aar')
+    
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

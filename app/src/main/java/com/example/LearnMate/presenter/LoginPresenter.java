@@ -41,6 +41,9 @@ public class LoginPresenter {
                         .putBoolean("is_logged_in", true)
                         .apply();
 
+                // Load subscription ngay sau khi login thành công
+                com.example.LearnMate.managers.SubscriptionManager.getInstance(appContext).loadSubscriptionFromAPI();
+
                 view.showSuccessMessage("Login successful");
                 view.navigateToHome();
             }
@@ -93,6 +96,9 @@ public class LoginPresenter {
                         .putBoolean("is_logged_in", true)
                         .putBoolean("is_firebase_login", true)
                         .apply();
+
+                // Load subscription ngay sau khi login thành công
+                com.example.LearnMate.managers.SubscriptionManager.getInstance(appContext).loadSubscriptionFromAPI();
 
                 Log.d(TAG, "Successfully saved user data to SharedPreferences");
                 view.showSuccessMessage("Firebase login successful");

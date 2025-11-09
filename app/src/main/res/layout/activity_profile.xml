@@ -19,12 +19,22 @@
             android:orientation="vertical"
             android:padding="20dp">
 
+            <!-- Logo at top -->
+            <ImageView
+                android:id="@+id/imgLogo"
+                android:layout_width="220dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
+                android:src="@drawable/logo_learnmate"
+                app:tint="@color/purple_primary" />
+
             <!-- Back Button -->
             <ImageButton
                 android:id="@+id/btnBack"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:layout_marginTop="16dp"
                 android:layout_marginBottom="20dp"
                 android:layout_gravity="start"
                 android:background="@drawable/circle_background_purple"
@@ -32,36 +42,6 @@
                 android:contentDescription="Quay lại"
                 android:scaleType="fitCenter"
                 android:padding="12dp"/>
-            <!-- Avatar URL (optional) -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="URL Ảnh Đại Diện (tùy chọn)"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/etAvatarUrl"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginBottom="24dp"
-                android:background="@drawable/edit_text_background_material"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:enabled="false"
-                android:hint="https://..." />
-            <!-- Logo -->
-            <ImageView
-                android:id="@+id/imgLogo"
-                android:layout_width="200dp"
-                android:layout_height="80dp"
-                android:layout_gravity="center"
-                android:src="@drawable/logo_learnmate"
-                android:layout_marginBottom="32dp" />
 
             <!-- Profile Form -->
             <com.google.android.material.card.MaterialCardView

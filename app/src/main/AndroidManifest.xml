@@ -34,7 +34,8 @@
             android:exported="false" />
         <activity
             android:name=".HomeActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
@@ -48,16 +49,21 @@
         </activity>
         <activity
             android:name=".SubscriptionPaymentActivity"
+            android:exported="false"
+            android:launchMode="singleTop">
+        </activity>
+        <activity
+            android:name=".PaymentSuccessActivity"
             android:exported="true"
             android:launchMode="singleTop">
-            <!-- MoMo Deep Link Handler -->
+            <!-- Payment Deep Link Handler - MoMo, ZaloPay return here -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="learnmate" 
                       android:host="payment" 
-                      android:pathPrefix="/momo" />
+                      android:pathPrefix="/success" />
             </intent-filter>
         </activity>
         <activity
@@ -76,6 +82,12 @@
             android:name=".reader.ChapterListActivity"
             android:exported="false" />
         <activity android:name=".reader.ReaderActivity"/>
+        <activity
+            android:name=".BookChapterListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".BookReaderActivity"
+            android:exported="false" />
         
         <!-- PayOS Payment WebView -->
         <activity

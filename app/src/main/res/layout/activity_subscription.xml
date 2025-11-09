@@ -28,7 +28,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Subscription Plans"
+            android:text="Gói Đăng Ký"
             android:textColor="@color/text_primary"
             android:textStyle="bold"
             android:textSize="20sp"
@@ -67,7 +67,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Choose Your Plan"
+                        android:text="Chọn Gói Của Bạn"
                         android:textColor="@color/text_primary"
                         android:textStyle="bold"
                         android:textSize="18sp"
@@ -77,7 +77,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Upgrade to unlock all features and support our development"
+                        android:text="Nâng cấp để mở khóa tất cả tính năng và hỗ trợ phát triển ứng dụng"
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp"
                         android:gravity="center" />

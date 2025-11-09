@@ -30,7 +30,8 @@ public class MoMoPaymentHelper {
     
     private static final String TAG = "MoMoPaymentHelper";
     public static final String MOMO_DEEPLINK_SCHEME = "learnmate";
-    public static final String MOMO_RETURN_URL = "learnmate://payment/momo/return";
+    // Deep link redirects to PaymentSuccessActivity after payment completion
+    public static final String MOMO_RETURN_URL = "learnmate://payment/success";
     
     private Activity activity;
     private MoMoPaymentListener listener;
@@ -164,49 +165,4 @@ public class MoMoPaymentHelper {
         }
     }
     
-    /**
-     * Handle return từ MoMo app
-     * MoMo sẽ deep link về: learnmate://payment/momo/return?...
-     * 
-     * Gọi method này trong onCreate/onNewIntent của Activity
-     */
-    public static MoMoReturnData handleMoMoReturn(Intent intent) {
-        if (intent == null || intent.getData() == null) {
-            return null;
-        }
-        
-        Uri uri = intent.getData();
-        Log.d(TAG, "Handling MoMo return: " + uri.toString());
-        
-        // Parse parameters từ deep link
-        // Format: learnmate://payment/momo/return?status=...&orderId=...&message=...
-        String status = uri.getQueryParameter("status");
-        String orderId = uri.getQueryParameter("orderId");
-        String message = uri.getQueryParameter("message");
-        
-        if (status != null) {
-            return new MoMoReturnData(status, orderId, message);
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Data class chứa thông tin return từ MoMo
-     */
-    public static class MoMoReturnData {
-        public final String status;  // "success" hoặc "failed"
-        public final String orderId;
-        public final String message;
-        
-        public MoMoReturnData(String status, String orderId, String message) {
-            this.status = status;
-            this.orderId = orderId;
-            this.message = message;
-        }
-        
-        public boolean isSuccess() {
-            return "success".equalsIgnoreCase(status) || "0".equals(status);
-        }
-    }
 }

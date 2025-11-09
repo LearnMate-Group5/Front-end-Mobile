@@ -74,9 +74,14 @@ public class SubscriptionAdapter extends RecyclerView.Adapter<SubscriptionAdapte
         
         boolean isCurrentPlan = plan.isCurrentPlan();
         
-        // Hiển thị badge "Current Plan" nếu là current plan
+        // Hiển thị badge "Gói Hiện Tại" nếu là current plan
         if (holder.tvCurrentBadge != null) {
-            holder.tvCurrentBadge.setVisibility(isCurrentPlan ? View.VISIBLE : View.GONE);
+            if (isCurrentPlan) {
+                holder.tvCurrentBadge.setText("Gói Hiện Tại");
+                holder.tvCurrentBadge.setVisibility(View.VISIBLE);
+            } else {
+                holder.tvCurrentBadge.setVisibility(View.GONE);
+            }
         }
         
         // Setup Subscribe/Upgrade button
@@ -87,7 +92,7 @@ public class SubscriptionAdapter extends RecyclerView.Adapter<SubscriptionAdapte
             } else {
                 // Hiển thị Subscribe button cho các plans khác
                 holder.btnSubscribe.setVisibility(View.VISIBLE);
-                holder.btnSubscribe.setText("Subscribe");
+                holder.btnSubscribe.setText("Đăng Ký");
                 holder.btnSubscribe.setOnClickListener(v -> {
                     if (planClickListener != null) {
                         planClickListener.onPlanClick(plan);
@@ -101,6 +106,7 @@ public class SubscriptionAdapter extends RecyclerView.Adapter<SubscriptionAdapte
             if (isCurrentPlan && plan.getSubscriptionId() != null) {
                 // Hiển thị Cancel button cho current plan (nếu có subscriptionId)
                 holder.btnCancel.setVisibility(View.VISIBLE);
+                holder.btnCancel.setText("Hủy");
                 holder.btnCancel.setOnClickListener(v -> {
                     if (cancelClickListener != null) {
                         cancelClickListener.onCancelClick(plan);

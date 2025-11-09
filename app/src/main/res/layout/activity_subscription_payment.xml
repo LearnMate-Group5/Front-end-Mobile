@@ -204,18 +204,47 @@
                 android:orientation="vertical"
                 android:paddingTop="24dp">
 
-                <!-- Pay Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnPay"
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Pay"
-                    android:backgroundTint="@color/text_primary"
+                    android:text="Chọn phương thức thanh toán"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center" />
+
+                <!-- MoMo Pay Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPayMoMo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Thanh toán MoMo"
+                    android:backgroundTint="#D82D8B"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:paddingVertical="16dp"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="12dp"
+                    app:icon="@android:drawable/ic_menu_send"
+                    app:iconGravity="start"
+                    app:iconPadding="8dp" />
+
+                <!-- ZaloPay Pay Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPayZaloPay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Thanh toán ZaloPay"
+                    android:backgroundTint="#0068FF"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:paddingVertical="16dp"
+                    android:layout_marginBottom="16dp"
+                    app:icon="@android:drawable/ic_menu_send"
+                    app:iconGravity="start"
+                    app:iconPadding="8dp" />
 
                 <!-- Price Info -->
                 <TextView
