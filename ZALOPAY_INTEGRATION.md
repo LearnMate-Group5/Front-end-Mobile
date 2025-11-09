@@ -113,7 +113,7 @@ Added ZaloPay payment method alongside MoMo payment, using the ZaloPay SDK (zpdk
 ### ZaloPay API
 
 ```
-POST https://d2j7q4aa2pvgbz.cloudfront.net/api/Payment/zalopay/create
+POST https://d33b7s7toeeb59.cloudfront.net/api/Payment/zalopay/create
 Headers: Authorization: Bearer <token>
 Body: {
   "orderId": "uuid",
@@ -132,7 +132,7 @@ Response: {
 ### MoMo API (unchanged)
 
 ```
-POST https://d2j7q4aa2pvgbz.cloudfront.net/api/Payment/momo/create
+POST https://d33b7s7toeeb59.cloudfront.net/api/Payment/momo/create
 Headers: Authorization: Bearer <token>
 Body: {
   "orderId": "uuid",

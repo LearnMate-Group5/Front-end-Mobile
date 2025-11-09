@@ -33,7 +33,7 @@ public final class RetrofitClient {
     private static final String BASE_URL = ApiConfig.BASE_URL;
     private static final String AI_CHAT_BASE_URL = ApiConfig.AI_CHAT_BASE_URL;
     private static final String AI_TRANSLATE_BASE_URL = ApiConfig.AI_TRANSLATE_BASE_URL;
-    private static final String TTS_BASE_URL = "https://d2j7q4aa2pvgbz.cloudfront.net/"; // TTS base URL
+    private static final String TTS_BASE_URL = "https://d33b7s7toeeb59.cloudfront.net/"; // TTS base URL
 
     // Retrofit "thuần" (không header Authorization)
     private static Retrofit plainRetrofit;

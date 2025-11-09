@@ -16,7 +16,7 @@ public interface TTSService {
     
     /**
      * Convert text to speech
-     * POST https://d2j7q4aa2pvgbz.cloudfront.net/n8n/webhook/max-text-to-speech
+     * POST https://d33b7s7toeeb59.cloudfront.net/n8n/webhook/max-text-to-speech
      * 
      * @param request TTS request with text, speed, voiceId, userId, uniqueId
      * @return List of TTS responses with audio URL
