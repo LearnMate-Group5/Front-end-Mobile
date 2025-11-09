@@ -7,6 +7,7 @@ import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import com.example.LearnMate.managers.SessionManager;
 import com.example.LearnMate.network.RetrofitClient;
 import com.example.LearnMate.network.api.BookService;
 import com.example.LearnMate.network.dto.BookChapterResponse;
+import com.example.LearnMate.util.MarkdownWithMathHelper;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.util.ArrayList;
@@ -35,7 +37,7 @@ public class BookReaderActivity extends AppCompatActivity {
 
     private TextView tvBookTitle;
     private TextView tvChapterTitle;
-    private TextView tvContent;
+    private WebView webViewContent;
     private TextView btnPrev;
     private TextView btnNext;
     private SeekBar sbFont;
@@ -67,12 +69,17 @@ public class BookReaderActivity extends AppCompatActivity {
         // Initialize views
         tvBookTitle = findViewById(R.id.tvBookTitle);
         tvChapterTitle = findViewById(R.id.tvChapterTitle);
-        tvContent = findViewById(R.id.tvContent);
+        webViewContent = findViewById(R.id.webViewContent);
         btnPrev = findViewById(R.id.btnPrev);
         btnNext = findViewById(R.id.btnNext);
         sbFont = findViewById(R.id.sbFont);
         progress = findViewById(R.id.progress);
         btnSound = findViewById(R.id.btnSound);
+        
+        // Setup WebView for MathJax rendering
+        if (webViewContent != null) {
+            MarkdownWithMathHelper.setupWebViewForMath(webViewContent);
+        }
         
         // Initialize session manager for user ID
         sessionManager = new SessionManager(this);
@@ -116,8 +123,8 @@ public class BookReaderActivity extends AppCompatActivity {
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     if (fromUser) {
                         currentFontSize = 12 + progress;
-                        if (tvContent != null) {
-                            tvContent.setTextSize(currentFontSize);
+                        if (webViewContent != null) {
+                            applyFontSize(webViewContent, currentFontSize);
                         }
                     }
                 }
@@ -183,8 +190,8 @@ public class BookReaderActivity extends AppCompatActivity {
         if (progress != null) {
             progress.setVisibility(show ? View.VISIBLE : View.GONE);
         }
-        if (tvContent != null) {
-            tvContent.setVisibility(show ? View.GONE : View.VISIBLE);
+        if (webViewContent != null) {
+            webViewContent.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
 
@@ -225,11 +232,17 @@ public class BookReaderActivity extends AppCompatActivity {
         }
 
         // Update content
-        if (tvContent != null) {
+        if (webViewContent != null) {
             String content = chapter.content != null ? chapter.content : "Không có nội dung";
-            tvContent.setText(content);
-            tvContent.setTextSize(currentFontSize);
-            tvContent.setTextIsSelectable(true);
+            // Render markdown with MathJax
+            MarkdownWithMathHelper.renderMarkdownWithMath(webViewContent, content);
+            // Apply font size after rendering
+            webViewContent.postDelayed(() -> {
+                applyFontSize(webViewContent, currentFontSize);
+            }, 1000);
+            webViewContent.postDelayed(() -> {
+                applyFontSize(webViewContent, currentFontSize);
+            }, 3000);
         }
 
         // Update navigation buttons state
@@ -472,6 +485,29 @@ public class BookReaderActivity extends AppCompatActivity {
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
         }
+    }
+    
+    /**
+     * Apply font size to WebView content
+     */
+    private void applyFontSize(WebView webView, float fontSize) {
+        if (webView == null) return;
+        
+        String script = String.format(
+            "(function() {" +
+            "  var styleId = 'custom-font-size-style';" +
+            "  var existingStyle = document.getElementById(styleId);" +
+            "  if (existingStyle) {" +
+            "    existingStyle.remove();" +
+            "  }" +
+            "  var style = document.createElement('style');" +
+            "  style.id = styleId;" +
+            "  style.innerHTML = 'body { font-size: %fpx !important; }';" +
+            "  document.head.appendChild(style);" +
+            "})();",
+            fontSize
+        );
+        webView.evaluateJavascript(script, null);
     }
 }
 

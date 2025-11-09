@@ -42,4 +42,17 @@ public interface AuthService {
     @PUT("/api/User/{userId}/profile")
     Call<ApiResult<Object>> updateUserProfile(@Path("userId") String userId,
                                               @Body UpdateUserProfileRequest body);
+
+    // Forgot Password APIs
+    @POST("/api/User/users/password/forgot")
+    Call<ForgotPasswordResponse> forgotPassword(@Body ForgotPasswordRequest body);
+
+    @GET("/api/User/users/password/verify")
+    Call<VerifyTokenResponse> verifyToken(@Query("uid") String uid, @Query("token") String token);
+
+    @GET("/api/User/users/password/otp/verify")
+    Call<VerifyOtpResponse> verifyOtp(@Query("uid") String uid, @Query("otp") String otp);
+
+    @POST("/api/User/users/password/reset")
+    Call<ResetPasswordResponse> resetPassword(@Body ResetPasswordCommand body);
 }

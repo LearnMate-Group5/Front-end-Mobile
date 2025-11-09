@@ -16,7 +16,7 @@ public final class ApiConfig {
 
     }
 
-    public static final String BASE_URL = "https://d2j7q4aa2pvgbz.cloudfront.net/";
+    public static final String BASE_URL = "https://d1zhm38r14641p.cloudfront.net";
 
 
     public static final String AI_CHAT_BASE_URL = BASE_URL; 

@@ -97,10 +97,11 @@ public class LoginActivity extends AppCompatActivity implements LoginView {
             navigateToSignup();
         });
 
-        // TODO: Implement these features later
-        forgotPassword.setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng quên mật khẩu đang được phát triển", Toast.LENGTH_SHORT).show()
-        );
+        // Forgot Password - Navigate to ForgotPasswordActivity
+        forgotPassword.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+            startActivity(intent);
+        });
 
         btnGoogle.setOnClickListener(v -> {
             Log.d("LoginActivity", "Google Sign-In button clicked");

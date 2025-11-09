@@ -97,15 +97,25 @@ public class MarkdownWithMathHelper {
             String latex = protectedLatex.get(i);
             
             // Escape HTML special characters but preserve $ delimiters and LaTeX syntax
-            // Only escape &, <, > but not $, \, {, }, ^, _, etc.
-            // But be careful: we need to preserve LaTeX syntax exactly
+            // Only escape &, <, > but preserve all LaTeX syntax including:
+            // - $ delimiters
+            // - \ commands (like \alpha, \frac, etc.)
+            // - { } brackets
+            // - ^ _ for superscript/subscript
+            // - Unicode characters (α, β, etc.) - these should be preserved
+            // - All mathematical symbols
             String escapedLatex = latex.replace("&", "&amp;")
                                        .replace("<", "&lt;")
                                        .replace(">", "&gt;");
+            // Note: We don't escape $, \, {, }, ^, _, or Unicode characters
+            // These are essential for LaTeX rendering
             
             // Find and replace the placeholder
             // Use simple replace (not replaceAll) to avoid regex issues with special chars
-            html = html.replace("__PROTECTED_LATEX_" + i + "__", escapedLatex);
+            String placeholder = "__PROTECTED_LATEX_" + i + "__";
+            if (html.contains(placeholder)) {
+                html = html.replace(placeholder, escapedLatex);
+            }
         }
         
         // Clean up: remove any remaining placeholders (shouldn't happen, but safety check)
@@ -137,10 +147,18 @@ public class MarkdownWithMathHelper {
         text = sb.toString();
         
         // Then protect inline math $...$ (but not if it's part of $$)
-        // Use non-greedy matching with a reasonable max length (1000 chars for complex formulas)
-        // This handles complex formulas like $\cos ^{2} 3 x=\frac{1+\cos 6 x}{2}$
-        // Pattern: $ followed by any chars (including spaces, newlines) up to $ (not followed by $)
-        java.util.regex.Pattern inlinePattern = java.util.regex.Pattern.compile("(?<!\\$)\\$([^$]{1,1000}?)\\$(?!\\$)", java.util.regex.Pattern.DOTALL);
+        // Improved pattern to handle complex formulas and special characters
+        // Use non-greedy matching with reasonable max length (2000 chars for very complex formulas)
+        // This handles:
+        // - Simple: $x^2$, $a_1$
+        // - Complex: $\cos ^{2} 3 x=\frac{1+\cos 6 x}{2}$
+        // - With Greek letters: $\alpha$, $\beta$, $\sin \alpha$
+        // - With fractions: $\frac{a}{b}$
+        // - With special characters: $a^{2+3}$, $x_{i+1}$
+        java.util.regex.Pattern inlinePattern = java.util.regex.Pattern.compile(
+            "(?<!\\$)\\$([^$\\n]{1,2000}?)\\$(?!\\$)", 
+            java.util.regex.Pattern.DOTALL
+        );
         java.util.regex.Matcher inlineMatcher = inlinePattern.matcher(text);
         
         sb = new StringBuffer();
@@ -148,13 +166,37 @@ public class MarkdownWithMathHelper {
             String latex = inlineMatcher.group(0); // Full match including $
             // Only add if it's a valid LaTeX expression (has some content between $)
             String latexContent = inlineMatcher.group(1).trim();
-            if (!latexContent.isEmpty()) {
-                protectedLatex.add(latex);
-                inlineMatcher.appendReplacement(sb, "__PROTECTED_LATEX_" + index + "__");
-                index++;
+            if (!latexContent.isEmpty() && latexContent.length() > 0) {
+                // Additional validation: should contain LaTeX-like characters or structures
+                // This helps avoid false positives with regular $ signs in text
+                // Check for LaTeX operators, Greek letters, or mathematical symbols
+                if (latexContent.matches(".*[\\^_\\\\{}()\\[\\]\\+\\-\\*\\/=\\<>\\|\\&\\~\\`'\"\\s].*") ||
+                    latexContent.matches(".*[a-zA-Zαβγδεζηθικλμνξοπρστυφχψω].*") ||
+                    latexContent.length() > 1) {
+                    protectedLatex.add(latex);
+                    inlineMatcher.appendReplacement(sb, "__PROTECTED_LATEX_" + index + "__");
+                    index++;
+                }
             }
         }
         inlineMatcher.appendTail(sb);
+        text = sb.toString();
+        
+        // Also protect LaTeX delimiters \(...\) and \[...\] if used (less common but supported)
+        java.util.regex.Pattern latexDelimPattern = java.util.regex.Pattern.compile(
+            "(\\\\\\[[\\s\\S]*?\\\\\\]|\\\\\\([\\s\\S]*?\\\\\\))", 
+            java.util.regex.Pattern.DOTALL
+        );
+        java.util.regex.Matcher delimMatcher = latexDelimPattern.matcher(text);
+        
+        sb = new StringBuffer();
+        while (delimMatcher.find()) {
+            String latex = delimMatcher.group(0);
+            protectedLatex.add(latex);
+            delimMatcher.appendReplacement(sb, "__PROTECTED_LATEX_" + index + "__");
+            index++;
+        }
+        delimMatcher.appendTail(sb);
         text = sb.toString();
         
         return text;
@@ -179,52 +221,189 @@ public class MarkdownWithMathHelper {
                 "                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],\n" +
                 "                processEscapes: true,\n" +
                 "                processEnvironments: true,\n" +
+                "                processRefs: true,\n" +
+                "                digits: /^(?:[0-9]+(?:{,[0-9]{3}})*(?:\\.[0-9]*)?|\\.[0-9]+)/,\n" +
+                "                tags: 'ams',\n" +
+                "                tagSide: 'right',\n" +
+                "                tagIndent: '0.8em',\n" +
+                "                useLabelIds: true,\n" +
+                "                multlineWidth: '85%',\n" +
                 "                autoload: {\n" +
                 "                    color: [],\n" +
-                "                    colorv2: ['color']\n" +
+                "                    colorv2: ['color'],\n" +
+                "                    bbox: ['bbox'],\n" +
+                "                    cancel: ['cancel', 'bcancel', 'xcancel', 'cancelto'],\n" +
+                "                    enclose: ['enclose'],\n" +
+                "                    extpfeil: ['extpfeil', 'xtwoheadrightarrow', 'xtwoheadleftarrow', 'xmapsto', 'xlongequal', 'xtofrom'],\n" +
+                "                    mhchem: ['ce', 'pu']\n" +
                 "                },\n" +
-                "                packages: {'[+]': ['ams', 'newcommand', 'configMacros']}\n" +
+                "                packages: {'[+]': ['base', 'ams', 'newcommand', 'configMacros', 'autoload', 'require', 'bbox', 'cancel', 'enclose', 'extpfeil', 'mhchem']},\n" +
+                "                macros: {\n" +
+                "                    RR: '{\\\\mathbb{R}}',\n" +
+                "                    NN: '{\\\\mathbb{N}}',\n" +
+                "                    ZZ: '{\\\\mathbb{Z}}',\n" +
+                "                    QQ: '{\\\\mathbb{Q}}',\n" +
+                "                    CC: '{\\\\mathbb{C}}'\n" +
+                "                }\n" +
                 "            },\n" +
                 "            options: {\n" +
-                "                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],\n" +
+                "                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'annotation', 'annotation-xml'],\n" +
                 "                ignoreHtmlClass: 'tex2jax_ignore',\n" +
-                "                processHtmlClass: 'tex2jax_process'\n" +
+                "                processHtmlClass: 'tex2jax_process',\n" +
+                "                renderActions: {\n" +
+                "                    addMenu: [0, '', '']\n" +
+                "                }\n" +
                 "            },\n" +
                 "            startup: {\n" +
+                "                typeset: false,\n" +
                 "                ready: function() {\n" +
                 "                    MathJax.startup.defaultReady();\n" +
                 "                    MathJax.startup.promise.then(function() {\n" +
                 "                        console.log('MathJax is ready');\n" +
                 "                    });\n" +
                 "                }\n" +
+                "            },\n" +
+                "            loader: {\n" +
+                "                load: ['[tex]/ams', '[tex]/newcommand', '[tex]/configMacros', '[tex]/autoload', '[tex]/require', '[tex]/bbox', '[tex]/cancel', '[tex]/enclose', '[tex]/extpfeil', '[tex]/mhchem']\n" +
                 "            }\n" +
                 "        };\n" +
                 "    </script>\n" +
                 "    <style>\n" +
+                "        * { box-sizing: border-box; }\n" +
                 "        body {\n" +
                 "            margin: 0;\n" +
-                "            padding: 12px;\n" +
-                "            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n" +
+                "            padding: 12px 16px;\n" +
+                "            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';\n" +
                 "            font-size: 16px;\n" +
-                "            line-height: 1.6;\n" +
-                "            color: #333;\n" +
+                "            line-height: 1.75;\n" +
+                "            color: #374151;\n" +
                 "            background-color: transparent;\n" +
+                "            word-wrap: break-word;\n" +
+                "            overflow-wrap: break-word;\n" +
                 "        }\n" +
-                "        p { margin: 8px 0; }\n" +
-                "        h1, h2, h3, h4, h5, h6 { margin: 12px 0 8px 0; font-weight: bold; }\n" +
-                "        h1 { font-size: 24px; }\n" +
-                "        h2 { font-size: 20px; }\n" +
-                "        h3 { font-size: 18px; }\n" +
-                "        code, tt { background-color: #f0f0f0; padding: 2px 4px; border-radius: 3px; font-family: monospace; }\n" +
-                "        pre { background-color: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }\n" +
-                "        pre code { background-color: transparent; padding: 0; }\n" +
-                "        a { color: #6200ea; text-decoration: none; }\n" +
-                "        a:hover { text-decoration: underline; }\n" +
-                "        .MathJax { font-size: 1.05em !important; color: inherit !important; }\n" +
-                "        .MathJax_SVG { fill: currentColor !important; }\n" +
-                "        .MathJax_SVG_Display { margin: 0.5em 0 !important; }\n" +
-                "        /* Style like ChatGPT - clean and readable */\n" +
-                "        .MathJax_Display { text-align: left !important; margin: 0.5em 0 !important; }\n" +
+                "        p { \n" +
+                "            margin: 0.75em 0; \n" +
+                "            line-height: 1.75;\n" +
+                "        }\n" +
+                "        p:first-child { margin-top: 0; }\n" +
+                "        p:last-child { margin-bottom: 0; }\n" +
+                "        h1, h2, h3, h4, h5, h6 { \n" +
+                "            margin: 1.25em 0 0.75em 0; \n" +
+                "            font-weight: 600; \n" +
+                "            line-height: 1.4;\n" +
+                "            color: #111827;\n" +
+                "        }\n" +
+                "        h1:first-child, h2:first-child, h3:first-child, h4:first-child, h5:first-child, h6:first-child { margin-top: 0; }\n" +
+                "        h1 { font-size: 1.875em; font-weight: 700; }\n" +
+                "        h2 { font-size: 1.5em; font-weight: 600; }\n" +
+                "        h3 { font-size: 1.25em; font-weight: 600; }\n" +
+                "        h4 { font-size: 1.125em; font-weight: 600; }\n" +
+                "        h5 { font-size: 1em; font-weight: 600; }\n" +
+                "        h6 { font-size: 0.875em; font-weight: 600; }\n" +
+                "        code, tt { \n" +
+                "            background-color: rgba(175, 184, 193, 0.2); \n" +
+                "            padding: 2px 6px; \n" +
+                "            border-radius: 4px; \n" +
+                "            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; \n" +
+                "            font-size: 0.9em;\n" +
+                "            color: #e83e8c;\n" +
+                "        }\n" +
+                "        pre { \n" +
+                "            background-color: #f6f8fa; \n" +
+                "            padding: 16px; \n" +
+                "            border-radius: 6px; \n" +
+                "            overflow-x: auto; \n" +
+                "            margin: 1em 0;\n" +
+                "            line-height: 1.45;\n" +
+                "        }\n" +
+                "        pre code { \n" +
+                "            background-color: transparent; \n" +
+                "            padding: 0; \n" +
+                "            color: inherit;\n" +
+                "            font-size: 0.85em;\n" +
+                "        }\n" +
+                "        a { \n" +
+                "            color: #2563eb; \n" +
+                "            text-decoration: none; \n" +
+                "        }\n" +
+                "        a:hover { \n" +
+                "            text-decoration: underline; \n" +
+                "        }\n" +
+                "        ul, ol { \n" +
+                "            margin: 0.75em 0; \n" +
+                "            padding-left: 1.5em; \n" +
+                "        }\n" +
+                "        li { \n" +
+                "            margin: 0.25em 0; \n" +
+                "            line-height: 1.75;\n" +
+                "        }\n" +
+                "        blockquote { \n" +
+                "            margin: 1em 0; \n" +
+                "            padding-left: 1em; \n" +
+                "            border-left: 3px solid #d1d5db; \n" +
+                "            color: #6b7280; \n" +
+                "        }\n" +
+                "        table { \n" +
+                "            border-collapse: collapse; \n" +
+                "            margin: 1em 0; \n" +
+                "            width: 100%; \n" +
+                "        }\n" +
+                "        th, td { \n" +
+                "            border: 1px solid #e5e7eb; \n" +
+                "            padding: 8px 12px; \n" +
+                "            text-align: left; \n" +
+                "        }\n" +
+                "        th { \n" +
+                "            background-color: #f9fafb; \n" +
+                "            font-weight: 600; \n" +
+                "        }\n" +
+                "        hr { \n" +
+                "            border: none; \n" +
+                "            border-top: 1px solid #e5e7eb; \n" +
+                "            margin: 1.5em 0; \n" +
+                "        }\n" +
+                "        /* MathJax Styling - ChatGPT-like */\n" +
+                "        .MathJax { \n" +
+                "            font-size: 1.1em !important; \n" +
+                "            color: inherit !important; \n" +
+                "            display: inline-block !important;\n" +
+                "            line-height: 1.2 !important;\n" +
+                "        }\n" +
+                "        .MathJax_SVG, .MathJax_SVG_Display { \n" +
+                "            fill: currentColor !important; \n" +
+                "            stroke: currentColor !important;\n" +
+                "        }\n" +
+                "        .MathJax_Display { \n" +
+                "            text-align: left !important; \n" +
+                "            margin: 1em 0 !important; \n" +
+                "            padding: 0.5em 0 !important;\n" +
+                "            display: block !important;\n" +
+                "            overflow-x: auto;\n" +
+                "            overflow-y: hidden;\n" +
+                "        }\n" +
+                "        .MathJax_SVG_Display { \n" +
+                "            margin: 1em 0 !important; \n" +
+                "            padding: 0.5em 0 !important;\n" +
+                "        }\n" +
+                "        /* Inline math should be properly aligned */\n" +
+                "        .MathJax span { \n" +
+                "            display: inline !important; \n" +
+                "            margin: 0 !important;\n" +
+                "            padding: 0 !important;\n" +
+                "        }\n" +
+                "        /* Ensure proper spacing around math */\n" +
+                "        p .MathJax, li .MathJax, td .MathJax { \n" +
+                "            margin: 0 2px !important;\n" +
+                "        }\n" +
+                "        /* Better rendering for fractions and complex expressions */\n" +
+                "        .MathJax .mjx-char { \n" +
+                "            display: inline-block !important;\n" +
+                "        }\n" +
+                "        /* Support for Greek letters and special characters */\n" +
+                "        body { \n" +
+                "            font-feature-settings: 'kern' 1, 'liga' 1;\n" +
+                "            text-rendering: optimizeLegibility;\n" +
+                "        }\n" +
                 "    </style>\n" +
                 "</head>\n" +
                 "<body>\n" +
