@@ -120,10 +120,23 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 // ALWAYS use WebView for bot messages to ensure consistent markdown and LaTeX rendering
                 // This fixes issues with LaTeX formulas and complex markdown
                 if (webViewMessage != null) {
+                    // Reset WebView height to wrap_content before loading new content
+                    // This ensures proper measurement for new content
+                    android.view.ViewGroup.LayoutParams webViewParams = webViewMessage.getLayoutParams();
+                    if (webViewParams != null) {
+                        webViewParams.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+                        webViewMessage.setLayoutParams(webViewParams);
+                    }
+                    
+                    // Clear previous content to prevent showing old content
+                    webViewMessage.loadData("", "text/html", "UTF-8");
+                    
                     // Use WebView for rendering with MathJax and markdown
                     textMessage.setVisibility(android.view.View.GONE);
                     webViewMessage.setVisibility(android.view.View.VISIBLE);
-                    MarkdownWithMathHelper.renderMarkdownWithMath(webViewMessage, messageText);
+                    
+                    // Render markdown with callback to update RecyclerView when height changes
+                    renderWithHeightUpdate(webViewMessage, messageText);
                     
                     // Update textTime constraint to be below webViewMessage
                     android.view.ViewGroup.LayoutParams timeParams = textTime.getLayoutParams();
@@ -157,6 +170,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 // Empty message
                 if (webViewMessage != null) {
                     webViewMessage.setVisibility(android.view.View.GONE);
+                    webViewMessage.loadData("", "text/html", "UTF-8");
                 }
                 textMessage.setVisibility(android.view.View.VISIBLE);
                 textMessage.setText("");
@@ -171,6 +185,42 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }
             }
             textTime.setText(formatTime(message.getTimestamp()));
+        }
+        
+        private void renderWithHeightUpdate(WebView webView, String messageText) {
+            // Render the markdown content
+            // The MarkdownWithMathHelper will handle height measurement and adjustment
+            MarkdownWithMathHelper.renderMarkdownWithMath(webView, messageText);
+            
+            // Request layout updates at intervals to ensure content is properly displayed
+            // This is especially important for very long content
+            webView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // Request layout to ensure RecyclerView item is properly sized
+                    if (itemView.getParent() != null) {
+                        itemView.requestLayout();
+                        android.view.View parent = (android.view.View) itemView.getParent();
+                        if (parent != null) {
+                            parent.requestLayout();
+                        }
+                    }
+                }
+            }, 1500);
+            
+            webView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // Another layout request after more time for very long content
+                    if (itemView.getParent() != null) {
+                        itemView.requestLayout();
+                        android.view.View parent = (android.view.View) itemView.getParent();
+                        if (parent != null) {
+                            parent.requestLayout();
+                        }
+                    }
+                }
+            }, 3500);
         }
     }
     
