@@ -234,6 +234,26 @@ public class MarkdownWithMathHelper {
                 "        var renderAttempts = 0;\n" +
                 "        var maxAttempts = 50; // 5 seconds max wait\n" +
                 "        \n" +
+                "        function adjustWebViewHeight() {\n" +
+                "            try {\n" +
+                "                var body = document.body;\n" +
+                "                var html = document.documentElement;\n" +
+                "                var height = Math.max(\n" +
+                "                    body.scrollHeight, body.offsetHeight,\n" +
+                "                    html.clientHeight, html.scrollHeight, html.offsetHeight\n" +
+                "                );\n" +
+                "                // Add some padding for better display\n" +
+                "                height = height + 20;\n" +
+                "                // Notify Android to adjust WebView height\n" +
+                "                if (window.Android && window.Android.setWebViewHeight) {\n" +
+                "                    window.Android.setWebViewHeight(height);\n" +
+                "                }\n" +
+                "                console.log('Content height: ' + height + 'px');\n" +
+                "            } catch (e) {\n" +
+                "                console.error('Error adjusting height:', e);\n" +
+                "            }\n" +
+                "        }\n" +
+                "        \n" +
                 "        function renderMath() {\n" +
                 "            renderAttempts++;\n" +
                 "            \n" +
@@ -247,25 +267,37 @@ public class MarkdownWithMathHelper {
                 "                    }\n" +
                 "                }).then(function() {\n" +
                 "                    console.log('MathJax rendering complete');\n" +
+                "                    // Adjust height after MathJax renders\n" +
+                "                    setTimeout(adjustWebViewHeight, 300);\n" +
                 "                }).catch(function(err) {\n" +
                 "                    console.error('MathJax rendering error:', err);\n" +
+                "                    // Still adjust height even if MathJax fails\n" +
+                "                    setTimeout(adjustWebViewHeight, 300);\n" +
                 "                });\n" +
                 "            } else if (window.MathJax && window.MathJax.typesetPromise) {\n" +
                 "                window.MathJax.typesetPromise().then(function() {\n" +
                 "                    console.log('MathJax rendering complete (direct)');\n" +
+                "                    setTimeout(adjustWebViewHeight, 300);\n" +
                 "                }).catch(function(err) {\n" +
                 "                    console.error('MathJax error:', err);\n" +
+                "                    setTimeout(adjustWebViewHeight, 300);\n" +
                 "                });\n" +
                 "            } else if (window.MathJax && window.MathJax.typeset) {\n" +
                 "                window.MathJax.typeset();\n" +
                 "                console.log('MathJax typeset called');\n" +
+                "                setTimeout(adjustWebViewHeight, 500);\n" +
                 "            } else if (renderAttempts < maxAttempts) {\n" +
                 "                console.log('Waiting for MathJax to load... (' + renderAttempts + '/' + maxAttempts + ')');\n" +
                 "                setTimeout(renderMath, 100);\n" +
                 "            } else {\n" +
                 "                console.error('MathJax failed to load after ' + maxAttempts + ' attempts');\n" +
+                "                // Adjust height even if MathJax fails to load\n" +
+                "                adjustWebViewHeight();\n" +
                 "            }\n" +
                 "        }\n" +
+                "        \n" +
+                "        // Initial height adjustment\n" +
+                "        adjustWebViewHeight();\n" +
                 "        \n" +
                 "        // Start rendering immediately\n" +
                 "        renderMath();\n" +
@@ -273,13 +305,22 @@ public class MarkdownWithMathHelper {
                 "        // Also try on DOMContentLoaded and load events\n" +
                 "        if (document.readyState === 'loading') {\n" +
                 "            document.addEventListener('DOMContentLoaded', function() {\n" +
-                "                setTimeout(renderMath, 200);\n" +
+                "                setTimeout(function() {\n" +
+                "                    renderMath();\n" +
+                "                    adjustWebViewHeight();\n" +
+                "                }, 200);\n" +
                 "            });\n" +
                 "        }\n" +
                 "        \n" +
                 "        window.addEventListener('load', function() {\n" +
-                "            setTimeout(renderMath, 500);\n" +
+                "            setTimeout(function() {\n" +
+                "                renderMath();\n" +
+                "                adjustWebViewHeight();\n" +
+                "            }, 500);\n" +
                 "        });\n" +
+                "        \n" +
+                "        // Periodic height adjustment for dynamic content\n" +
+                "        setInterval(adjustWebViewHeight, 1000);\n" +
                 "    })();\n" +
                 "</script>\n" +
                 "</body>\n" +
@@ -301,6 +342,7 @@ public class MarkdownWithMathHelper {
         settings.setSupportZoom(false);
         settings.setDefaultTextEncodingName("utf-8");
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         
         // Disable scrolling in WebView (we'll use the parent ScrollView)
         webView.setVerticalScrollBarEnabled(false);
@@ -309,7 +351,7 @@ public class MarkdownWithMathHelper {
         
         // Transparent background
         webView.setBackgroundColor(0x00000000);
-        webView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null); // For better compatibility
+        webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null); // Use hardware acceleration for better performance
         
         // Set WebViewClient to handle page load - create new instance each time
         // Don't reuse WebViewClient to avoid conflicts
@@ -345,6 +387,26 @@ public class MarkdownWithMathHelper {
                     super.onPageFinished(view, url);
                     Log.d(TAG, "WebView page finished loading");
                     
+                    // Measure content height multiple times at different intervals
+                    // This ensures we catch the content even if it takes time to render
+                    measureAndAdjustHeight(view, 0);
+                    
+                    // Measure after a short delay (for immediate content)
+                    view.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            measureAndAdjustHeight(view, 1);
+                        }
+                    }, 300);
+                    
+                    // Measure after content has time to layout
+                    view.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            measureAndAdjustHeight(view, 2);
+                        }
+                    }, 800);
+                    
                     // Wait for MathJax to load and then trigger rendering
                     view.postDelayed(new Runnable() {
                         @Override
@@ -374,10 +436,45 @@ public class MarkdownWithMathHelper {
                                 "    console.log('MathJax not loaded yet');" +
                                 "  }" +
                                 "})();",
-                                null
+                                new android.webkit.ValueCallback<String>() {
+                                    @Override
+                                    public void onReceiveValue(String value) {
+                                        // After MathJax rendering, measure height multiple times
+                                        // MathJax can change content height significantly
+                                        view.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                measureAndAdjustHeight(view, 3);
+                                            }
+                                        }, 500);
+                                        
+                                        view.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                measureAndAdjustHeight(view, 4);
+                                            }
+                                        }, 1500);
+                                        
+                                        view.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                measureAndAdjustHeight(view, 5);
+                                            }
+                                        }, 3000);
+                                    }
+                                }
                             );
                         }
                     }, 1000);
+                    
+                    // Final measurement after everything should be loaded
+                    // This is especially important for very long content
+                    view.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            measureAndAdjustHeight(view, 6);
+                        }
+                    }, 4000);
                 }
                 
                 @Override
@@ -399,5 +496,144 @@ public class MarkdownWithMathHelper {
                 markdown.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + 
                 "</p></body></html>", "text/html", "UTF-8");
         }
+    }
+    
+    /**
+     * Measure content height and adjust WebView height
+     */
+    private static void measureAndAdjustHeight(final WebView webView, final int attempt) {
+        if (webView == null || attempt > 15) {
+            return; // Max 15 attempts (for very long content that takes time to render)
+        }
+        
+        webView.evaluateJavascript(
+            "(function() {" +
+            "  try {" +
+            "    // Wait for content to be ready" +
+            "    if (document.readyState !== 'complete') {" +
+            "      return -1; // Not ready yet" +
+            "    }" +
+            "    var body = document.body;" +
+            "    var html = document.documentElement;" +
+            "    " +
+            "    // Force layout calculation" +
+            "    var height = Math.max(" +
+            "      body.scrollHeight || 0," +
+            "      body.offsetHeight || 0," +
+            "      html.clientHeight || 0," +
+            "      html.scrollHeight || 0," +
+            "      html.offsetHeight || 0" +
+            "    );" +
+            "    " +
+            "    // If height is 0, try getting it from the first child or content" +
+            "    if (height === 0 && body.firstElementChild) {" +
+            "      var child = body.firstElementChild;" +
+            "      height = Math.max(" +
+            "        child.scrollHeight || 0," +
+            "        child.offsetHeight || 0" +
+            "      );" +
+            "    }" +
+            "    " +
+            "    // Add padding for better display" +
+            "    return height > 0 ? height + 30 : 0;" +
+            "  } catch(e) {" +
+            "    console.error('Error measuring height:', e);" +
+            "    return 0;" +
+            "  }" +
+            "})();",
+            new android.webkit.ValueCallback<String>() {
+                @Override
+                public void onReceiveValue(String value) {
+                    try {
+                        // Remove quotes and parse height
+                        if (value != null && !value.equals("null") && !value.isEmpty()) {
+                            String heightStr = value.replace("\"", "").trim();
+                            if (!heightStr.isEmpty() && !heightStr.equals("null")) {
+                                int height = (int) Float.parseFloat(heightStr);
+                                
+                                if (height == -1) {
+                                    // Content not ready yet, retry
+                                    if (attempt < 10) {
+                                        webView.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                measureAndAdjustHeight(webView, attempt + 1);
+                                            }
+                                        }, 400);
+                                    }
+                                    return;
+                                }
+                                
+                                if (height > 0) {
+                                    // Get current layout params
+                                    android.view.ViewGroup.LayoutParams params = webView.getLayoutParams();
+                                    if (params != null) {
+                                        // Only update if height has changed significantly (more than 10px difference)
+                                        // This avoids unnecessary layout passes
+                                        if (Math.abs(params.height - height) > 10 || params.height == android.view.ViewGroup.LayoutParams.WRAP_CONTENT) {
+                                            params.height = height;
+                                            webView.setLayoutParams(params);
+                                            
+                                            float density = webView.getContext().getResources().getDisplayMetrics().density;
+                                            int heightDp = (int) (height / density);
+                                            Log.d(TAG, "WebView height adjusted to: " + height + "px (" + heightDp + "dp), attempt: " + attempt);
+                                            
+                                            // Request layout update on the main thread
+                                            webView.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    webView.requestLayout();
+                                                    // Also notify parent to update
+                                                    android.view.View parent = (android.view.View) webView.getParent();
+                                                    if (parent != null) {
+                                                        parent.requestLayout();
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }
+                                } else if (attempt < 10) {
+                                    // Retry if height is 0 (content might not be loaded yet)
+                                    // For very long content, this might take several attempts
+                                    webView.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            measureAndAdjustHeight(webView, attempt + 1);
+                                        }
+                                    }, 500);
+                                } else {
+                                    Log.w(TAG, "Failed to measure WebView height after " + attempt + " attempts");
+                                    // Set a minimum height to ensure something is displayed
+                                    android.view.ViewGroup.LayoutParams params = webView.getLayoutParams();
+                                    if (params != null && params.height == android.view.ViewGroup.LayoutParams.WRAP_CONTENT) {
+                                        params.height = 200; // Minimum height
+                                        webView.setLayoutParams(params);
+                                        webView.requestLayout();
+                                    }
+                                }
+                            }
+                        } else if (attempt < 10) {
+                            // Retry if no height value
+                            webView.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    measureAndAdjustHeight(webView, attempt + 1);
+                                }
+                            }, 500);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error parsing height: " + e.getMessage(), e);
+                        if (attempt < 10) {
+                            webView.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    measureAndAdjustHeight(webView, attempt + 1);
+                                }
+                            }, 500);
+                        }
+                    }
+                }
+            }
+        );
     }
 }
