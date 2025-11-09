@@ -102,11 +102,14 @@ public class MarkdownHelper {
         java.util.List<String> codeBlocks = new java.util.ArrayList<>();
         String protectedMarkdown = protectCodeBlocks(markdown, codeBlocks);
         
-        // Split into lines to process headers properly
+        // Split into lines to process headers and lists properly
         String[] lines = protectedMarkdown.split("\n");
         StringBuilder htmlBuilder = new StringBuilder();
+        boolean inOrderedList = false;
+        boolean inUnorderedList = false;
         
-        for (String line : lines) {
+        for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            String line = lines[lineIndex];
             String processedLine = line.trim();
             
             // Check for code block placeholders first
@@ -114,14 +117,24 @@ public class MarkdownHelper {
             java.util.regex.Matcher codeBlockMatcher = codeBlockPattern.matcher(line);
             
             if (codeBlockMatcher.find()) {
+                // Close any open lists
+                if (inOrderedList) {
+                    htmlBuilder.append("</ol>");
+                    inOrderedList = false;
+                }
+                if (inUnorderedList) {
+                    htmlBuilder.append("</ul>");
+                    inUnorderedList = false;
+                }
+                
                 // Found code block start placeholder
                 int blockIndex = Integer.parseInt(codeBlockMatcher.group(1));
                 if (blockIndex < codeBlocks.size()) {
                     String code = codeBlocks.get(blockIndex);
                     // Remove leading/trailing newlines and whitespace
                     code = code.replaceAll("^\\s+", "").replaceAll("\\s+$", "");
-                    // Use <pre><tt> which is better supported by Android Html.fromHtml
-                    htmlBuilder.append("<pre><tt>").append(escapeHtmlForCode(code)).append("</tt></pre>");
+                    // Use <pre><code> for better styling
+                    htmlBuilder.append("<pre><code>").append(escapeHtmlForCode(code)).append("</code></pre>");
                 }
                 continue; // Skip to next line (end placeholder will be skipped in next iteration)
             } else if (processedLine.matches("__CODE_BLOCK_END_\\d+__")) {
@@ -132,36 +145,148 @@ public class MarkdownHelper {
             // Process headers first (before other formatting)
             // Check from longest to shortest to avoid conflicts
             if (processedLine.startsWith("###### ") && processedLine.length() > 7) {
+                // Close any open lists
+                if (inOrderedList) {
+                    htmlBuilder.append("</ol>");
+                    inOrderedList = false;
+                }
+                if (inUnorderedList) {
+                    htmlBuilder.append("</ul>");
+                    inUnorderedList = false;
+                }
                 // H6
                 processedLine = processedLine.substring(7);
-                processedLine = "<h6>" + processInlineMarkdown(processedLine) + "</h6>";
+                htmlBuilder.append("<h6>").append(processInlineMarkdown(processedLine)).append("</h6>");
+                continue;
             } else if (processedLine.startsWith("##### ") && processedLine.length() > 6) {
+                if (inOrderedList) {
+                    htmlBuilder.append("</ol>");
+                    inOrderedList = false;
+                }
+                if (inUnorderedList) {
+                    htmlBuilder.append("</ul>");
+                    inUnorderedList = false;
+                }
                 // H5
                 processedLine = processedLine.substring(6);
-                processedLine = "<h5>" + processInlineMarkdown(processedLine) + "</h5>";
+                htmlBuilder.append("<h5>").append(processInlineMarkdown(processedLine)).append("</h5>");
+                continue;
             } else if (processedLine.startsWith("#### ") && processedLine.length() > 5) {
+                if (inOrderedList) {
+                    htmlBuilder.append("</ol>");
+                    inOrderedList = false;
+                }
+                if (inUnorderedList) {
+                    htmlBuilder.append("</ul>");
+                    inUnorderedList = false;
+                }
                 // H4
                 processedLine = processedLine.substring(5);
-                processedLine = "<h4>" + processInlineMarkdown(processedLine) + "</h4>";
+                htmlBuilder.append("<h4>").append(processInlineMarkdown(processedLine)).append("</h4>");
+                continue;
             } else if (processedLine.startsWith("### ") && processedLine.length() > 4) {
+                if (inOrderedList) {
+                    htmlBuilder.append("</ol>");
+                    inOrderedList = false;
+                }
+                if (inUnorderedList) {
+                    htmlBuilder.append("</ul>");
+                    inUnorderedList = false;
+                }
                 // H3
                 processedLine = processedLine.substring(4);
-                processedLine = "<h3>" + processInlineMarkdown(processedLine) + "</h3>";
+                htmlBuilder.append("<h3>").append(processInlineMarkdown(processedLine)).append("</h3>");
+                continue;
             } else if (processedLine.startsWith("## ") && processedLine.length() > 3) {
+                if (inOrderedList) {
+                    htmlBuilder.append("</ol>");
+                    inOrderedList = false;
+                }
+                if (inUnorderedList) {
+                    htmlBuilder.append("</ul>");
+                    inUnorderedList = false;
+                }
                 // H2
                 processedLine = processedLine.substring(3);
-                processedLine = "<h2>" + processInlineMarkdown(processedLine) + "</h2>";
+                htmlBuilder.append("<h2>").append(processInlineMarkdown(processedLine)).append("</h2>");
+                continue;
             } else if (processedLine.startsWith("# ") && processedLine.length() > 2) {
+                if (inOrderedList) {
+                    htmlBuilder.append("</ol>");
+                    inOrderedList = false;
+                }
+                if (inUnorderedList) {
+                    htmlBuilder.append("</ul>");
+                    inUnorderedList = false;
+                }
                 // H1
                 processedLine = processedLine.substring(2);
-                processedLine = "<h1>" + processInlineMarkdown(processedLine) + "</h1>";
-            } else if (!processedLine.isEmpty()) {
-                // Regular line - process inline markdown
-                processedLine = processInlineMarkdown(line); // Use original line to preserve spacing
-                processedLine = "<p>" + processedLine + "</p>";
+                htmlBuilder.append("<h1>").append(processInlineMarkdown(processedLine)).append("</h1>");
+                continue;
             }
             
-            htmlBuilder.append(processedLine);
+            // Check for ordered list items (numbered list: 1. item, 2. item, etc.)
+            java.util.regex.Pattern orderedListPattern = java.util.regex.Pattern.compile("^(\\d+)\\.\\s+(.+)$");
+            java.util.regex.Matcher orderedMatcher = orderedListPattern.matcher(processedLine);
+            
+            if (orderedMatcher.find()) {
+                if (!inOrderedList) {
+                    // Close unordered list if open
+                    if (inUnorderedList) {
+                        htmlBuilder.append("</ul>");
+                        inUnorderedList = false;
+                    }
+                    htmlBuilder.append("<ol>");
+                    inOrderedList = true;
+                }
+                String listContent = orderedMatcher.group(2);
+                htmlBuilder.append("<li>").append(processInlineMarkdown(listContent)).append("</li>");
+                continue;
+            }
+            
+            // Check for unordered list items (- item, * item)
+            if (processedLine.matches("^[-*]\\s+.+$")) {
+                if (!inUnorderedList) {
+                    // Close ordered list if open
+                    if (inOrderedList) {
+                        htmlBuilder.append("</ol>");
+                        inOrderedList = false;
+                    }
+                    htmlBuilder.append("<ul>");
+                    inUnorderedList = true;
+                }
+                String listContent = processedLine.substring(2).trim();
+                htmlBuilder.append("<li>").append(processInlineMarkdown(listContent)).append("</li>");
+                continue;
+            }
+            
+            // Close lists if we hit a non-list line
+            if (inOrderedList || inUnorderedList) {
+                if (!processedLine.isEmpty()) {
+                    if (inOrderedList) {
+                        htmlBuilder.append("</ol>");
+                        inOrderedList = false;
+                    }
+                    if (inUnorderedList) {
+                        htmlBuilder.append("</ul>");
+                        inUnorderedList = false;
+                    }
+                }
+            }
+            
+            // Regular line - process inline markdown
+            if (!processedLine.isEmpty()) {
+                processedLine = processInlineMarkdown(line); // Use original line to preserve spacing
+                htmlBuilder.append("<p>").append(processedLine).append("</p>");
+            }
+        }
+        
+        // Close any remaining open lists
+        if (inOrderedList) {
+            htmlBuilder.append("</ol>");
+        }
+        if (inUnorderedList) {
+            htmlBuilder.append("</ul>");
         }
         
         String html = htmlBuilder.toString();
@@ -169,12 +294,8 @@ public class MarkdownHelper {
         // Remove empty paragraphs
         html = html.replaceAll("<p>\\s*</p>", "");
         
-        // Add line breaks between different elements for better readability
-        html = html.replace("</h1>", "</h1><br/>");
-        html = html.replace("</h2>", "</h2><br/>");
-        html = html.replace("</h3>", "</h3><br/>");
-        html = html.replace("</p>", "</p><br/>");
-        html = html.replace("</pre>", "</pre><br/>");
+        // Don't add extra breaks - let CSS handle spacing
+        // Just ensure proper structure
         
         return html;
     }
@@ -227,6 +348,7 @@ public class MarkdownHelper {
     /**
      * Process inline markdown (bold, italic, code, links) within a line
      * This method should NOT process LaTeX expressions (they are already protected)
+     * Improved to better handle special characters and avoid conflicts with LaTeX
      */
     private static String processInlineMarkdown(String line) {
         if (line == null || line.isEmpty()) return "";
@@ -236,6 +358,7 @@ public class MarkdownHelper {
         // Skip processing if line contains LaTeX placeholder (protected by MarkdownWithMathHelper)
         if (result.contains("__PROTECTED_LATEX_")) {
             // LaTeX is already protected, just escape HTML and return
+            // But we still need to escape HTML entities for non-LaTeX parts
             return escapeHtmlExceptPlaceholders(result);
         }
         
@@ -262,45 +385,98 @@ public class MarkdownHelper {
         result = escapeHtmlExceptPlaceholders(result);
         
         // Restore inline codes with proper formatting
-        // Use <tt> tag which is better supported by Android Html.fromHtml
+        // Use <code> tag for better styling support
         for (int i = 0; i < inlineCodes.size(); i++) {
             String code = escapeHtmlForCode(inlineCodes.get(i));
-            result = result.replace("___INLINE_CODE_" + i + "___", "<tt>" + code + "</tt>");
+            result = result.replace("___INLINE_CODE_" + i + "___", "<code>" + code + "</code>");
         }
         
-        // Bold: **text** (double asterisks) - must come before single asterisk italic
-        // But skip if it's part of a LaTeX placeholder
-        if (!result.contains("__PROTECTED_LATEX_")) {
-            result = result.replaceAll("\\*\\*([^*]+?)\\*\\*", "<b>$1</b>");
-            result = result.replaceAll("__(?!_)([^_]+?)__(?!_)", "<b>$1</b>");
+        // Process markdown formatting, but be careful not to break LaTeX placeholders
+        // Use a more robust approach to split and process
+        java.util.regex.Pattern latexPlaceholderPattern = java.util.regex.Pattern.compile("(__PROTECTED_LATEX_\\d+__)");
+        java.util.regex.Matcher placeholderMatcher = latexPlaceholderPattern.matcher(result);
+        
+        StringBuilder processedResult = new StringBuilder();
+        int lastEnd = 0;
+        
+        while (placeholderMatcher.find()) {
+            // Process text before placeholder
+            String beforePlaceholder = result.substring(lastEnd, placeholderMatcher.start());
+            if (!beforePlaceholder.isEmpty()) {
+                processedResult.append(processMarkdownInText(beforePlaceholder));
+            }
             
-            // Italic: *text* (single asterisk, not part of bold)
-            result = result.replaceAll("(?<!\\*)\\*([^*]+?)\\*(?!\\*)", "<i>$1</i>");
+            // Keep LaTeX placeholder as is
+            processedResult.append(placeholderMatcher.group(0));
             
-            // Italic: _text_ (single underscore, not part of bold)
-            result = result.replaceAll("(?<!_)_([^_]+?)_(?!_)", "<i>$1</i>");
-            
-            // Links: [text](url)
-            result = result.replaceAll("\\[([^\\]]+)\\]\\(([^\\)]+)\\)", "<a href=\"$2\">$1</a>");
+            lastEnd = placeholderMatcher.end();
         }
+        
+        // Process remaining text after last placeholder
+        if (lastEnd < result.length()) {
+            String remaining = result.substring(lastEnd);
+            if (!remaining.isEmpty()) {
+                processedResult.append(processMarkdownInText(remaining));
+            }
+        }
+        
+        // If no placeholders were found, process the whole string
+        if (processedResult.length() == 0) {
+            return processMarkdownInText(result);
+        }
+        
+        return processedResult.toString();
+    }
+    
+    /**
+     * Process markdown formatting in text (bold, italic, links)
+     * This is safe to call on text that doesn't contain LaTeX
+     * Improved to be more careful with special characters to avoid false positives
+     */
+    private static String processMarkdownInText(String text) {
+        if (text == null || text.isEmpty()) return text;
+        
+        String result = text;
+        
+        // Bold: **text** (double asterisks) - must come before single asterisk italic
+        // Pattern: **text** but not ***text*** (which should be bold+italic)
+        // Be careful: don't match if there are spaces around the asterisks in a way that suggests it's not markdown
+        result = result.replaceAll("(?<!\\*)(?<!\\S)\\*\\*([^*\\n]+?)\\*\\*(?!\\*)(?!\\S)", "<b>$1</b>");
+        
+        // Bold: __text__ (double underscores) - be very careful to avoid false positives
+        // Only match if it's clearly markdown formatting (word boundaries, not mathematical)
+        result = result.replaceAll("(?<!_)(?<!\\w)__([^_\\n\\^\\\\{}()\\[\\]\\+\\-\\*\\/=\\<>]+?)__(?!_)(?!\\w)", "<b>$1</b>");
+        
+        // Italic: *text* (single asterisk, not part of bold)
+        // Only match if surrounded by word boundaries or whitespace
+        result = result.replaceAll("(?<!\\*)(?<!\\S)\\*([^*\\n\\*\\s]+?)\\*(?!\\*)(?!\\S)", "<i>$1</i>");
+        
+        // Italic: _text_ (single underscore) - be very careful
+        // Don't match if it looks like mathematical notation (contains ^, \, {, }, etc.)
+        // Only match simple text with underscores for emphasis
+        result = result.replaceAll("(?<!_)(?<!\\w)(?<!\\^)(?<!\\\\)_([^_\\n\\^\\\\{}()\\[\\]\\+\\-\\*\\/=\\<>\\s]+?)_(?!_)(?!\\w)(?!\\^)", "<i>$1</i>");
+        
+        // Links: [text](url) - most reliable markdown pattern
+        result = result.replaceAll("\\[([^\\]\\n]+)\\]\\(([^\\)\\n]+)\\)", "<a href=\"$2\">$1</a>");
         
         return result;
     }
     
     /**
-     * Escape HTML except placeholders (like ___INLINE_CODE_X___)
+     * Escape HTML except placeholders (like ___INLINE_CODE_X___ and __PROTECTED_LATEX_X__)
+     * Improved to handle Unicode characters and special symbols properly
      */
     private static String escapeHtmlExceptPlaceholders(String text) {
         if (text == null) return "";
         
         // Escape HTML but preserve placeholders
         StringBuilder sb = new StringBuilder();
-        boolean inPlaceholder = false;
         int i = 0;
         
         while (i < text.length()) {
+            // Check for inline code placeholder
             if (i < text.length() - 3 && text.substring(i, i + 3).equals("___")) {
-                // Start of placeholder - find end
+                // Start of inline code placeholder - find end
                 int end = text.indexOf("___", i + 3);
                 if (end > i) {
                     // Preserve placeholder
@@ -310,7 +486,26 @@ public class MarkdownHelper {
                 }
             }
             
+            // Check for LaTeX placeholder
+            if (i < text.length() - 18 && text.substring(i, i + 18).startsWith("__PROTECTED_LATEX_")) {
+                // Find the end of LaTeX placeholder (ends with __)
+                int placeholderStart = i;
+                int placeholderEnd = text.indexOf("__", i + 18);
+                if (placeholderEnd > i && placeholderEnd < text.length() - 1) {
+                    // Check if it's followed by another __ or end of string
+                    if (text.substring(placeholderEnd + 2).matches("^[^_].*") || 
+                        placeholderEnd + 2 >= text.length()) {
+                        // Preserve LaTeX placeholder
+                        sb.append(text, placeholderStart, placeholderEnd + 2);
+                        i = placeholderEnd + 2;
+                        continue;
+                    }
+                }
+            }
+            
             char c = text.charAt(i);
+            // Escape HTML special characters
+            // Note: Unicode characters like α, β, etc. are preserved as-is
             switch (c) {
                 case '&':
                     sb.append("&amp;");
@@ -328,6 +523,7 @@ public class MarkdownHelper {
                     sb.append("&#39;");
                     break;
                 default:
+                    // Preserve all other characters including Unicode (α, β, etc.)
                     sb.append(c);
                     break;
             }

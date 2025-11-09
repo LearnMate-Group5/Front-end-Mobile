@@ -18,6 +18,9 @@ import android.widget.SeekBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.webkit.WebView;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebSettings;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,6 +33,7 @@ import com.example.LearnMate.network.api.AiHighlightService;
 import com.example.LearnMate.network.dto.AiHighlightRequest;
 import com.example.LearnMate.network.dto.AiHighlightResponse;
 import com.example.LearnMate.util.MarkdownHelper;
+import com.example.LearnMate.util.MarkdownWithMathHelper;
 
 import java.util.List;
 import java.util.UUID;
@@ -60,6 +64,21 @@ public class ReaderActivity extends AppCompatActivity {
     // Text-to-Speech
     private android.media.MediaPlayer mediaPlayer;
     private boolean isPlayingAudio = false;
+    
+    // WebView for content display
+    private WebView webViewContent;
+    
+    // JavaScript interface for text selection
+    private class WebAppInterface {
+        @JavascriptInterface
+        public void onTextSelected(String selectedText) {
+            runOnUiThread(() -> {
+                if (selectedText != null && !selectedText.trim().isEmpty()) {
+                    fetchHighlightInfo(selectedText.trim(), webViewContent, 0, 0);
+                }
+            });
+        }
+    }
 
     /** Helper mở Reader nhanh */
     public static void open(Context ctx, Uri pdfUri, int chapterIndex, String mode) {
@@ -106,6 +125,9 @@ public class ReaderActivity extends AppCompatActivity {
             this.currentUserId = UUID.randomUUID().toString();
         }
         this.currentSessionId = UUID.randomUUID().toString();
+        
+        // Setup WebView for content display (only once) - must be called before showing messages
+        setupWebView();
         
         // Setup text selection for highlighting
         setupTextSelection();
@@ -158,16 +180,14 @@ public class ReaderActivity extends AppCompatActivity {
     }
 
     private void showNoDataMessage() {
-        TextView tvContent = findViewById(R.id.tvContent);
-        if (tvContent != null) {
-            tvContent.setText("Chưa có dữ liệu. Vui lòng upload PDF và chờ xử lý hoàn tất.");
+        if (webViewContent != null) {
+            MarkdownWithMathHelper.renderMarkdownWithMath(webViewContent, "Chưa có dữ liệu. Vui lòng upload PDF và chờ xử lý hoàn tất.");
         }
     }
 
     private void showWaitingMessage() {
-        TextView tvContent = findViewById(R.id.tvContent);
-        if (tvContent != null) {
-            tvContent.setText("Đang xử lý PDF... Vui lòng chờ trong giây lát. Dữ liệu sẽ được cập nhật tự động.");
+        if (webViewContent != null) {
+            MarkdownWithMathHelper.renderMarkdownWithMath(webViewContent, "Đang xử lý PDF... Vui lòng chờ trong giây lát. Dữ liệu sẽ được cập nhật tự động.");
         }
     }
 
@@ -180,7 +200,7 @@ public class ReaderActivity extends AppCompatActivity {
         // Cập nhật UI
         TextView tvBookTitle = findViewById(R.id.tvBookTitle);
         TextView tvChapterTitle = findViewById(R.id.tvChapterTitle);
-        TextView tvContent = findViewById(R.id.tvContent);
+        webViewContent = findViewById(R.id.webViewContent);
 
         if (tvBookTitle != null) {
             tvBookTitle.setText("PDF Document");
@@ -190,7 +210,7 @@ public class ReaderActivity extends AppCompatActivity {
             tvChapterTitle.setText(currentChapter.title);
         }
 
-        if (tvContent != null) {
+        if (webViewContent != null) {
             // Hiển thị nội dung dựa trên mode hiện tại
             String contentToDisplay;
             if ("translate".equals(currentMode)) {
@@ -199,21 +219,87 @@ public class ReaderActivity extends AppCompatActivity {
                 contentToDisplay = currentChapter.content != null ? currentChapter.content : "";
             }
             
-            // Render markdown (with fallback if Markwon is not available)
+            // Render markdown with MathJax
             if (contentToDisplay != null && !contentToDisplay.isEmpty()) {
-                MarkdownHelper.renderMarkdown(tvContent, contentToDisplay);
+                MarkdownWithMathHelper.renderMarkdownWithMath(webViewContent, contentToDisplay);
+                // Inject text selection script and apply font size after a delay to ensure page is loaded
+                webViewContent.postDelayed(() -> {
+                    injectTextSelectionScript(webViewContent);
+                    applyFontSize(webViewContent, currentFontSize);
+                }, 1000);
+                // Also inject after longer delay to catch MathJax rendering
+                webViewContent.postDelayed(() -> {
+                    injectTextSelectionScript(webViewContent);
+                    applyFontSize(webViewContent, currentFontSize);
+                }, 3000);
             } else {
-                tvContent.setText("");
+                webViewContent.loadData("", "text/html", "UTF-8");
             }
-            
-            tvContent.setTextSize(currentFontSize);
-            
-            // Re-enable text selection after setting text
-            tvContent.setTextIsSelectable(true);
         }
 
         // Update bookmark icon
         updateBookmarkIcon();
+    }
+    
+    /**
+     * Inject JavaScript for text selection in WebView
+     */
+    private void injectTextSelectionScript(WebView webView) {
+        String script = 
+            "(function() {" +
+            "  if (window.textSelectionHandlerAdded) return;" +
+            "  window.textSelectionHandlerAdded = true;" +
+            "  " +
+            "  var lastSelection = '';" +
+            "  var selectionTimer = null;" +
+            "  " +
+            "  function checkSelection() {" +
+            "    var selection = window.getSelection();" +
+            "    var selectedText = selection.toString().trim();" +
+            "    " +
+            "    if (selectedText.length > 0 && selectedText !== lastSelection) {" +
+            "      lastSelection = selectedText;" +
+            "      if (window.Android && window.Android.onTextSelected) {" +
+            "        window.Android.onTextSelected(selectedText);" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "  " +
+            "  document.addEventListener('mouseup', function() {" +
+            "    clearTimeout(selectionTimer);" +
+            "    selectionTimer = setTimeout(checkSelection, 100);" +
+            "  });" +
+            "  " +
+            "  document.addEventListener('touchend', function() {" +
+            "    clearTimeout(selectionTimer);" +
+            "    selectionTimer = setTimeout(checkSelection, 300);" +
+            "  });" +
+            "})();";
+        
+        webView.evaluateJavascript(script, null);
+    }
+    
+    /**
+     * Apply font size to WebView content
+     */
+    private void applyFontSize(WebView webView, float fontSize) {
+        if (webView == null) return;
+        
+        String script = String.format(
+            "(function() {" +
+            "  var styleId = 'custom-font-size-style';" +
+            "  var existingStyle = document.getElementById(styleId);" +
+            "  if (existingStyle) {" +
+            "    existingStyle.remove();" +
+            "  }" +
+            "  var style = document.createElement('style');" +
+            "  style.id = styleId;" +
+            "  style.innerHTML = 'body { font-size: %fpx !important; }';" +
+            "  document.head.appendChild(style);" +
+            "})();",
+            fontSize
+        );
+        webView.evaluateJavascript(script, null);
     }
 
     private void setupNavigationButtons() {
@@ -268,9 +354,9 @@ public class ReaderActivity extends AppCompatActivity {
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     if (fromUser) {
                         currentFontSize = 12 + progress; // 12sp to 24sp
-                        TextView tvContent = findViewById(R.id.tvContent);
-                        if (tvContent != null) {
-                            tvContent.setTextSize(currentFontSize);
+                        WebView webViewContent = findViewById(R.id.webViewContent);
+                        if (webViewContent != null) {
+                            applyFontSize(webViewContent, currentFontSize);
                         }
                     }
                 }
@@ -366,88 +452,62 @@ public class ReaderActivity extends AppCompatActivity {
     }
 
     private void setupTextSelection() {
-        TextView tvContent = findViewById(R.id.tvContent);
-        if (tvContent == null) return;
+        // Text selection in WebView is handled via JavaScript interface
+        // The JavaScript will call onTextSelected when text is selected
+        // This is set up in setupWebView()
+    }
+    
+    /**
+     * Setup WebView for content display (only called once)
+     */
+    private void setupWebView() {
+        webViewContent = findViewById(R.id.webViewContent);
+        if (webViewContent == null) return;
         
-        // Enable text selection
-        tvContent.setTextIsSelectable(true);
+        // Setup WebView for MathJax rendering
+        MarkdownWithMathHelper.setupWebViewForMath(webViewContent);
         
-        // Setup long press listener để tự động highlight
-        tvContent.setOnLongClickListener(v -> {
-            int start = tvContent.getSelectionStart();
-            int end = tvContent.getSelectionEnd();
-            
-            if (start >= 0 && end > start) {
-                String selectedText = tvContent.getText().toString().substring(start, end).trim();
-                if (!selectedText.isEmpty()) {
-                    // Auto-trigger highlight khi long press
-                    fetchHighlightInfo(selectedText, tvContent, start, end);
-                    return true;
-                }
-            }
-            return false;
-        });
-        
-        // Setup custom ActionMode callback để handle highlight
-        tvContent.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
-            @Override
-            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                // Thêm menu item "AI Highlight"
-                MenuItem highlightItem = menu.add(0, android.R.id.copy, 0, "AI Highlight");
-                highlightItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-                return true;
-            }
-            
-            @Override
-            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                return true;
-            }
-            
-            @Override
-            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                if (item.getItemId() == android.R.id.copy) {
-                    // Trigger highlight
-                    highlightCurrentText();
-                    mode.finish(); // Close action mode
-                    return true;
-                }
-                return false;
-            }
-            
-            @Override
-            public void onDestroyActionMode(ActionMode mode) {
-                // Selection mode ended
-            }
-        });
-        
-        // Note: User can select text and use action menu or long press to highlight
+        // Add JavaScript interface for text selection (must be added before loading content)
+        webViewContent.addJavascriptInterface(new WebAppInterface(), "Android");
     }
 
     private void highlightCurrentText() {
-        TextView tvContent = findViewById(R.id.tvContent);
-        if (tvContent == null) {
+        WebView webViewContent = findViewById(R.id.webViewContent);
+        if (webViewContent == null) {
             Toast.makeText(this, "No content available", Toast.LENGTH_SHORT).show();
             return;
         }
         
-        int start = tvContent.getSelectionStart();
-        int end = tvContent.getSelectionEnd();
-        
-        if (start < 0 || end <= start) {
-            Toast.makeText(this, "Please select text first", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        
-        String selectedText = tvContent.getText().toString().substring(start, end).trim();
-        if (selectedText.isEmpty()) {
-            Toast.makeText(this, "Please select some text", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        
-        fetchHighlightInfo(selectedText, tvContent, start, end);
+        // Get selected text from WebView via JavaScript
+        webViewContent.evaluateJavascript(
+            "(function() {" +
+            "  var selection = window.getSelection();" +
+            "  return selection.toString().trim();" +
+            "})();",
+            new android.webkit.ValueCallback<String>() {
+                @Override
+                public void onReceiveValue(String value) {
+                    // Remove quotes from JavaScript string result
+                    if (value != null && value.length() > 2) {
+                        String selectedText = value.substring(1, value.length() - 1)
+                            .replace("\\n", "\n")
+                            .replace("\\\"", "\"")
+                            .replace("\\\\", "\\")
+                            .trim();
+                        if (!selectedText.isEmpty()) {
+                            fetchHighlightInfo(selectedText, webViewContent, 0, 0);
+                        } else {
+                            Toast.makeText(ReaderActivity.this, "Please select some text", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(ReaderActivity.this, "Please select text first", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        );
     }
     
-    private void fetchHighlightInfo(String selectedText, TextView tvContent, int start, int end) {
+    private void fetchHighlightInfo(String selectedText, WebView webViewContent, int start, int end) {
         // Log request details
         Log.d("ReaderActivity", "=== AI Highlight Request ===");
         Log.d("ReaderActivity", "Selected text: " + selectedText);
@@ -462,7 +522,7 @@ public class ReaderActivity extends AppCompatActivity {
         );
         
         // Show loading popup
-        showHighlightPopup(selectedText, null, true, tvContent, start, end);
+        showHighlightPopup(selectedText, null, true, webViewContent, start, end);
         
         // Call API
         aiHighlightService.getHighlightInfo(request).enqueue(new Callback<List<AiHighlightResponse>>() {
@@ -506,10 +566,9 @@ public class ReaderActivity extends AppCompatActivity {
                     }
                     
                     // Show popup with info
-                    showHighlightPopup(selectedText, info, false, tvContent, start, end);
+                    showHighlightPopup(selectedText, info, false, webViewContent, start, end);
                     
-                    // Highlight text visually
-                    highlightTextInView(tvContent, start, end);
+                    // Note: WebView text highlighting is handled by browser selection, no need to manually highlight
                 } else {
                     String errorMsg = "Failed to get information";
                     if (response.code() == 401) {
@@ -532,7 +591,7 @@ public class ReaderActivity extends AppCompatActivity {
                         }
                     }
                     
-                    showHighlightPopup(selectedText, errorMsg, false, tvContent, start, end);
+                    showHighlightPopup(selectedText, errorMsg, false, webViewContent, start, end);
                 }
             }
             
@@ -549,25 +608,15 @@ public class ReaderActivity extends AppCompatActivity {
                         errorMsg = "Webhook not found. Please check n8n webhook path: webhook/ai-highlight";
                     }
                 }
-                showHighlightPopup(selectedText, errorMsg, false, tvContent, start, end);
+                showHighlightPopup(selectedText, errorMsg, false, webViewContent, start, end);
                 Log.e("ReaderActivity", "Highlight API failure", t);
                 t.printStackTrace();
             }
         });
     }
     
-    private void highlightTextInView(TextView tv, int start, int end) {
-        // Visual highlight sẽ được handle bởi selection, không cần thêm
-        // Chỉ cần đảm bảo selection vẫn được giữ
-        tv.post(() -> {
-            if (tv.getText() instanceof android.text.Spannable) {
-                Selection.setSelection((android.text.Spannable) tv.getText(), start, end);
-            }
-        });
-    }
-    
     private void showHighlightPopup(String highlightedWord, String info, boolean isLoading, 
-                                     TextView tvContent, int selectionStart, int selectionEnd) {
+                                     WebView webViewContent, int selectionStart, int selectionEnd) {
         // Dismiss existing popup
         if (highlightPopup != null && highlightPopup.isShowing()) {
             highlightPopup.dismiss();
@@ -618,80 +667,9 @@ public class ReaderActivity extends AppCompatActivity {
             });
         }
         
-        // Create and show popup near selected text
-        if (tvContent != null && tvContent.getLayout() != null && 
-            selectionStart >= 0 && selectionEnd > selectionStart) {
-            try {
-                // Get line info for selected text
-                int lineStart = tvContent.getLayout().getLineForOffset(selectionStart);
-                int lineEnd = tvContent.getLayout().getLineForOffset(selectionEnd);
-                
-                // Use the start line for positioning
-                int lineBottom = tvContent.getLayout().getLineBottom(lineStart);
-                float xStart = tvContent.getLayout().getPrimaryHorizontal(selectionStart);
-                float xEnd = tvContent.getLayout().getPrimaryHorizontal(selectionEnd);
-                float xCenter = (xStart + xEnd) / 2;
-                
-                // Get TextView position on screen
-                int[] location = new int[2];
-                tvContent.getLocationOnScreen(location);
-                
-                // Calculate popup position
-                int popupWidth = (int) (300 * getResources().getDisplayMetrics().density); // 300dp
-                int popupX = location[0] + (int) xCenter - (popupWidth / 2);
-                int popupY = location[1] + lineBottom + (int) (16 * getResources().getDisplayMetrics().density); // 16dp offset
-                
-                // Ensure popup doesn't go off screen
-                int screenWidth = getResources().getDisplayMetrics().widthPixels;
-                if (popupX < 0) {
-                    popupX = (int) (16 * getResources().getDisplayMetrics().density); // 16dp margin
-                } else if (popupX + popupWidth > screenWidth) {
-                    popupX = screenWidth - popupWidth - (int) (16 * getResources().getDisplayMetrics().density);
-                }
-                
-                // Ensure popup doesn't go below screen
-                int screenHeight = getResources().getDisplayMetrics().heightPixels;
-                int maxPopupHeight = (int) (500 * getResources().getDisplayMetrics().density); // 500dp max
-                if (popupY + maxPopupHeight > screenHeight) {
-                    // Show above text instead
-                    int lineTop = tvContent.getLayout().getLineTop(lineStart);
-                    popupY = location[1] + lineTop - maxPopupHeight - (int) (16 * getResources().getDisplayMetrics().density);
-                    if (popupY < 0) {
-                        popupY = (int) (16 * getResources().getDisplayMetrics().density);
-                    }
-                }
-                
-                highlightPopup = new PopupWindow(
-                    popupView,
-                    popupWidth,
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-                    true
-                );
-                
-                highlightPopup.setOutsideTouchable(true);
-                highlightPopup.setFocusable(true);
-                highlightPopup.setBackgroundDrawable(getResources().getDrawable(R.drawable.popup_background));
-                highlightPopup.setElevation(8);
-                
-                // Show popup at calculated position
-                highlightPopup.showAtLocation(
-                    findViewById(android.R.id.content),
-                    android.view.Gravity.NO_GRAVITY,
-                    popupX,
-                    popupY
-                );
-                
-                Log.d("ReaderActivity", "Popup shown at: (" + popupX + ", " + popupY + ")");
-                
-            } catch (Exception e) {
-                Log.e("ReaderActivity", "Error showing popup at text position", e);
-                // Fallback: show at center
-                showPopupAtCenter(popupView);
-            }
-        } else {
-            // Fallback: show at center
-            showPopupAtCenter(popupView);
-        }
+        // For WebView, show popup at center (positioning near selected text is complex in WebView)
+        // Fallback: show at center
+        showPopupAtCenter(popupView);
     }
     
     private void showPopupAtCenter(View popupView) {
