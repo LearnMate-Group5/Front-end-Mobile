@@ -36,7 +36,8 @@ public class ZaloPayPaymentHelper {
     
     private static final String TAG = "ZaloPayPaymentHelper";
     public static final String ZALOPAY_DEEPLINK_SCHEME = "learnmate";
-    // Deep link redirects to PaymentSuccessActivity after payment completion
+    // ZaloPay uses SDK callbacks, but we still provide redirect URL for backend
+    // Backend will redirect here, and SDK callback will also trigger
     public static final String ZALOPAY_RETURN_URL = "learnmate://payment/success";
     
     private Activity activity;
@@ -170,7 +171,9 @@ public class ZaloPayPaymentHelper {
             @Override
             public void onPaymentSucceeded(String transactionId, String zpTransToken, String appTransId) {
                 Log.d(TAG, "Payment succeeded! TransactionId: " + transactionId);
-                Toast.makeText(activity, "Thanh toán thành công!", Toast.LENGTH_LONG).show();
+                
+                // Navigate to PaymentSuccessActivity programmatically
+                navigateToPaymentSuccess(transactionId, appTransId, "success");
                 
                 if (listener != null) {
                     listener.onPaymentSuccess(transactionId);
@@ -197,6 +200,37 @@ public class ZaloPayPaymentHelper {
                 }
             }
         });
+    }
+    
+    /**
+     * Navigate to PaymentSuccessActivity using deep link (same as MoMo)
+     * This ensures consistent behavior with MoMo payment
+     * 
+     * @param transactionId Transaction ID from ZaloPay
+     * @param appTransId App transaction ID
+     * @param status Payment status (success, failed, cancelled)
+     */
+    private void navigateToPaymentSuccess(String transactionId, String appTransId, String status) {
+        try {
+            // Use deep link to trigger PaymentSuccessActivity (same as MoMo)
+            String deepLink = String.format(
+                "learnmate://payment/success?status=%s&orderId=%s&transactionId=%s&message=%s&method=zalopay",
+                status,
+                appTransId != null ? appTransId : "unknown",
+                transactionId != null ? transactionId : "unknown",
+                "Thanh toán ZaloPay thành công"
+            );
+            
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(deepLink));
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            activity.startActivity(intent);
+            activity.finish(); // Close current payment activity
+            
+            Log.d(TAG, "Navigated to PaymentSuccessActivity via deep link: " + deepLink);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to navigate to PaymentSuccessActivity", e);
+            Toast.makeText(activity, "Thanh toán thành công nhưng không thể chuyển trang", Toast.LENGTH_LONG).show();
+        }
     }
     
 }

@@ -42,11 +42,37 @@ public class PaymentSuccessActivity extends AppCompatActivity {
     }
     
     /**
-     * Handle deep link từ payment providers
-     * Format: learnmate://payment/success?status=...&orderId=...&message=...
+     * Handle deep link từ payment providers (MoMo) OR intent extras từ ZaloPay SDK
+     * Deep link format: learnmate://payment/success?status=...&orderId=...&message=...
+     * Intent extras: payment_method, transaction_id, status, message
      */
     private void handleDeepLink(Intent intent) {
-        if (intent == null || intent.getData() == null) {
+        if (intent == null) {
+            return;
+        }
+        
+        // Check if this is from ZaloPay SDK (Intent extras)
+        if (intent.hasExtra("payment_method")) {
+            String paymentMethod = intent.getStringExtra("payment_method");
+            String transactionId = intent.getStringExtra("transaction_id");
+            String status = intent.getStringExtra("status");
+            String message = intent.getStringExtra("message");
+            
+            Log.d(TAG, "Payment from SDK - Method: " + paymentMethod);
+            Log.d(TAG, "Transaction ID: " + transactionId);
+            Log.d(TAG, "Status: " + status);
+            Log.d(TAG, "Message: " + message);
+            
+            // Update UI with payment details
+            if (message != null && !message.isEmpty()) {
+                textSuccessMessage.setText(message);
+            }
+            
+            return;
+        }
+        
+        // Check if this is from deep link (MoMo)
+        if (intent.getData() == null) {
             return;
         }
         
@@ -57,7 +83,7 @@ public class PaymentSuccessActivity extends AppCompatActivity {
         String status = uri.getQueryParameter("status");
         String orderId = uri.getQueryParameter("orderId");
         String message = uri.getQueryParameter("message");
-        String paymentMethod = uri.getQueryParameter("method"); // momo, zalopay, etc.
+        String paymentMethod = uri.getQueryParameter("method"); // momo
         
         // Log payment details
         Log.d(TAG, "Payment Status: " + status);

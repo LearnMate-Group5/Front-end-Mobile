@@ -193,13 +193,8 @@ public class SubscriptionPaymentActivity extends AppCompatActivity {
             public void onPaymentSuccess(String transactionId) {
                 hideLoading();
                 Log.d(TAG, "ZaloPay payment success: " + transactionId);
-                Toast.makeText(SubscriptionPaymentActivity.this, 
-                    "Thanh toán thành công!", Toast.LENGTH_LONG).show();
-                // Quay về SubscriptionActivity và refresh
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra("payment_success", true);
-                setResult(RESULT_OK, resultIntent);
-                finish();
+                // No need to do anything here - ZaloPayHelper will navigate to PaymentSuccessActivity
+                // Activity will be closed by the helper after navigation
             }
             
             @Override

@@ -24,6 +24,5 @@ public final class ApiConfig {
 
     public static final String AI_TRANSLATE_BASE_URL = BASE_URL; 
 
-    public static final String AI_TRANSLATE_BASE_URL = BASE_URL;
 
 }
