@@ -62,5 +62,15 @@ public interface SubscriptionService {
      */
     @POST("api/Subscription/plans/cancel")
     Call<Void> cancelSubscription();
+
+    /**
+     * Nâng cấp subscription plan
+     * POST /api/Subscription/plans/{subscriptionId}/upgrade
+     * 
+     * @param subscriptionId UUID của subscription plan muốn nâng cấp lên
+     * @return CurrentSubscriptionResponse với thông tin subscription đã nâng cấp
+     */
+    @POST("api/Subscription/plans/{subscriptionId}/upgrade")
+    Call<CurrentSubscriptionResponse> upgradePlan(@Path("subscriptionId") String subscriptionId);
 }
 

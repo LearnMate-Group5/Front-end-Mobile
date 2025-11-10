@@ -16,18 +16,9 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 
-import com.example.LearnMate.managers.FirebaseAuthManager;
 import com.example.LearnMate.presenter.SignupPresenter;
 import com.example.LearnMate.view.SignupView;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.Task;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -42,9 +33,6 @@ public class SignupActivity extends AppCompatActivity implements SignupView {
     private TextView privacyPolicy, goToSignIn;
     private CheckBox privacyCheckbox;
     private Button btnSignUp;
-    private AppCompatButton btnGoogleSignUp;
-    private FirebaseAuthManager firebaseAuthManager;
-    private ActivityResultLauncher<Intent> googleSignInLauncher;
     private Calendar selectedDate;
 
     private SignupPresenter presenter;
@@ -65,7 +53,6 @@ public class SignupActivity extends AppCompatActivity implements SignupView {
         privacyPolicy = findViewById(R.id.privacyPolicy);
         privacyCheckbox = findViewById(R.id.privacyCheckbox);
         btnSignUp = findViewById(R.id.btnSignUp);
-        btnGoogleSignUp = findViewById(R.id.btnGoogleSignUp);
         goToSignIn = findViewById(R.id.goToSignIn);
 
         // Setup Gender Spinner
@@ -80,36 +67,6 @@ public class SignupActivity extends AppCompatActivity implements SignupView {
 
         // Presenter
         presenter = new SignupPresenter(this, this);
-        
-        // Initialize Firebase Auth Manager
-        firebaseAuthManager = new FirebaseAuthManager(this);
-
-        // Register for activity result
-        googleSignInLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                new ActivityResultCallback<ActivityResult>() {
-                    @Override
-                    public void onActivityResult(ActivityResult result) {
-                        if (result.getData() == null) { 
-                            Toast.makeText(SignupActivity.this, "Đăng nhập Google đã bị hủy", Toast.LENGTH_SHORT).show(); 
-                            return; 
-                        }
-                        Task<GoogleSignInAccount> task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.getData());
-                        firebaseAuthManager.handleGoogleSignInResult(task, new FirebaseAuthManager.FirebaseAuthCallback() {
-                            @Override
-                            public void onSuccess(String idToken, String email, String displayName) {
-                                // Gọi API backend với Firebase ID token
-                                presenter.performFirebaseSignup(idToken, email, displayName);
-                            }
-
-                            @Override
-                            public void onError(String errorMessage) {
-                                showSignupError(errorMessage);
-                            }
-                        });
-                    }
-                }
-        );
 
         btnBack.setOnClickListener(v -> finish());
         privacyPolicy.setOnClickListener(v -> Toast.makeText(this, "Mở Chính Sách Bảo Mật", Toast.LENGTH_SHORT).show());
@@ -150,12 +107,6 @@ public class SignupActivity extends AppCompatActivity implements SignupView {
         });
 
         goToSignIn.setOnClickListener(v -> presenter.onLoginClicked());
-        btnGoogleSignUp.setOnClickListener(v -> {
-            Log.d("SignupActivity", "Google Sign-In button clicked");
-            Intent intent = firebaseAuthManager.getGoogleSignInClient().getSignInIntent();
-            Log.d("SignupActivity", "Launching Google Sign-In intent");
-            googleSignInLauncher.launch(intent);
-        });
 
         inputPasswordSignUp.setOnTouchListener((v, event) -> {
             if (event.getAction() == android.view.MotionEvent.ACTION_UP) {

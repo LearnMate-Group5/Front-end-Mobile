@@ -57,6 +57,11 @@
             android:launchMode="singleTop">
         </activity>
         <activity
+            android:name=".SubscriptionUpgradeActivity"
+            android:exported="false"
+            android:launchMode="singleTop">
+        </activity>
+        <activity
             android:name=".SubscriptionPaymentActivity"
             android:exported="false"
             android:launchMode="singleTop">
@@ -77,6 +82,9 @@
         </activity>
         <activity
             android:name=".ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PaymentHistoryActivity"
             android:exported="false" />
         <activity
             android:name=".SearchActivity"

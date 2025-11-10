@@ -85,6 +85,8 @@ public class SessionManager {
         
         // Clear subscription cache
         com.example.LearnMate.managers.SubscriptionManager.getInstance(appContext).clearSubscription();
+        // Clear user profile cache
+        com.example.LearnMate.managers.UserManager.getInstance(appContext).clearUserProfile();
 
         // Điều hướng về màn Welcome và xoá toàn bộ back stack
         Intent i = new Intent(activity, WelcomeActivity.class);

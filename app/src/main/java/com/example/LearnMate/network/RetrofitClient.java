@@ -10,6 +10,7 @@ import com.example.LearnMate.network.api.AiTranslateService;
 import com.example.LearnMate.network.api.AuthService;
 import com.example.LearnMate.network.api.BookService;
 import com.example.LearnMate.network.api.MoMoService;
+import com.example.LearnMate.network.api.PaymentService;
 import com.example.LearnMate.network.api.PayOSService;
 import com.example.LearnMate.network.api.SubscriptionService;
 import com.example.LearnMate.network.api.TTSService;
@@ -57,6 +58,7 @@ public final class RetrofitClient {
     private static AiTranslateService cachedAiTranslateService;
     private static BookService cachedBookService;
     private static MoMoService cachedMoMoService;
+    private static PaymentService cachedPaymentService;
     private static PayOSService cachedPayOSService;
     private static SubscriptionService cachedSubscriptionService;
     private static TTSService cachedTTSService;
@@ -192,6 +194,7 @@ public final class RetrofitClient {
         cachedAiTranslateService = null;
         cachedBookService = null;
         cachedMoMoService = null;
+        cachedPaymentService = null;
         cachedPayOSService = null;
         cachedSubscriptionService = null;
         cachedTTSService = null;
@@ -345,6 +348,22 @@ public final class RetrofitClient {
             cachedZaloPayService = retrofitWithAuth.create(ZaloPayService.class);
         }
         return cachedZaloPayService;
+    }
+
+    // Dịch vụ Payment — dùng client có auth (vì cần user context)
+    public static PaymentService getPaymentService(Context appContext) {
+        if (cachedPaymentService == null) {
+            if (retrofitWithAuth == null) {
+                Gson gson = new GsonBuilder().setLenient().create();
+                retrofitWithAuth = new Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .client(getAuthenticatedClient(appContext))
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+            }
+            cachedPaymentService = retrofitWithAuth.create(PaymentService.class);
+        }
+        return cachedPaymentService;
     }
 
     // Dịch vụ TTS (Text-to-Speech) — dùng client không auth, base URL riêng, timeout dài

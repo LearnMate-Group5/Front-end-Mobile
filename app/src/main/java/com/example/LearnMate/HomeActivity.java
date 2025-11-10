@@ -93,6 +93,7 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
         com.example.LearnMate.managers.SessionManager sessionManager = new com.example.LearnMate.managers.SessionManager(this);
         if (sessionManager.isLoggedIn()) {
             com.example.LearnMate.managers.SubscriptionManager.getInstance(this).loadSubscriptionFromAPI();
+            com.example.LearnMate.managers.UserManager.getInstance(this).loadUserProfileFromAPI();
         }
     }
 
@@ -124,6 +125,7 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
                 new com.example.LearnMate.managers.SessionManager(this);
             if (sessionManager.isLoggedIn()) {
                 com.example.LearnMate.managers.SubscriptionManager.getInstance(this).loadSubscriptionFromAPI();
+                com.example.LearnMate.managers.UserManager.getInstance(this).loadUserProfileFromAPI();
             }
             // Xóa flag để không refresh lại lần sau
             intent.removeExtra("refresh_subscription");
@@ -193,6 +195,7 @@ public class HomeActivity extends AppCompatActivity implements HomeContract.View
                 new com.example.LearnMate.managers.SessionManager(this);
             if (sessionManager.isLoggedIn()) {
                 com.example.LearnMate.managers.SubscriptionManager.getInstance(this).loadSubscriptionFromAPI();
+                com.example.LearnMate.managers.UserManager.getInstance(this).loadUserProfileFromAPI();
             }
         }
     }

@@ -111,4 +111,10 @@
         <item name="itemIconTint">@color/selector_bottom_nav</item>
         <item name="itemTextColor">@color/selector_bottom_nav</item>
     </style>
+    
+    <!-- Shape Appearance Overlay for circular ImageView (50% corner radius) -->
+    <style name="ShapeAppearanceOverlay.App.CircularImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>

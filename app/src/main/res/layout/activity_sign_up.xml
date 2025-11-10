@@ -221,25 +221,11 @@
             android:id="@+id/btnSignUp"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="30dp"
             android:backgroundTint="@color/purple"
             android:text="BẮT ĐẦU"
             android:textColor="@android:color/white"
             android:textSize="18sp"
-            android:textStyle="bold"
-            app:cornerRadius="8dp"/>
-
-        <!-- Google Button -->
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnGoogleSignUp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginBottom="30dp"
-            android:drawableLeft="@drawable/ic_google_origin"
-            android:drawablePadding="8dp"
-            android:text="TIẾP TỤC VỚI GOOGLE"
-            android:textColor="@color/black"
-            android:background="@drawable/edittext_background"
             android:textStyle="bold"
             app:cornerRadius="8dp"/>
 

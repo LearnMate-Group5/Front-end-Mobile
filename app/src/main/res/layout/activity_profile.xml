@@ -55,6 +55,40 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
+                    <!-- Avatar Section -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_marginBottom="24dp">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/imgAvatar"
+                            android:layout_width="120dp"
+                            android:layout_height="120dp"
+                            android:layout_marginBottom="12dp"
+                            android:src="@drawable/logo_learnmate"
+                            android:contentDescription="Ảnh đại diện"
+                            android:scaleType="centerCrop"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CircularImageView"
+                            app:strokeWidth="0dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnChangeAvatar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Đổi Ảnh Đại Diện"
+                            android:textSize="14sp"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="8dp"
+                            android:enabled="false"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            app:backgroundTint="@android:color/transparent"
+                            android:textColor="@color/purple_primary" />
+
+                    </LinearLayout>
+
                     <!-- Username -->
                     <TextView
                         android:layout_width="wrap_content"
@@ -78,30 +112,6 @@
                         android:textSize="16sp"
                         android:enabled="false"
                         android:inputType="text" />
-
-                    <!-- Password -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:text="Mật Khẩu"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <EditText
-                        android:id="@+id/etPassword"
-                        android:layout_width="match_parent"
-                        android:layout_height="56dp"
-                        android:layout_marginBottom="16dp"
-                        android:background="@drawable/edit_text_background_material"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="16dp"
-                        android:text="****************"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:enabled="false"
-                        android:inputType="textPassword" />
 
                     <!-- Email -->
                     <TextView
@@ -183,7 +193,7 @@
                         android:id="@+id/etBirth"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:layout_marginBottom="24dp"
+                        android:layout_marginBottom="16dp"
                         android:background="@drawable/edit_text_background_material"
                         android:gravity="center_vertical"
                         android:paddingHorizontal="16dp"
@@ -191,7 +201,28 @@
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:enabled="false"
-                        android:inputType="date" />
+                        android:inputType="date"
+                        android:focusable="false"
+                        android:clickable="true" />
+
+                    <!-- Gender -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="Giới Tính"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/spinnerGender"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginBottom="24dp"
+                        android:background="@drawable/edit_text_background_material"
+                        android:paddingHorizontal="16dp"
+                        android:enabled="false" />
 
                     <!-- Edit Profile Button -->
                     <com.google.android.material.button.MaterialButton

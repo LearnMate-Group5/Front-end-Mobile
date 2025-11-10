@@ -654,7 +654,8 @@ public class ReaderActivity extends AppCompatActivity {
             if (svContent != null) svContent.setVisibility(View.VISIBLE);
             if (tvError != null) tvError.setVisibility(View.GONE);
             if (tvInfo != null) {
-                tvInfo.setText(info);
+                // Render markdown content đẹp và đúng
+                MarkdownHelper.renderMarkdown(tvInfo, info);
             }
         }
         
@@ -673,9 +674,15 @@ public class ReaderActivity extends AppCompatActivity {
     }
     
     private void showPopupAtCenter(View popupView) {
+        // Tính toán width = 2/3 màn hình
+        android.util.DisplayMetrics displayMetrics = new android.util.DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenWidth = displayMetrics.widthPixels;
+        int popupWidth = (int) (screenWidth * 2.0 / 3.0);
+        
         highlightPopup = new PopupWindow(
             popupView,
-            android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+            popupWidth,
             android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
             true
         );
