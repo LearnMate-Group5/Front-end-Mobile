@@ -17,12 +17,29 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.LearnMate.components.BottomNavigationComponent;
 
 import com.example.LearnMate.managers.SessionManager;
+import com.example.LearnMate.managers.SubscriptionManager;
+import com.example.LearnMate.managers.UserManager;
+import com.example.LearnMate.network.RetrofitClient;
+import com.example.LearnMate.network.api.AuthService;
+import com.example.LearnMate.network.api.SubscriptionService;
 import com.example.LearnMate.network.dto.CurrentSubscriptionResponse;
+import com.example.LearnMate.network.dto.UserRolesMeResponse;
+
+import androidx.appcompat.app.AlertDialog;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SettingsActivity extends AppCompatActivity {
 
     private TextView tvUserName;
     private TextView tvUserEmail;
+    private ImageView imgAvatar;
     private MaterialButton btnShowProfile;
     private ImageView btnSettings;
     private LinearLayout btnLogout;
@@ -32,9 +49,15 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView tvCurrentPlanStatus;
     private TextView tvCurrentPlanName;
     private TextView tvCurrentPlanFeatures;
+    private MaterialButton btnUpgrade;
+    private MaterialButton btnCancel;
 
     private SessionManager sessionManager;
     private BottomNavigationComponent bottomNavComponent;
+    private AuthService authService;
+    private UserManager userManager;
+    private SubscriptionService subscriptionService;
+    private CurrentSubscriptionResponse currentSubscription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,9 +65,13 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         sessionManager = new SessionManager(this);
+        authService = RetrofitClient.getAuthService(this);
+        subscriptionService = RetrofitClient.getSubscriptionService(this);
+        userManager = UserManager.getInstance(this);
 
         tvUserName = findViewById(R.id.tvUserName);
         tvUserEmail = findViewById(R.id.tvUserEmail);
+        imgAvatar = findViewById(R.id.imgAvatar);
         btnShowProfile = findViewById(R.id.btnShowProfile);
         // btnSettings = findViewById(R.id.btnSettings); // This ID does not exist in
         // the layout
@@ -56,6 +83,8 @@ public class SettingsActivity extends AppCompatActivity {
         tvCurrentPlanStatus = findViewById(R.id.tvCurrentPlanStatus);
         tvCurrentPlanName = findViewById(R.id.tvCurrentPlanName);
         tvCurrentPlanFeatures = findViewById(R.id.tvCurrentPlanFeatures);
+        btnUpgrade = findViewById(R.id.btnUpgrade);
+        btnCancel = findViewById(R.id.btnCancel);
 
         btnLogout.setOnClickListener(v -> sessionManager.logout(SettingsActivity.this));
         bottomNavComponent.setSelectedItem(R.id.nav_profile);
@@ -64,8 +93,39 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(new Intent(this, ProfileActivity.class));
         });
 
+        // Payment History button
+        LinearLayout btnPaymentHistory = findViewById(R.id.btnPaymentHistory);
+        if (btnPaymentHistory != null) {
+            btnPaymentHistory.setOnClickListener(v -> {
+                startActivity(new Intent(this, PaymentHistoryActivity.class));
+            });
+        }
+
+        // Upgrade button
+        if (btnUpgrade != null) {
+            btnUpgrade.setOnClickListener(v -> {
+                if (currentSubscription != null && currentSubscription.subscriptionId != null) {
+                    Intent intent = new Intent(this, SubscriptionUpgradeActivity.class);
+                    intent.putExtra("currentSubscriptionId", currentSubscription.subscriptionId);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, "Không thể nâng cấp. Vui lòng đăng ký gói trước.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        // Cancel button
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> {
+                showCancelSubscriptionDialog();
+            });
+        }
+
         // Subscription button click - Set listener trực tiếp
         setupSubscriptionClickListener();
+        
+        // Load user profile từ cache hoặc API
+        loadUserProfile();
         
         // Load current subscription
         loadCurrentSubscription();
@@ -131,18 +191,107 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        bindUserFromSession();
+        // Load user profile từ cache hoặc API
+        loadUserProfile();
         // Reload current subscription khi quay lại từ SubscriptionActivity hoặc PaymentSuccessActivity
         // Luôn refresh từ API để đảm bảo dữ liệu mới nhất
         loadCurrentSubscription();
     }
 
-    private void bindUserFromSession() {
+    /**
+     * Load user profile từ cache hoặc API
+     * GET /api/User/roles/me
+     */
+    private void loadUserProfile() {
+        // Thử load từ cache trước (nhanh hơn)
+        UserRolesMeResponse cachedProfile = userManager.getUserProfile();
+        if (cachedProfile != null) {
+            Log.d("SettingsActivity", "Using cached user profile: " + cachedProfile.name);
+            displayUserProfile(cachedProfile);
+        } else {
+            // Nếu không có cache, hiển thị empty state và refresh từ API
+            displayEmptyUserProfile();
+        }
+        
+        // Luôn refresh từ API để đảm bảo dữ liệu mới nhất
+        userManager.refreshUserProfile(userProfile -> {
+            if (userProfile != null) {
+                Log.d("SettingsActivity", "User profile refreshed from API: " + userProfile.name);
+                displayUserProfile(userProfile);
+            } else {
+                Log.d("SettingsActivity", "No user profile found after refresh");
+                displayEmptyUserProfile();
+            }
+        });
+    }
+
+    /**
+     * Hiển thị thông tin user profile
+     */
+    private void displayUserProfile(UserRolesMeResponse userProfile) {
+        // Hiển thị name
+        if (userProfile.name != null && !userProfile.name.isEmpty()) {
+            tvUserName.setText(userProfile.name);
+        } else {
+            tvUserName.setText("Người dùng");
+        }
+        
+        // Hiển thị email
+        if (userProfile.email != null && !userProfile.email.isEmpty()) {
+            tvUserEmail.setText(userProfile.email);
+        } else {
+            tvUserEmail.setText("");
+        }
+        
+        // Hiển thị avatar từ Base64
+        if (userProfile.avatarUrl != null && !userProfile.avatarUrl.isEmpty()) {
+            loadAvatarFromBase64(userProfile.avatarUrl);
+        } else {
+            // Hiển thị placeholder nếu không có avatar
+            imgAvatar.setImageResource(R.drawable.logo_learnmate);
+        }
+    }
+
+    /**
+     * Load avatar từ Base64 string
+     */
+    private void loadAvatarFromBase64(String base64String) {
+        try {
+            // Xử lý Base64 string - có thể có prefix "data:image/..." hoặc không
+            String base64Image = base64String;
+            if (base64String.contains(",")) {
+                // Nếu có prefix, lấy phần sau dấu phẩy
+                base64Image = base64String.substring(base64String.indexOf(",") + 1);
+            }
+            
+            // Decode Base64 string thành byte array
+            byte[] decodedBytes = Base64.decode(base64Image, Base64.DEFAULT);
+            
+            // Tạo Bitmap từ byte array
+            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+            
+            if (bitmap != null) {
+                imgAvatar.setImageBitmap(bitmap);
+            } else {
+                Log.w("SettingsActivity", "Failed to decode Base64 image");
+                imgAvatar.setImageResource(R.drawable.logo_learnmate);
+            }
+        } catch (Exception e) {
+            Log.e("SettingsActivity", "Error loading avatar from Base64", e);
+            imgAvatar.setImageResource(R.drawable.logo_learnmate);
+        }
+    }
+
+    /**
+     * Hiển thị empty state khi không có user profile
+     */
+    private void displayEmptyUserProfile() {
         SharedPreferences sp = getSharedPreferences("user_prefs", MODE_PRIVATE);
         String name = sp.getString("user_name", "");
         String email = sp.getString("user_email", "");
-        tvUserName.setText(name);
+        tvUserName.setText(name.isEmpty() ? "Người dùng" : name);
         tvUserEmail.setText(email);
+        imgAvatar.setImageResource(R.drawable.logo_learnmate);
     }
     
     /**
@@ -179,6 +328,8 @@ public class SettingsActivity extends AppCompatActivity {
      * Hiển thị thông tin current subscription
      */
     private void displayCurrentSubscription(CurrentSubscriptionResponse subscription) {
+        currentSubscription = subscription;
+        
         // Hiển thị tên gói
         tvCurrentPlanName.setText(subscription.name != null ? subscription.name : "Gói đăng ký");
         
@@ -193,9 +344,22 @@ public class SettingsActivity extends AppCompatActivity {
             tvCurrentPlanBadge.setVisibility(View.VISIBLE);
             tvCurrentPlanStatus.setVisibility(View.VISIBLE);
             tvCurrentPlanStatus.setText("Hoạt Động");
+            // Hiển thị nút Upgrade và Cancel nếu có subscription
+            if (btnUpgrade != null) {
+                btnUpgrade.setVisibility(View.VISIBLE);
+            }
+            if (btnCancel != null) {
+                btnCancel.setVisibility(View.VISIBLE);
+            }
         } else {
             tvCurrentPlanBadge.setVisibility(View.GONE);
             tvCurrentPlanStatus.setVisibility(View.GONE);
+            if (btnUpgrade != null) {
+                btnUpgrade.setVisibility(View.GONE);
+            }
+            if (btnCancel != null) {
+                btnCancel.setVisibility(View.GONE);
+            }
         }
         
         // Build thông tin chi tiết từ subscription
@@ -347,11 +511,81 @@ public class SettingsActivity extends AppCompatActivity {
      * Hiển thị khi không có subscription
      */
     private void displayEmptySubscription() {
+        currentSubscription = null;
         tvCurrentPlanName.setText("Chưa có gói đăng ký");
         tvCurrentPlanBadge.setVisibility(View.GONE);
         tvCurrentPlanStatus.setVisibility(View.GONE);
         tvCurrentPlanFeatures.setText("• Không có đăng ký hoạt động\n• Chọn gói bên dưới để bắt đầu");
         tvCurrentPlanFeatures.setVisibility(View.VISIBLE);
+        if (btnUpgrade != null) {
+            btnUpgrade.setVisibility(View.GONE);
+        }
+        if (btnCancel != null) {
+            btnCancel.setVisibility(View.GONE);
+        }
+    }
+    
+    /**
+     * Hiển thị dialog xác nhận hủy subscription
+     */
+    private void showCancelSubscriptionDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Xác nhận hủy gói")
+                .setMessage("Bạn có chắc chắn muốn hủy gói hiện tại?")
+                .setPositiveButton("Có", (dialog, which) -> {
+                    cancelSubscription();
+                })
+                .setNegativeButton("Không", (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .show();
+    }
+    
+    /**
+     * Gọi API để hủy subscription
+     * POST /api/Subscription/plans/cancel
+     */
+    private void cancelSubscription() {
+        if (subscriptionService == null) {
+            Toast.makeText(this, "Lỗi: Không thể kết nối đến dịch vụ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Show loading
+        Toast.makeText(this, "Đang hủy gói...", Toast.LENGTH_SHORT).show();
+        
+        subscriptionService.cancelSubscription().enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    // Hủy thành công
+                    Toast.makeText(SettingsActivity.this, "Đã hủy gói thành công", Toast.LENGTH_SHORT).show();
+                    
+                    // Refresh subscription cache
+                    SubscriptionManager.getInstance(SettingsActivity.this).loadSubscriptionFromAPI();
+                    
+                    // Refresh UI
+                    loadCurrentSubscription();
+                } else {
+                    // Hủy thất bại
+                    String errorMsg = "Không thể hủy gói. Vui lòng thử lại.";
+                    if (response.code() == 404) {
+                        errorMsg = "Không tìm thấy gói đăng ký để hủy";
+                    } else if (response.code() == 400) {
+                        errorMsg = "Không thể hủy gói. Vui lòng kiểm tra lại.";
+                    }
+                    Toast.makeText(SettingsActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                    Log.e("SettingsActivity", "Cancel subscription failed: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                String errorMsg = "Lỗi mạng: " + (t.getMessage() != null ? t.getMessage() : "Không xác định");
+                Toast.makeText(SettingsActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                Log.e("SettingsActivity", "Error canceling subscription", t);
+            }
+        });
     }
     
     /**

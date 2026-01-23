@@ -2,11 +2,15 @@ package com.example.LearnMate.network.api;
 
 import com.example.LearnMate.network.dto.*;
 
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -34,14 +38,24 @@ public interface AuthService {
     @GET("/api/User/health")
     Call<Object> health();
 
+    // Lấy thông tin profile và roles của user hiện tại
+    @GET("/api/User/roles/me")
+    Call<UserRolesMeResponse> getUserRolesMe();
+
     // Lấy thông tin profile người dùng
     @PUT("/api/User/{userId}/activation")
     Call<ApiResult<Object>> setActivation(@Path("userId") String userId,
                                           @Query("isActive") boolean isActive);
 
-    @PUT("/api/User/{userId}/profile")
-    Call<ApiResult<Object>> updateUserProfile(@Path("userId") String userId,
-                                              @Body UpdateUserProfileRequest body);
+    @Multipart
+    @PUT("/api/User/profile")
+    Call<ApiResult<Object>> updateUserProfile(
+            @Part("Name") RequestBody name,
+            @Part("Email") RequestBody email,
+            @Part("DateOfBirth") RequestBody dateOfBirth,
+            @Part("Gender") RequestBody gender,
+            @Part("PhoneNumber") RequestBody phoneNumber,
+            @Part MultipartBody.Part avatarFile);
 
     // Forgot Password APIs
     @POST("/api/User/users/password/forgot")
